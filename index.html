@@ -1226,12 +1226,10 @@ function makeEventSlot(di,slot,W){
         toggleEventDone(dk, c, ev.l);
         return;
       }
-      // Any other tap → speak + open edit modal
-      speak(`Jacob, it's time for ${ev.l}!`);
-      ding('tap');
-      jacobSay(`${ev.l}! 🎉`);
-      setTimeout(() => openEventModal(di, slot), 400);
+      // Normal tap → popup (same as activity card)
+      openEventPopup(ev, di, slot);
     });
+    setupLP(c, () => openEventModal(di, slot));
   } else {
     c.innerHTML=`
       <div class="event-top-bar" style="opacity:0.3"></div>
@@ -1301,6 +1299,40 @@ function closeActPopup() {
   document.getElementById('act-popup').classList.remove('show');
   if (_popupSpeakTimer) { clearTimeout(_popupSpeakTimer); _popupSpeakTimer = null; }
   window.speechSynthesis && window.speechSynthesis.cancel();
+}
+
+// Weekend event popup — reuses the same act-popup modal
+function openEventPopup(ev, di, slot) {
+  const popup  = document.getElementById('act-popup');
+  const imgZone = document.getElementById('popup-img-zone');
+  const label   = document.getElementById('popup-label');
+  const subtitle = document.getElementById('popup-subtitle');
+  const topBar  = document.getElementById('popup-top-bar');
+
+  // Orange accent for weekend events
+  topBar.style.background = 'linear-gradient(90deg,#ffb347,#ffd166)';
+
+  // Photo or fallback emoji
+  if (ev.photo) {
+    imgZone.innerHTML = `<img src="${ev.photo}" alt="${ev.l}" style="width:100%;height:100%;object-fit:cover;">`;
+  } else {
+    imgZone.innerHTML = `<div class="act-popup-emoji-big">🎉</div>`;
+  }
+
+  label.textContent = ev.l;
+  subtitle.textContent = `Jacob, it's time for ${ev.l.toLowerCase()}!`;
+
+  // Wave colour — orange
+  document.querySelectorAll('.wave-bar').forEach(b => b.style.background = '#ffb347');
+
+  popup.classList.add('show');
+
+  ding('tap');
+  speak(`Jacob, it's time for ${ev.l}!`);
+  jacobSay(`${ev.l}! 🎉`);
+
+  if (_popupSpeakTimer) clearTimeout(_popupSpeakTimer);
+  _popupSpeakTimer = setTimeout(() => closeActPopup(), 8000);
 }
 
 // ═══════════════════════════════════════════════════════════
