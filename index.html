@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<!-- PWA & iOS -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jacob Hero">
+<meta name="theme-color" content="#2d3561">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<title>Jacob's Daily Hero</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.383.0/umd/lucide.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #dff0fb;
+    --grass: #06d6a0;
+    --coral: #ef476f;
+    --ocean: #118ab2;
+    --sun: #ffd166;
+    --deep: #2d3561;
+    --peach: #fd9e5b;
+    --lavender: #a29bfe;
+    --weekend-bg: rgba(255,179,71,0.12);
+    --weekend-border: #ffb347;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: 'Nunito', sans-serif;
+    touch-action: manipulation;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: linear-gradient(180deg, #b8daf0 0%, #dff0fb 55%, #cdf5e8 100%);
+    z-index: 0; pointer-events: none;
+  }
+  #app { position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column; }
+
+  /* ═══ HEADER ═══════════════════════════════════ */
+  #header {
+    height: 50px;
+    background: linear-gradient(135deg, #2d3561, #1a2040);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px; box-shadow: 0 3px 16px rgba(45,53,97,0.4); flex-shrink: 0;
+  }
+  .header-title {
+    font-family: 'Baloo 2', cursive; font-size: 1.2rem; font-weight: 800;
+    color: white; display: flex; align-items: center; gap: 8px;
+  }
+  .star-anim { animation: star-pulse 3s ease-in-out infinite; display: inline-block; }
+  @keyframes star-pulse { 0%,100%{transform:scale(1)rotate(0deg);} 50%{transform:scale(1.2)rotate(15deg);} }
+  .today-pill { background:var(--sun); color:var(--deep); font-size:0.68rem; font-weight:800; padding:2px 9px; border-radius:20px; }
+  .hdr-btn {
+    background:rgba(255,255,255,0.12); border:1.5px solid rgba(255,255,255,0.2);
+    color:white; border-radius:10px; cursor:pointer; padding:5px 10px;
+    font-family:'Nunito',sans-serif; font-size:0.72rem; font-weight:700;
+    display:flex; align-items:center; gap:5px; transition:background 0.18s;
+  }
+  .hdr-btn:active { background:rgba(255,255,255,0.25); }
+  .hdr-btn.danger { border-color:rgba(239,71,111,0.4); }
+  .header-actions { display:flex; gap:6px; }
+
+  /* ═══ JACOB JOURNEY STRIP ══════════════════════ */
+  #journey-strip { flex-shrink:0; padding:5px 10px 3px; }
+
+  /* ── Racing track ── */
+  .racetrack {
+    position: relative; height: 72px;
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+  }
+
+  /* Asphalt base */
+  .track-asphalt {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 40%, #1e1e1e 100%);
+  }
+
+  /* Animated background scenery — trees & buildings scrolling right→left */
+  .track-scenery {
+    position: absolute; top: 0; left: 0; height: 100%; width: 300%;
+    display: flex; align-items: flex-end;
+    animation: scenery-scroll 6s linear infinite;
+    pointer-events: none; z-index: 1;
+  }
+  @keyframes scenery-scroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-33.33%); }
+  }
+  .scenery-item {
+    flex-shrink: 0;
+    font-size: 1.3rem; line-height: 1;
+    margin-bottom: 4px;
+    opacity: 0.55;
+  }
+
+  /* Road surface lines (center dashes scrolling) */
+  .track-lines {
+    position: absolute; top: 50%; left: 0; right: 0; height: 4px;
+    transform: translateY(-50%);
+    background: repeating-linear-gradient(90deg,
+      #ffd166 0px, #ffd166 28px,
+      transparent 28px, transparent 52px);
+    animation: lines-scroll 0.45s linear infinite;
+    z-index: 2; opacity: 0.8;
+  }
+  @keyframes lines-scroll {
+    from { background-position: 0 0; }
+    to   { background-position: -52px 0; }
+  }
+
+  /* Road edges */
+  .track-edge-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 10px;
+    background: repeating-linear-gradient(90deg,
+      #ef476f 0,#ef476f 18px, white 18px, white 30px);
+    opacity: 0.85; z-index: 2;
+    animation: edge-scroll 0.45s linear infinite;
+  }
+  .track-edge-bot {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 10px;
+    background: repeating-linear-gradient(90deg,
+      white 0,white 18px, #ef476f 18px, #ef476f 30px);
+    opacity: 0.85; z-index: 2;
+    animation: edge-scroll 0.45s linear infinite;
+  }
+  @keyframes edge-scroll {
+    from { background-position: 0 0; }
+    to   { background-position: -30px 0; }
+  }
+
+  /* Speed lines (motion blur effect) */
+  .track-speed {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background: repeating-linear-gradient(90deg,
+      transparent 0, transparent 70px,
+      rgba(255,255,255,0.03) 70px, rgba(255,255,255,0.03) 72px);
+    animation: speed-scroll 0.2s linear infinite;
+  }
+  @keyframes speed-scroll {
+    from { background-position: 0 0; }
+    to   { background-position: -72px 0; }
+  }
+
+  /* 7 day slot dividers (subtle) */
+  #road-lanes {
+    position: absolute; inset: 0; z-index: 3;
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    pointer-events: none;
+  }
+  .road-lane {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-start; padding-top: 2px;
+    position: relative;
+  }
+  .road-lane::after {
+    content: ''; position: absolute; top: 12px; bottom: 12px; right: 0;
+    width: 1px; background: rgba(255,255,255,0.08);
+  }
+  .lane-day-label {
+    font-family: 'Baloo 2', cursive; font-size: 0.6rem; font-weight: 800;
+    color: rgba(255,255,255,0.4); line-height: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  }
+  .lane-day-label.is-today   { color: #ffd166; opacity: 1; font-size: 0.66rem; }
+  .lane-day-label.is-weekend { color: #fd9e5b; opacity: 0.9; }
+
+  /* Weekend event icons on track */
+  .lane-event-icon {
+    font-size: 1rem; cursor: pointer; line-height: 1;
+    transition: transform 0.15s; position: relative; z-index: 4;
+    pointer-events: all;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
+  }
+  .lane-event-icon:active { transform: scale(1.3); }
+  .lane-add-icon { font-size: 0.7rem; opacity: 0.3; cursor: pointer; pointer-events: all; color: white; }
+
+  /* ── Jacob car ── */
+  #jacob-char {
+    position: absolute;
+    bottom: 10px;
+    display: flex; flex-direction: column; align-items: center;
+    transition: left 1.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 10; pointer-events: none;
+  }
+
+  /* Speech bubble */
+  .jacob-speech {
+    background: white; border-radius: 10px; padding: 3px 8px;
+    font-size: 0.48rem; font-weight: 800; color: var(--deep);
+    white-space: nowrap; box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    margin-bottom: 3px; opacity: 0; transition: opacity 0.3s; position: relative;
+  }
+  .jacob-speech::after {
+    content: ''; position: absolute; top: 100%; left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent; border-top-color: white;
+  }
+  #jacob-char.speaking .jacob-speech { opacity: 1; }
+
+  /* Car body */
+  .jacob-car {
+    position: relative; display: flex; flex-direction: column; align-items: center;
+    animation: car-bounce 0.3s ease-in-out infinite alternate;
+  }
+  @keyframes car-bounce {
+    from { transform: translateY(0) rotate(-0.5deg); }
+    to   { transform: translateY(-1.5px) rotate(0.5deg); }
+  }
+
+  /* Car silhouette drawn with CSS */
+  .car-body {
+    width: 44px; height: 20px;
+    background: linear-gradient(135deg, #ef476f, #c0392b);
+    border-radius: 6px 6px 3px 3px;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .car-roof {
+    width: 26px; height: 11px;
+    background: linear-gradient(135deg, #ff6b6b, #ef476f);
+    border-radius: 5px 5px 0 0;
+    position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  /* Windscreen */
+  .car-roof::before {
+    content: ''; position: absolute;
+    inset: 2px 4px 1px;
+    background: rgba(150,220,255,0.5);
+    border-radius: 3px 3px 0 0;
+  }
+  /* Jacob photo inside car */
+  .car-driver {
+    position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+    width: 18px; height: 18px; border-radius: 50%;
+    overflow: hidden; border: 2px solid white;
+    background: linear-gradient(135deg, #a29bfe, #74b9ff);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; z-index: 2;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .car-driver img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* Exhaust puff */
+  .car-body::after {
+    content: '💨';
+    position: absolute; right: 100%; top: 50%; transform: translateY(-50%);
+    font-size: 0.7rem; opacity: 0.6;
+    animation: puff 0.5s ease-out infinite;
+  }
+  @keyframes puff {
+    0%   { transform: translateY(-50%) scale(0.5) translateX(0); opacity: 0.7; }
+    100% { transform: translateY(-55%) scale(1.2) translateX(-8px); opacity: 0; }
+  }
+
+  /* Wheels */
+  .car-wheels {
+    display: flex; gap: 20px; margin-top: 1px;
+  }
+  .wheel {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #555, #111);
+    border: 2px solid #333;
+    animation: spin-wheel 0.2s linear infinite;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  }
+  @keyframes spin-wheel {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* Checkered flag at Sunday end */
+  .finish-flag {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    font-size: 1.4rem; z-index: 5; pointer-events: none;
+    animation: flag-wave 1s ease-in-out infinite alternate;
+  }
+  @keyframes flag-wave {
+    from { transform: translateY(-50%) rotate(-5deg); }
+    to   { transform: translateY(-52%) rotate(5deg); }
+  }
+
+  /* Upload Jacob photo btn */
+  #jacob-photo-btn {
+    position: absolute; top: 4px; left: 8px;
+    background: rgba(0,0,0,0.55); border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 8px; color: white;
+    cursor: pointer; padding: 3px 8px; font-size: 0.55rem; font-weight: 800;
+    display: flex; align-items: center; gap: 3px; z-index: 20;
+    white-space: nowrap; backdrop-filter: blur(4px);
+  }
+
+  /* ═══ DAYS BAR ══════════════════════════════════ */
+  #days-bar {
+    display:grid; grid-template-columns:repeat(7,1fr);
+    gap:5px; padding:3px 10px 2px; flex-shrink:0;
+  }
+  .day-col-hdr {
+    text-align:center; font-family:'Baloo 2',cursive;
+    font-size:0.7rem; font-weight:800; padding:3px 2px;
+    border-radius:9px; display:flex; flex-direction:column; align-items:center; gap:1px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+  /* Past days — grayed out, not tappable */
+  .day-col-hdr.past {
+    background:rgba(255,255,255,0.3); color:rgba(45,53,97,0.3);
+    opacity:0.5;
+  }
+  /* Future weekdays — tappable, bright */
+  .day-col-hdr.weekday { background:rgba(255,255,255,0.65); color:var(--deep); cursor:pointer; }
+  .day-col-hdr.weekday:active { transform:scale(0.94); }
+  /* Future weekend — tappable */
+  .day-col-hdr.weekend { background:rgba(255,179,71,0.22); border:1.5px solid rgba(255,179,71,0.45); color:#c0560a; cursor:pointer; }
+  .day-col-hdr.weekend:active { transform:scale(0.94); }
+  /* Today */
+  .day-col-hdr.today { background:var(--deep); color:white; box-shadow:0 3px 12px rgba(45,53,97,0.28); cursor:pointer; }
+  .day-col-hdr.today:active { transform:scale(0.96); }
+  /* Tomorrow — special highlight ring */
+  .day-col-hdr.tomorrow {
+    outline: 2px solid var(--ocean);
+    outline-offset: 1px;
+  }
+  .today-dot { width:4px; height:4px; background:var(--sun); border-radius:50%; }
+
+  /* Tiny label under day name */
+  .day-when-label {
+    font-size:0.44rem; font-weight:700; opacity:0.75; line-height:1;
+    font-family:'Nunito', sans-serif;
+  }
+  .day-col-hdr.today .day-when-label { opacity:0.85; color:var(--sun); }
+  .day-col-hdr.tomorrow .day-when-label { color:var(--ocean); opacity:1; }
+
+  /* ═══ MAIN GRID ══════════════════════════════════ */
+  #schedule-grid {
+    display:grid; grid-template-columns:repeat(7,1fr);
+    gap:5px; padding:0 10px 4px;
+    flex:1; min-height:0; overflow:hidden;
+  }
+  .day-col {
+    display:flex; flex-direction:column; gap:4px; min-height:0;
+  }
+  .day-col.weekend { /* no extra padding — same as weekday so heights match */ }
+
+  /* ═══ ACTIVITY CARD ══════════════════════════════ */
+  .activity-card {
+    flex:1; border-radius:13px; position:relative; overflow:hidden;
+    cursor:pointer; transition:transform 0.14s, box-shadow 0.14s;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+    background:white; display:flex; flex-direction:column; min-height:0;
+  }
+  .activity-card:active { transform:scale(0.95); }
+  .activity-card.done { opacity:0.62; }
+
+  .card-top-bar { height:4px; width:100%; flex-shrink:0; }
+
+  .card-img-zone {
+    flex:1; position:relative; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; min-height:0;
+  }
+  .card-img-zone img.act-photo { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .card-placeholder { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
+  .card-emoji-big { font-size:clamp(0.9rem,2vw,1.7rem); line-height:1; }
+
+  .done-veil {
+    position:absolute; inset:0; background:rgba(6,214,160,0.4);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; transition:opacity 0.3s; z-index:3;
+  }
+  .done-circle {
+    width:clamp(16px,2.2vw,28px); height:clamp(16px,2.2vw,28px);
+    background:white; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--grass); box-shadow:0 2px 8px rgba(6,214,160,0.4);
+  }
+  .activity-card.done .done-veil { opacity:1; }
+
+  .cam-btn {
+    position:absolute; bottom:4px; right:4px;
+    background:rgba(45,53,97,0.7); border:none; border-radius:7px; color:white;
+    cursor:pointer; padding:4px; z-index:4;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .cam-btn:active { background:rgba(45,53,97,0.95); }
+
+  .done-btn {
+    position:absolute; top:4px; right:4px;
+    background: #06d6a0;
+    border: 2px solid white;
+    border-radius: 7px;
+    width: 22px; height: 22px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; z-index:4;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    transition: background 0.18s, transform 0.15s;
+  }
+  .done-btn:active { transform: scale(0.88); }
+  .activity-card.done .done-btn { background: #ef476f; }
+
+  .done-badge {
+    position:absolute; top:4px; left:4px;
+    background: linear-gradient(135deg, #06d6a0, #04a87d);
+    color:white; border-radius:6px;
+    font-size:0.55rem; font-weight:800; padding:2px 6px;
+    opacity:0; transition:opacity 0.3s; z-index:5;
+    text-transform:uppercase; letter-spacing:0.3px;
+    box-shadow: 0 2px 6px rgba(6,214,160,0.5);
+  }
+  .activity-card.done .done-badge { opacity:1; }
+
+  /* Done card — green tint on label area too so it's obvious */
+  .activity-card.done .card-label-area {
+    background: #e8faf5;
+  }
+  .activity-card.done .card-label { color: #04a87d; }
+
+  .card-label-area { padding:3px 3px 4px; flex-shrink:0; text-align:center; background:white; }
+  .card-label {
+    font-family:'Baloo 2',cursive; font-size:clamp(0.45rem,0.85vw,0.65rem);
+    font-weight:700; color:var(--deep); line-height:1.1; display:block;
+  }
+
+  /* ═══ WEEKEND EVENT SLOT — same structure as activity-card ══════ */
+  .event-slot {
+    flex:1; border-radius:13px; position:relative; overflow:hidden;
+    cursor:pointer; transition:transform 0.14s, box-shadow 0.14s;
+    box-shadow:0 2px 10px rgba(0,0,0,0.07);
+    background:white; display:flex; flex-direction:column; min-height:0;
+    border:2px dashed rgba(255,179,71,0.6);
+  }
+  .event-slot:active { transform:scale(0.95); }
+  .event-slot.filled { border:2px solid rgba(255,179,71,0.5); box-shadow:0 2px 10px rgba(255,179,71,0.2); }
+  .event-slot.ev-done { opacity:0.62; }
+
+  /* Top accent bar (orange for weekend) */
+  .event-top-bar { height:4px; width:100%; flex-shrink:0; background: linear-gradient(90deg,#ffb347,#ffd166); }
+
+  /* Image zone — same as card-img-zone */
+  .event-img-zone {
+    flex:1; position:relative; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    min-height:0; background:rgba(255,243,224,0.4);
+  }
+  .event-slot.filled .event-img-zone { background:transparent; }
+
+  .event-emoji { font-size:clamp(1rem,2vw,1.8rem); line-height:1; }
+  .event-add-icon { font-size:1.6rem; opacity:0.25; line-height:1; }
+  .event-add-txt { font-size:clamp(0.32rem,0.6vw,0.48rem); color:rgba(192,86,10,0.45); font-weight:700; text-align:center; margin-top:2px; }
+
+  /* Done veil — same as activity-card */
+  .event-done-veil {
+    position:absolute; inset:0;
+    background:rgba(6,214,160,0.38); display:flex; align-items:center; justify-content:center;
+    opacity:0; transition:opacity 0.3s; z-index:3;
+  }
+  .event-slot.ev-done .event-done-veil { opacity:1; }
+
+  /* Done button — same visible style as activity done-btn */
+  .event-done-btn {
+    position:absolute; top:4px; right:4px;
+    background: #06d6a0;
+    border: 2px solid white;
+    border-radius: 7px;
+    width: 22px; height: 22px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; z-index:4;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    transition: background 0.18s, transform 0.15s;
+  }
+  .event-done-btn:active { transform: scale(0.88); }
+  .event-slot.ev-done .event-done-btn { background: #ef476f; }
+
+  /* Done badge */
+  .event-done-badge {
+    position:absolute; top:4px; left:4px;
+    background:var(--grass); color:white; border-radius:5px;
+    font-size:0.4rem; font-weight:800; padding:1px 4px;
+    opacity:0; transition:opacity 0.3s; z-index:5;
+    text-transform:uppercase;
+  }
+  .event-slot.ev-done .event-done-badge { opacity:1; }
+
+  /* Label area — same as card-label-area */
+  .event-label-area { padding:3px 3px 4px; flex-shrink:0; text-align:center; background:white; }
+  .event-name {
+    font-family:'Baloo 2',cursive; font-size:clamp(0.42rem,0.8vw,0.6rem);
+    font-weight:700; color:#c0560a; line-height:1.1; display:block;
+  }
+  .event-name.empty { color:rgba(192,86,10,0.4); }
+
+  /* ═══ PROGRESS ═══════════════════════════════════ */
+  #progress-wrap { padding:0 10px 5px; flex-shrink:0; }
+  .prog-track { height:5px; background:rgba(255,255,255,0.6); border-radius:10px; overflow:hidden; }
+  #prog-fill { height:100%; background:linear-gradient(90deg,var(--grass),var(--ocean)); border-radius:10px; transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1); width:0; }
+  #prog-label { font-size:0.58rem; font-weight:700; color:var(--deep); text-align:right; margin-top:2px; opacity:0.6; }
+
+  /* ═══ TOAST ══════════════════════════════════════ */
+  #toast {
+    position:fixed; bottom:14px; left:50%;
+    transform:translateX(-50%) translateY(80px);
+    background:var(--deep); color:white; padding:8px 18px; border-radius:40px;
+    font-size:0.8rem; font-weight:700; z-index:999;
+    transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    white-space:nowrap; box-shadow:0 6px 24px rgba(45,53,97,0.3); pointer-events:none;
+  }
+  #toast.show { transform:translateX(-50%) translateY(0); }
+
+  /* ═══ CONFETTI ═══════════════════════════════════ */
+  .confetti { position:fixed; width:7px; height:7px; border-radius:2px; pointer-events:none; z-index:998; animation:conf 1.1s ease-out forwards; }
+  @keyframes conf { 0%{transform:translateY(0)rotate(0)scale(1);opacity:1;} 100%{transform:translateY(180px)rotate(720deg)scale(0);opacity:0;} }
+
+  /* ═══ ACTIVITY POPUP (full-screen tap modal) ════ */
+  #act-popup {
+    display: none;
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,0.75);
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(12px);
+    cursor: pointer;
+  }
+  #act-popup.show { display: flex; }
+
+  .act-popup-card {
+    position: relative;
+    background: white;
+    border-radius: 28px;
+    overflow: hidden;
+    width: min(85vw, 460px);
+    max-height: 82vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    animation: popup-in 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popup-in {
+    from { transform: scale(0.6) translateY(40px); opacity: 0; }
+    to   { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  .act-popup-top-bar { height: 8px; width: 100%; flex-shrink: 0; }
+
+  /* Big photo or emoji */
+  .act-popup-img {
+    width: 100%; flex: 1; min-height: 220px; max-height: 340px;
+    position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #f0f4ff, #e8f4fd);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .act-popup-img img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .act-popup-emoji-big {
+    font-size: 7rem; line-height: 1;
+    animation: emoji-bounce 1s ease-in-out infinite alternate;
+  }
+  @keyframes emoji-bounce {
+    from { transform: scale(1) rotate(-3deg); }
+    to   { transform: scale(1.08) rotate(3deg); }
+  }
+
+  /* Tap hint ripple on image */
+  .act-popup-img::after {
+    content: '👆 Tap anywhere to close';
+    position: absolute; bottom: 10px; right: 12px;
+    background: rgba(0,0,0,0.45); color: white;
+    font-size: 0.6rem; font-weight: 700; font-family: 'Nunito', sans-serif;
+    padding: 4px 10px; border-radius: 20px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* Bottom info strip */
+  .act-popup-info {
+    padding: 16px 20px 20px;
+    text-align: center; flex-shrink: 0;
+    background: white;
+  }
+  .act-popup-label {
+    font-family: 'Baloo 2', cursive;
+    font-size: 2rem; font-weight: 800;
+    color: var(--deep); line-height: 1.1; display: block;
+  }
+  .act-popup-subtitle {
+    font-size: 0.82rem; font-weight: 600; color: #888;
+    margin-top: 4px; display: block;
+  }
+  .act-popup-wave {
+    margin-top: 12px;
+    display: flex; justify-content: center; gap: 4px;
+  }
+  .wave-bar {
+    width: 4px; border-radius: 4px;
+    background: var(--ocean);
+    animation: wave-anim 0.8s ease-in-out infinite alternate;
+  }
+  .wave-bar:nth-child(1){ height:10px; animation-delay:0s; }
+  .wave-bar:nth-child(2){ height:20px; animation-delay:0.1s; }
+  .wave-bar:nth-child(3){ height:14px; animation-delay:0.2s; }
+  .wave-bar:nth-child(4){ height:24px; animation-delay:0.3s; }
+  .wave-bar:nth-child(5){ height:10px; animation-delay:0.4s; }
+  @keyframes wave-anim {
+    from { transform: scaleY(0.4); opacity: 0.5; }
+    to   { transform: scaleY(1);   opacity: 1; }
+  }
+
+  /* Close X button */
+  .act-popup-close {
+    position: absolute; top: 14px; right: 14px;
+    background: rgba(0,0,0,0.35); border: none; border-radius: 50%;
+    width: 32px; height: 32px; color: white; font-size: 1rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    z-index: 10; backdrop-filter: blur(4px);
+    transition: background 0.2s;
+  }
+  .act-popup-close:hover { background: rgba(0,0,0,0.6); }
+
+  /* Modals */
+  .modal-bg {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.55); z-index:200;
+    align-items:center; justify-content:center; backdrop-filter:blur(8px);
+  }
+  .modal-bg.show { display:flex; }
+  .modal-box {
+    background:white; border-radius:22px; padding:22px;
+    width:90%; max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,0.22);
+  }
+  .modal-box h3 { font-family:'Baloo 2',cursive; font-size:1.1rem; font-weight:800; color:var(--deep); margin-bottom:4px; }
+  .modal-sub { font-size:0.73rem; color:#aaa; margin-bottom:14px; }
+
+  /* Photo modal */
+  .ph-opt {
+    display:flex; align-items:center; gap:10px; width:100%;
+    background:var(--sky); border:2px solid transparent; border-radius:13px;
+    padding:11px 15px; cursor:pointer; font-family:'Nunito',sans-serif; font-size:0.83rem; font-weight:700;
+    color:var(--deep); margin-bottom:8px; transition:border-color 0.2s;
+  }
+  .ph-opt:hover { border-color:var(--ocean); }
+  .ph-ico { width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+  .cancel-lnk { background:none; border:none; color:#ccc; font-family:'Nunito',sans-serif; font-weight:700; font-size:0.78rem; cursor:pointer; margin-top:6px; padding:5px 14px; display:block; text-align:center; }
+
+  /* Edit modal */
+  .edit-inp {
+    width:100%; padding:10px 12px; border:2.5px solid #e0e6ff; border-radius:11px;
+    font-family:'Nunito',sans-serif; font-size:0.92rem; font-weight:600; color:var(--deep);
+    outline:none; margin-bottom:11px; transition:border-color 0.2s;
+  }
+  .edit-inp:focus { border-color:var(--ocean); }
+  .modal-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+  .mb { padding:8px 16px; border:none; border-radius:9px; font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:800; cursor:pointer; }
+  .mb.primary { background:var(--deep); color:white; }
+  .mb.secondary { background:#f0f4ff; color:var(--deep); }
+  .mb.danger-btn { background:#fff0f3; color:var(--coral); }
+
+  /* Event picker */
+  .event-pick-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:12px; max-height:220px; overflow-y:auto; }
+  .ev-choice {
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    background:var(--sky); border:2.5px solid transparent; border-radius:13px;
+    padding:8px 4px; cursor:pointer; font-size:1.5rem; line-height:1;
+    transition:border-color 0.18s, background 0.18s;
+  }
+  .ev-choice:hover, .ev-choice.picked { border-color:var(--ocean); background:#d8eef8; }
+  .ev-choice span { font-family:'Baloo 2',cursive; font-size:0.55rem; font-weight:800; color:var(--deep); text-align:center; }
+
+  /* Reward modal */
+  #reward-modal .rw-box {
+    background:linear-gradient(135deg,#2d3561,#1a2040); border-radius:26px; padding:30px 24px;
+    text-align:center; color:white; max-width:300px; width:88%;
+    box-shadow:0 24px 70px rgba(0,0,0,0.35);
+  }
+  .rw-star { font-size:3.2rem; animation:bop 0.55s ease infinite alternate; display:block; }
+  @keyframes bop { from{transform:scale(1)rotate(0);} to{transform:scale(1.18)rotate(12deg);} }
+  .rw-box h2 { font-family:'Baloo 2',cursive; font-size:1.4rem; font-weight:800; margin:10px 0 6px; }
+  .rw-box p { font-size:0.83rem; opacity:0.8; }
+  .rw-btn { margin-top:18px; background:var(--sun); color:var(--deep); border:none; border-radius:12px; padding:10px 26px; font-family:'Baloo 2',cursive; font-size:0.9rem; font-weight:800; cursor:pointer; }
+
+  .file-input { display:none; }
+
+  /* ═══ PRINT ══════════════════════════════════════ */
+  @media print {
+    @page { size:A4 landscape; margin:8mm; }
+    html,body { width:100%!important; height:auto!important; overflow:visible!important; background:white!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    body::before { display:none!important; }
+    #app { height:auto!important; overflow:visible!important; display:block!important; }
+    #header { background:#2d3561!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; height:38px!important; margin-bottom:4px; }
+    #header .header-actions, #jacob-photo-btn, .cam-btn, .done-btn, .event-done-btn, #progress-wrap, #toast, .modal-bg, #act-popup { display:none!important; }
+    #journey-strip { padding:2px 6px!important; }
+    .road { height:42px!important; }
+    #days-bar { padding:2px 6px!important; gap:3px!important; }
+    #schedule-grid { padding:0 6px 3px!important; gap:3px!important; height:auto!important; overflow:visible!important; }
+    .day-col { height:auto!important; }
+    .activity-card, .event-slot { height:88px!important; flex:none!important; border:1.5px solid #ddd!important; box-shadow:none!important; }
+    .day-col-hdr.today { background:#2d3561!important; color:white!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .card-top-bar, .event-slot.filled { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <div id="header">
+    <div class="header-title">
+      <span class="star-anim">⭐</span>
+      Jacob's Daily Hero
+      <span class="today-pill" id="today-badge">MON</span>
+    </div>
+    <div class="header-actions">
+      <button class="hdr-btn" onclick="window.print()">
+        <i data-lucide="printer" style="width:12px;height:12px"></i> Print
+      </button>
+      <button class="hdr-btn danger" onclick="confirmReset()">
+        <i data-lucide="refresh-ccw" style="width:12px;height:12px"></i> Reset
+      </button>
+    </div>
+  </div>
+
+  <!-- JACOB JOURNEY STRIP — RACING TRACK -->
+  <div id="journey-strip">
+    <div class="racetrack">
+      <!-- Asphalt -->
+      <div class="track-asphalt"></div>
+      <!-- Scrolling scenery -->
+      <div class="track-scenery" id="track-scenery"></div>
+      <!-- Speed lines -->
+      <div class="track-speed"></div>
+      <!-- Center dashes -->
+      <div class="track-lines"></div>
+      <!-- Red/white kerb edges -->
+      <div class="track-edge-top"></div>
+      <div class="track-edge-bot"></div>
+      <!-- 7 day lanes overlay -->
+      <div id="road-lanes"></div>
+      <!-- Finish flag at end -->
+      <div class="finish-flag">🏁</div>
+
+      <!-- Jacob's racing car -->
+      <div id="jacob-char">
+        <div class="jacob-speech" id="jacob-speech">Vroom! 🏎️</div>
+        <div class="jacob-car" onclick="onCarClick()" style="cursor:pointer;pointer-events:all;">
+          <div class="car-roof">
+            <div class="car-driver" id="car-driver">👦</div>
+          </div>
+          <div class="car-body"></div>
+          <div class="car-wheels">
+            <div class="wheel"></div>
+            <div class="wheel"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Jacob photo -->
+      <button id="jacob-photo-btn" onclick="triggerJacobPhoto()">
+        <i data-lucide="camera" style="width:9px;height:9px"></i> Jacob 📷
+      </button>
+    </div>
+  </div>
+
+  <!-- DAYS BAR -->
+  <div id="days-bar"></div>
+
+  <!-- SCHEDULE GRID -->
+  <div id="schedule-grid"></div>
+
+  <!-- PROGRESS -->
+  <div id="progress-wrap">
+    <div class="prog-track"><div id="prog-fill"></div></div>
+    <div id="prog-label">0 of 0 done today</div>
+  </div>
+
+</div>
+
+<!-- ACTIVITY POPUP — fullscreen tap to dismiss -->
+<div id="act-popup" onclick="closeActPopup()">
+  <div class="act-popup-card" onclick="event.stopPropagation()">
+    <button class="act-popup-close" onclick="closeActPopup()">✕</button>
+    <div class="act-popup-top-bar" id="popup-top-bar"></div>
+    <div class="act-popup-img" id="popup-img-zone">
+      <!-- filled by JS: img or emoji -->
+    </div>
+    <div class="act-popup-info">
+      <span class="act-popup-label" id="popup-label">Wake Up</span>
+      <span class="act-popup-subtitle" id="popup-subtitle">Jacob, it's time to wake up!</span>
+      <div class="act-popup-wave">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHOTO MODAL -->
+<div class="modal-bg" id="photo-modal">
+  <div class="modal-box" style="max-width:340px;text-align:center;">
+    <h3>📸 Add Photo</h3>
+    <p class="modal-sub" id="photo-sub">Choose photo for this activity</p>
+    <button class="ph-opt" onclick="triggerCam()">
+      <div class="ph-ico" style="background:#dff0fb">📷</div>
+      <div style="text-align:left"><div>Take a Photo</div><div style="font-size:0.62rem;color:#bbb;font-weight:500">iPad camera</div></div>
+    </button>
+    <button class="ph-opt" onclick="triggerGallery()">
+      <div class="ph-ico" style="background:#f0fff8">🖼️</div>
+      <div style="text-align:left"><div>Choose from Gallery</div><div style="font-size:0.62rem;color:#bbb;font-weight:500">Existing photo</div></div>
+    </button>
+    <button class="ph-opt" id="rm-photo-btn" onclick="removeActPhoto()" style="display:none">
+      <div class="ph-ico" style="background:#fff0f3">🗑️</div>
+      <div style="text-align:left;color:#ef476f"><div>Remove Photo</div></div>
+    </button>
+    <button class="cancel-lnk" onclick="closeModal('photo-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-bg" id="edit-modal">
+  <div class="modal-box" style="max-width:330px;">
+    <h3>✏️ Edit Activity</h3>
+    <input class="edit-inp" id="edit-name" placeholder="Activity name..." maxlength="20">
+    <div style="font-size:0.65rem;font-weight:800;color:#bbb;margin-bottom:6px;text-transform:uppercase;">Choose Emoji</div>
+    <div id="emoji-grid" style="display:flex;flex-wrap:wrap;gap:5px;max-height:88px;overflow-y:auto;margin-bottom:12px;"></div>
+    <div class="modal-footer">
+      <button class="mb danger-btn" onclick="clearActPhotos()">Clear Photos</button>
+      <button class="mb secondary" onclick="closeModal('edit-modal')">Cancel</button>
+      <button class="mb primary" onclick="saveEdit()">Save ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- WEEKEND EVENT MODAL — photo upload -->
+<div class="modal-bg" id="event-modal">
+  <div class="modal-box" style="max-width:340px;text-align:center;">
+    <h3>🎉 Weekend Fun!</h3>
+    <p class="modal-sub" id="event-sub">Add a photo for this activity</p>
+
+    <!-- Preview area -->
+    <div id="ev-preview" style="width:100%;height:140px;border-radius:14px;overflow:hidden;background:#f0f4ff;display:flex;align-items:center;justify-content:center;margin-bottom:14px;position:relative;">
+      <div id="ev-preview-inner" style="font-size:3rem;">📷</div>
+    </div>
+
+    <!-- Activity name input -->
+    <input class="edit-inp" id="ev-name-inp" placeholder="Activity name... (e.g. Swimming)" maxlength="24" style="margin-bottom:12px;">
+
+    <!-- Upload buttons -->
+    <button class="ph-opt" onclick="evTriggerCam()">
+      <div class="ph-ico" style="background:#dff0fb">📷</div>
+      <div style="text-align:left"><div>Take a Photo</div><div style="font-size:0.62rem;color:#bbb;font-weight:500">iPad camera</div></div>
+    </button>
+    <button class="ph-opt" onclick="evTriggerGallery()">
+      <div class="ph-ico" style="background:#f0fff8">🖼️</div>
+      <div style="text-align:left"><div>Choose from Gallery</div><div style="font-size:0.62rem;color:#bbb;font-weight:500">Existing photo</div></div>
+    </button>
+    <button class="ph-opt" id="ev-rm-photo-btn" onclick="evRemovePhoto()" style="display:none">
+      <div class="ph-ico" style="background:#fff0f3">🗑️</div>
+      <div style="text-align:left;color:#ef476f"><div>Remove Photo</div><div style="font-size:0.62rem;color:#bbb;font-weight:500">Show emoji instead</div></div>
+    </button>
+
+    <div class="modal-footer">
+      <button class="mb danger-btn" id="ev-rm-btn" onclick="removeEvent()" style="display:none">Delete Event</button>
+      <button class="mb secondary" onclick="closeModal('event-modal')">Cancel</button>
+      <button class="mb primary" onclick="saveEvent()">Save ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- REWARD MODAL -->
+<div class="modal-bg" id="reward-modal">
+  <div class="rw-box">
+    <span class="rw-star">🌟</span>
+    <h2>Amazing, Jacob!</h2>
+    <p>You finished everything today!<br>You're a true Daily Hero! 🦸</p>
+    <button class="rw-btn" onclick="closeModal('reward-modal')">YAY! ✨</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- Hidden inputs -->
+<input type="file" id="cam-input"    class="file-input" accept="image/*" capture="camera">
+<input type="file" id="gal-input"   class="file-input" accept="image/*">
+<input type="file" id="jacob-input" class="file-input" accept="image/*">
+<input type="file" id="ev-cam-input" class="file-input" accept="image/*" capture="camera">
+<input type="file" id="ev-gal-input" class="file-input" accept="image/*">
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════
+const DAYS_FULL  = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const DAYS_SH    = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+const TODAY_IDX  = (new Date().getDay() + 6) % 7; // 0=Mon
+const WEEKEND    = [5, 6];
+const CARD_CLR   = ['#f7c94a','#06d6a0','#ef476f','#118ab2','#a29bfe','#fd9e5b','#55efc4','#ff7eb3','#ffd166','#74b9ff','#fab1d1','#4db8ff'];
+const EMOJIS     = ['☀️','🍳','🎒','🥗','🧩','📚','🍽️','🛁','🌙','⚽','🎨','🎵','🚌','🛌','🧸','🎮','🍎','🥛','🚿','👕','🦷','🏃','📱','🎯','🌸','🎪'];
+
+const EVENTS = [
+  {e:'🏊',l:'Swimming Pool'},{e:'🌳',l:'Park'},{e:'🚲',l:'Bike Riding'},
+  {e:'🛍️',l:'Shopping'},{e:'🛒',l:'Costco'},{e:'🍕',l:'Restaurant'},
+  {e:'🎬',l:'Cinema'},{e:'🏖️',l:'Beach'},{e:'⛳',l:'Mini Golf'},
+  {e:'🎠',l:'Playground'},{e:'🦁',l:'Zoo'},{e:'🎳',l:'Bowling'},
+  {e:'🍦',l:'Ice Cream'},{e:'🏟️',l:'Sports Game'},{e:'🎡',l:'Theme Park'},
+  {e:'👴',l:'Grandparents'},{e:'🏀',l:'Basketball'},{e:'🧁',l:'Baking'},
+  {e:'🐶',l:'Dog Park'},{e:'🎤',l:'Karaoke'},
+];
+
+const DEFAULT_ACTS = [
+  {label:'Wake Up',  emoji:'☀️', ci:0},
+  {label:'Breakfast',emoji:'🍳', ci:5},
+  {label:'School',   emoji:'🎒', ci:3},
+  {label:'Dinner',   emoji:'🍽️', ci:2},
+  {label:'Sleep',    emoji:'🌙', ci:9},
+];
+
+const SK = 'jacob_hero_v7';
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let S = {
+  acts: [],        // {id, label, emoji, ci}
+  events: {},      // { 'di_slot_wk': {e,l} }
+  done: {},        // { key: bool }
+  jacobPhoto: null,
+  actPhotos: {},   // { 'actId_di': base64 }
+};
+
+function wk() {
+  const d=new Date(), jan=new Date(d.getFullYear(),0,1);
+  const w=Math.ceil(((d-jan)/864e5+jan.getDay()+1)/7);
+  return `${d.getFullYear()}-W${w}`;
+}
+
+function loadS() {
+  try { const r=localStorage.getItem(SK); if(r) S={...S,...JSON.parse(r)}; } catch(e){}
+  if(!S.acts||!S.acts.length) {
+    S.acts=DEFAULT_ACTS.map((a,i)=>({id:'a'+i,label:a.label,emoji:a.emoji,ci:a.ci}));
+    saveS();
+  }
+}
+function saveS() {
+  try { localStorage.setItem(SK,JSON.stringify(S)); }
+  catch(e) { showToast('⚠️ Storage full – clear old photos'); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════════════════════════
+let AC=null;
+function ac(){ if(!AC) AC=new(window.AudioContext||window.webkitAudioContext)(); return AC; }
+function ding(type='done'){
+  try{
+    const c=ac();
+    // iOS/browsers suspend AudioContext until user gesture — resume first
+    const play = () => {
+      const o=c.createOscillator(), g=c.createGain();
+      o.connect(g); g.connect(c.destination);
+      if(type==='done'){
+        o.type='sine';
+        o.frequency.setValueAtTime(523,c.currentTime);
+        o.frequency.setValueAtTime(659,c.currentTime+0.1);
+        o.frequency.setValueAtTime(784,c.currentTime+0.2);
+        g.gain.setValueAtTime(0.4,c.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.8);
+        o.start(); o.stop(c.currentTime+0.8);
+      } else {
+        o.type='triangle'; o.frequency.setValueAtTime(440,c.currentTime);
+        g.gain.setValueAtTime(0.2,c.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.3);
+        o.start(); o.stop(c.currentTime+0.3);
+      }
+    };
+    if(c.state==='suspended'){
+      c.resume().then(play);
+    } else {
+      play();
+    }
+  }catch(e){ console.warn('ding error',e); }
+}
+function speak(fullText){
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(fullText);
+  u.rate=0.88; u.pitch=1.05; u.volume=1;
+  const v=window.speechSynthesis.getVoices();
+  const nv=v.find(x=>x.lang.startsWith('en')&&x.name.includes('Female'))||v.find(x=>x.lang.startsWith('en'));
+  if(nv) u.voice=nv;
+  window.speechSynthesis.speak(u);
+}
+
+// ═══════════════════════════════════════════════════════════
+// JACOB BUBBLE
+// ═══════════════════════════════════════════════════════════
+let _bt=null;
+function jacobSay(msg){
+  const ch=document.getElementById('jacob-char');
+  document.getElementById('jacob-speech').textContent=msg;
+  ch.classList.add('speaking');
+  if(_bt) clearTimeout(_bt);
+  _bt=setTimeout(()=>ch.classList.remove('speaking'),2200);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+function render(){
+  renderHeader();
+  renderRoad();
+  renderDaysBar();
+  renderGrid();
+  updateProgress();
+  positionJacob();
+  lucide.createIcons();
+}
+
+function renderHeader(){
+  document.getElementById('today-badge').textContent=DAYS_SH[TODAY_IDX];
+}
+
+function renderRoad(){
+  const W=wk();
+
+  // Build scrolling scenery (trees, buildings, signs) — doubled for seamless loop
+  const sceneryItems = ['🌲','🏠','🌲','🌳','🏢','🌲','⛽','🌲','🏠','🌳','🚦','🌲','🏗️','🌲','🌳','🏠','🌲','🌲','🏢','🌳'];
+  const doubled = [...sceneryItems,...sceneryItems,...sceneryItems];
+  document.getElementById('track-scenery').innerHTML = doubled.map((s,i)=>`
+    <div class="scenery-item" style="margin-right:${18+Math.random()*28|0}px;font-size:${0.9+Math.random()*0.5}rem;opacity:${0.3+Math.random()*0.35}">${s}</div>
+  `).join('');
+
+  // Road lanes with day labels
+  document.getElementById('road-lanes').innerHTML=DAYS_SH.map((d,i)=>{
+    const isTd=i===TODAY_IDX, isWk=WEEKEND.includes(i);
+    const cls=isTd?'is-today':(isWk?'is-weekend':'');
+    const ev=S.events[`${i}_0_${W}`];
+    return `<div class="road-lane">
+      <div class="lane-day-label ${cls}">${d}</div>
+      ${isWk
+        ? (ev
+          ? `<div class="lane-event-icon" onclick="openEventModal(${i},0)" title="${ev.l}">🎉</div>`
+          : `<div class="lane-add-icon" onclick="openEventModal(${i},0)">＋</div>`)
+        : ''}
+    </div>`;
+  }).join('');
+
+  // Jacob in car: show photo only if uploaded, else emoji
+  const driver = document.getElementById('car-driver');
+  if(S.jacobPhoto){
+    driver.innerHTML=`<img src="${S.jacobPhoto}" alt="Jacob">`;
+  } else {
+    driver.innerHTML='👦';
+  }
+}
+
+function positionJacob(){
+  const track=document.querySelector('.racetrack');
+  if(!track) return;
+  const W=track.offsetWidth;
+  const seg=W/7;
+  // Car sits at CENTER of today's lane
+  const left=seg*TODAY_IDX + seg/2;
+  const ch=document.getElementById('jacob-char');
+  ch.style.left=left+'px';
+  ch.style.transform='translateX(-50%)';
+}
+
+function renderDaysBar(){
+  document.getElementById('days-bar').innerHTML=DAYS_SH.map((d,i)=>{
+    const isTd  = i === TODAY_IDX;
+    const isTom = i === (TODAY_IDX + 1) % 7;
+    const isPast= i < TODAY_IDX;
+    const isWk  = WEEKEND.includes(i);
+    const daysAhead = i - TODAY_IDX;
+
+    let cls, whenLabel, clickable;
+    if (isPast) {
+      cls = 'past'; whenLabel = ''; clickable = false;
+    } else if (isTd) {
+      cls = 'today'; whenLabel = 'TODAY'; clickable = true;
+    } else if (isTom) {
+      cls = (isWk ? 'weekend' : 'weekday') + ' tomorrow'; whenLabel = 'TOMORROW'; clickable = true;
+    } else {
+      cls = isWk ? 'weekend' : 'weekday';
+      whenLabel = `in ${daysAhead} days`;
+      clickable = true;
+    }
+
+    const onclick = clickable ? `onDayTap(${i})` : '';
+    return `<div class="day-col-hdr ${cls}" ${onclick ? `onclick="${onclick}"` : ''}>
+      ${isTd ? '<div class="today-dot"></div>' : ''}
+      ${d}
+      ${whenLabel ? `<div class="day-when-label">${whenLabel}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderGrid(){
+  const grid=document.getElementById('schedule-grid');
+  grid.innerHTML='';
+  const W=wk();
+  for(let di=0;di<7;di++){
+    const col=document.createElement('div');
+    // Same class for ALL columns — no special weekend padding
+    col.className='day-col';
+
+    if(WEEKEND.includes(di)){
+      // Always exactly 5 slots: Wake Up, Breakfast, + 3 event slots
+      // so heights match weekday columns perfectly
+      S.acts.slice(0,2).forEach(a=>col.appendChild(makeActCard(a,di,W)));
+      for(let s=0;s<3;s++) col.appendChild(makeEventSlot(di,s,W));
+    } else {
+      S.acts.forEach(a=>col.appendChild(makeActCard(a,di,W)));
+    }
+    grid.appendChild(col);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// ACTIVITY CARD
+// ═══════════════════════════════════════════════════════════
+function makeActCard(act,di,W){
+  const clr=CARD_CLR[act.ci%CARD_CLR.length];
+  const dk=`${act.id}_${di}_${W}`;
+  const done=!!S.done[dk];
+  const ph=S.actPhotos[`${act.id}_${di}`]||null;
+
+  const c=document.createElement('div');
+  c.className=`activity-card${done?' done':''}`;
+  c.dataset.dk=dk; c.dataset.aid=act.id; c.dataset.di=di;
+
+  c.innerHTML=`
+    <div class="card-top-bar" style="background:${clr}"></div>
+    <div class="card-img-zone">
+      ${ph?`<img class="act-photo" src="${ph}" alt="${act.label}">`:`<div class="card-placeholder"><div class="card-emoji-big">${act.emoji}</div></div>`}
+      <div class="done-veil"><div class="done-circle"><i data-lucide="check" style="width:11px;height:11px;stroke-width:3"></i></div></div>
+      <div class="done-badge">Done!</div>
+      <button class="cam-btn" data-act="${act.id}" data-di="${di}" data-action="photo">
+        <i data-lucide="camera" style="width:9px;height:9px"></i>
+      </button>
+      <button class="done-btn" data-act="${act.id}" data-di="${di}" data-dk="${dk}" data-w="${W}" data-action="done">
+        <i data-lucide="${done?'x':'check'}" style="width:12px;height:12px;stroke-width:3;color:white"></i>
+      </button>
+    </div>
+    <div class="card-label-area"><span class="card-label">${act.label}</span></div>`;
+
+  c.addEventListener('click', e => {
+    // Check if a button inside was tapped
+    const camBtn  = e.target.closest('[data-action="photo"]');
+    const doneBtn = e.target.closest('[data-action="done"]');
+    if (camBtn) {
+      e.stopPropagation();
+      openPhotoModal(act.id, di);
+      return;
+    }
+    if (doneBtn) {
+      e.stopPropagation();
+      toggleDone(act.id, di, W);
+      return;
+    }
+    // Normal card tap — open popup
+    openActPopup(act, di);
+  });
+  setupLP(c, () => openEditModal(act.id, di));
+  return c;
+}
+
+// ═══════════════════════════════════════════════════════════
+// WEEKEND EVENT SLOT — same flex structure as activity card
+// ═══════════════════════════════════════════════════════════
+function makeEventSlot(di,slot,W){
+  const ek=`${di}_${slot}_${W}`;
+  const ev=S.events[ek]||null;
+  const dk=`event_${ek}`;
+  const done=!!S.done[dk];
+
+  const c=document.createElement('div');
+  c.className=`event-slot${ev?' filled':''}${done?' ev-done':''}`;
+  c.dataset.dk=dk; c.dataset.ek=ek;
+
+  if(ev){
+    const imgContent = ev.photo
+      ? `<img src="${ev.photo}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;" alt="${ev.l}">`
+      : `<div style="font-size:clamp(1rem,2vw,1.8rem);pointer-events:none;">🎉</div>`;
+
+    c.innerHTML=`
+      <div class="event-top-bar"></div>
+      <div class="event-img-zone" style="position:relative;">
+        ${imgContent}
+        <div class="event-done-veil">
+          <div class="done-circle"><i data-lucide="check" style="width:11px;height:11px;stroke-width:3"></i></div>
+        </div>
+        <div class="event-done-badge">Done!</div>
+        <button class="event-done-btn" data-action="ev-done">
+          <i data-lucide="${done?'x':'check'}" style="width:12px;height:12px;stroke-width:3;color:white"></i>
+        </button>
+      </div>
+      <div class="event-label-area"><span class="event-name">${ev.l}</span></div>`;
+
+    c.addEventListener('click', e => {
+      if (e.target.closest('[data-action="ev-done"]')) {
+        e.stopPropagation();
+        toggleEventDone(dk, c, ev.l);
+        return;
+      }
+      // Any other tap → speak + open edit modal
+      speak(`Jacob, it's time for ${ev.l}!`);
+      ding('tap');
+      jacobSay(`${ev.l}! 🎉`);
+      setTimeout(() => openEventModal(di, slot), 400);
+    });
+  } else {
+    c.innerHTML=`
+      <div class="event-top-bar" style="opacity:0.3"></div>
+      <div class="event-img-zone">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <div class="event-add-icon">＋</div>
+          <div class="event-add-txt">Add fun<br>activity!</div>
+        </div>
+      </div>
+      <div class="event-label-area"><span class="event-name empty">Weekend fun</span></div>`;
+    c.addEventListener('click',()=>openEventModal(di,slot));
+  }
+  return c;
+}
+
+// ═══════════════════════════════════════════════════════════
+// ACTIVITY POPUP
+// ═══════════════════════════════════════════════════════════
+let _popupSpeakTimer = null;
+
+function openActPopup(act, di) {
+  const popup = document.getElementById('act-popup');
+  const imgZone = document.getElementById('popup-img-zone');
+  const label = document.getElementById('popup-label');
+  const subtitle = document.getElementById('popup-subtitle');
+  const topBar = document.getElementById('popup-top-bar');
+  const CARD_CLR_LIST = ['#f7c94a','#06d6a0','#ef476f','#118ab2','#a29bfe','#fd9e5b','#55efc4','#ff7eb3','#ffd166','#74b9ff','#fab1d1','#4db8ff'];
+
+  // Color bar
+  topBar.style.background = CARD_CLR_LIST[act.ci % CARD_CLR_LIST.length];
+
+  // Photo or emoji
+  const ph = S.actPhotos[`${act.id}_${di}`] || null;
+  if (ph) {
+    imgZone.innerHTML = `<img src="${ph}" alt="${act.label}" style="width:100%;height:100%;object-fit:cover;">`;
+  } else {
+    imgZone.innerHTML = `<div class="act-popup-emoji-big">${act.emoji}</div>`;
+  }
+
+  // Label and subtitle
+  label.textContent = act.label;
+  const dayName = DAYS_FULL[di];
+  subtitle.textContent = `Jacob, it's time to ${act.label.toLowerCase()}!`;
+
+  // Show popup
+  popup.classList.add('show');
+
+  // Sound + voice — ONE clean sentence
+  ding('tap');
+  const msg = `Jacob, it's time to ${act.label}!`;
+  speak(msg);
+
+  // Bubble on car (short version)
+  jacobSay(`${act.emoji} ${act.label}!`);
+
+  // Wave animation color
+  document.querySelectorAll('.wave-bar').forEach(b => {
+    b.style.background = CARD_CLR_LIST[act.ci % CARD_CLR_LIST.length];
+  });
+
+  // Auto-close after 8 seconds if parent doesn't tap
+  if (_popupSpeakTimer) clearTimeout(_popupSpeakTimer);
+  _popupSpeakTimer = setTimeout(() => closeActPopup(), 8000);
+}
+
+function closeActPopup() {
+  document.getElementById('act-popup').classList.remove('show');
+  if (_popupSpeakTimer) { clearTimeout(_popupSpeakTimer); _popupSpeakTimer = null; }
+  window.speechSynthesis && window.speechSynthesis.cancel();
+}
+
+// ═══════════════════════════════════════════════════════════
+// CAR CLICK → SAY TODAY'S DAY + TYPE
+// ═══════════════════════════════════════════════════════════
+function onCarClick() {
+  const dayName = DAYS_FULL[TODAY_IDX];
+  const isWknd = WEEKEND.includes(TODAY_IDX);
+  const msg = isWknd
+    ? `Jacob, today is ${dayName}. It's the weekend, time to have fun!`
+    : `Jacob, today is ${dayName}. It's a school day, let's get ready!`;
+  speak(msg);
+  const short = isWknd ? `${dayName}! Weekend! 🎉` : `${dayName}! School day! 🎒`;
+  jacobSay(short);
+
+  // Animate car briefly
+  const car = document.querySelector('.jacob-car');
+  if (car) {
+    car.style.transform = 'scale(1.2)';
+    setTimeout(() => { car.style.transform = ''; }, 300);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// DAY HEADER TAP → TIME CONCEPT TEACHING
+// ═══════════════════════════════════════════════════════════
+function onDayTap(di) {
+  const dayName  = DAYS_FULL[di];
+  const isWknd   = WEEKEND.includes(di);
+  const daysAhead = di - TODAY_IDX;
+  const dayType  = isWknd ? 'a fun weekend day' : 'a school day';
+
+  let msg, bubble, emoji;
+
+  if (di === TODAY_IDX) {
+    // TODAY
+    emoji = isWknd ? '🎉' : '🎒';
+    if (isWknd) {
+      msg    = `Today is ${dayName}! It's the weekend — time to have fun!`;
+      bubble = `Today is ${dayName}! ${emoji}`;
+    } else {
+      msg    = `Today is ${dayName}! It's a school day — let's get ready!`;
+      bubble = `Today is ${dayName}! ${emoji}`;
+    }
+  } else if (daysAhead === 1) {
+    // TOMORROW
+    emoji = isWknd ? '🎉' : '📅';
+    msg    = `Tomorrow is ${dayName}! ${isWknd ? "It's the weekend — so exciting!" : "It's a school day, get ready!"}`;
+    bubble = `Tomorrow: ${dayName}! ${emoji}`;
+  } else if (daysAhead === 2) {
+    emoji = '📆';
+    msg    = `In 2 days it will be ${dayName}! That's ${dayType}.`;
+    bubble = `In 2 days: ${dayName} ${emoji}`;
+  } else {
+    emoji = '🗓️';
+    msg    = `In ${daysAhead} days it will be ${dayName}! That's ${dayType}.`;
+    bubble = `In ${daysAhead} days: ${dayName} ${emoji}`;
+  }
+
+  speak(msg);
+  jacobSay(bubble);
+  ding('tap');
+
+  // Flash the tapped column header briefly
+  const hdrs = document.querySelectorAll('.day-col-hdr');
+  const hdr  = hdrs[di];
+  if (hdr) {
+    hdr.style.transform = 'scale(1.12)';
+    hdr.style.boxShadow = '0 4px 16px rgba(17,138,178,0.4)';
+    setTimeout(() => { hdr.style.transform = ''; hdr.style.boxShadow = ''; }, 350);
+  }
+}
+function toggleDone(aid,di,W){
+  const dk=`${aid}_${di}_${W}`;
+  const was=!!S.done[dk];
+  S.done[dk]=!was; saveS();
+
+  const card=document.querySelector(`.activity-card[data-dk="${dk}"]`);
+  if(card){
+    card.classList.toggle('done',!was);
+    const btn=card.querySelector('.done-btn');
+    if(btn){
+      btn.innerHTML=`<i data-lucide="${!was?'x':'check'}" style="width:12px;height:12px;stroke-width:3;color:white"></i>`;
+      lucide.createIcons();
+    }
+  }
+  if(!was){
+    const act=S.acts.find(a=>a.id===aid);
+    const label=act?act.label:'that';
+    ding('done');
+    burst(card);
+    showToast(`🌟 ${label} — Well done, Jacob!`);
+    jacobSay('Great job! ⭐');
+    setTimeout(()=>speak(`${label} done! Well done, Jacob!`), 300);
+    checkAllDone(W);
+  }
+  updateProgress();
+}
+
+function toggleEventDone(dk,slot,label){
+  const was=!!S.done[dk];
+  S.done[dk]=!was; saveS();
+  slot.classList.toggle('ev-done',!was);
+  const btn=slot.querySelector('.event-done-btn');
+  if(btn){
+    btn.innerHTML=`<i data-lucide="${!was?'x':'check'}" style="width:12px;height:12px;stroke-width:3;color:white"></i>`;
+    lucide.createIcons();
+  }
+  if(!was){
+    ding('done'); burst(slot);
+    showToast(`🎉 ${label} — Amazing, Jacob!`);
+    jacobSay('So fun! 🎉');
+    setTimeout(()=>speak(`${label} done! Amazing, Jacob!`), 300);
+  }
+  updateProgress();
+}
+
+function checkAllDone(W){
+  if(WEEKEND.includes(TODAY_IDX)) return;
+  const tot=S.acts.length;
+  const dn=S.acts.filter(a=>S.done[`${a.id}_${TODAY_IDX}_${W}`]).length;
+  if(dn===tot&&tot>0) setTimeout(()=>document.getElementById('reward-modal').classList.add('show'),800);
+}
+
+// ═══════════════════════════════════════════════════════════
+// PROGRESS
+// ═══════════════════════════════════════════════════════════
+function updateProgress(){
+  const W=wk();
+  let tot,dn;
+  if(WEEKEND.includes(TODAY_IDX)){
+    const base=S.acts.slice(0,2);
+    const evs=[0,1,2].filter(s=>S.events[`${TODAY_IDX}_${s}_${W}`]);
+    tot=base.length+evs.length;
+    dn=base.filter(a=>S.done[`${a.id}_${TODAY_IDX}_${W}`]).length
+      +evs.filter(s=>S.done[`event_${TODAY_IDX}_${s}_${W}`]).length;
+  } else {
+    tot=S.acts.length; dn=S.acts.filter(a=>S.done[`${a.id}_${TODAY_IDX}_${W}`]).length;
+  }
+  const pct=tot>0?(dn/tot)*100:0;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-label').textContent=`${dn} of ${tot} done today`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// CONFETTI
+// ═══════════════════════════════════════════════════════════
+function burst(el){
+  if(!el) return;
+  const r=el.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
+  const cls=['#ffd166','#06d6a0','#ef476f','#118ab2','#a29bfe','#fd9e5b'];
+  for(let i=0;i<11;i++){
+    const p=document.createElement('div'); p.className='confetti';
+    p.style.left=cx+(Math.random()-.5)*55+'px';
+    p.style.top=cy+(Math.random()-.5)*35+'px';
+    p.style.background=cls[i%cls.length];
+    p.style.animationDelay=(Math.random()*.22)+'s';
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),1400);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// LONG PRESS
+// ═══════════════════════════════════════════════════════════
+function setupLP(el,cb){
+  let t=null;
+  const s=()=>{ t=setTimeout(()=>{cb();t=null;},620); };
+  const c=()=>{ if(t){clearTimeout(t);t=null;} };
+  el.addEventListener('touchstart',s,{passive:true});
+  ['touchend','touchmove'].forEach(ev=>el.addEventListener(ev,c));
+  el.addEventListener('mousedown',s);
+  ['mouseup','mouseleave'].forEach(ev=>el.addEventListener(ev,c));
+}
+
+// ═══════════════════════════════════════════════════════════
+// PHOTO MODAL
+// ═══════════════════════════════════════════════════════════
+let _pAid=null,_pDi=null;
+function openPhotoModal(aid,di){
+  _pAid=aid; _pDi=di;
+  const act=S.acts.find(a=>a.id===aid);
+  document.getElementById('photo-sub').textContent=`"${act?act.label:''}" · ${DAYS_FULL[di]}`;
+  document.getElementById('rm-photo-btn').style.display=S.actPhotos[`${aid}_${di}`]?'flex':'none';
+  openModal('photo-modal');
+}
+function triggerCam(){ const i=document.getElementById('cam-input'); i.value=''; i.click(); }
+function triggerGallery(){ const i=document.getElementById('gal-input'); i.value=''; i.click(); }
+function removeActPhoto(){
+  delete S.actPhotos[`${_pAid}_${_pDi}`]; saveS(); closeModal('photo-modal'); render();
+  showToast('🗑️ Photo removed');
+}
+function handleActPhoto(file){
+  if(!file||!_pAid) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    S.actPhotos[`${_pAid}_${_pDi}`]=ev.target.result; saveS();
+    closeModal('photo-modal'); render(); showToast('📸 Photo saved!');
+  };
+  r.readAsDataURL(file);
+}
+document.getElementById('cam-input').addEventListener('change',e=>handleActPhoto(e.target.files[0]));
+document.getElementById('gal-input').addEventListener('change',e=>handleActPhoto(e.target.files[0]));
+
+// ═══════════════════════════════════════════════════════════
+// JACOB PHOTO
+// ═══════════════════════════════════════════════════════════
+function triggerJacobPhoto(){ const i=document.getElementById('jacob-input'); i.value=''; i.click(); }
+document.getElementById('jacob-input').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    S.jacobPhoto=ev.target.result; saveS();
+    const driver=document.getElementById('car-driver');
+    if(driver) driver.innerHTML=`<img src="${ev.target.result}" alt="Jacob">`;
+    showToast("🏎️ Jacob's photo is in the car!"); jacobSay("That's me driving! 😄");
+  };
+  r.readAsDataURL(f);
+});
+
+// ═══════════════════════════════════════════════════════════
+// EDIT MODAL
+// ═══════════════════════════════════════════════════════════
+let _eAid=null,_eDi=null,_eEmoji=null;
+function openEditModal(aid,di){
+  const act=S.acts.find(a=>a.id===aid); if(!act) return;
+  _eAid=aid; _eDi=di; _eEmoji=act.emoji;
+  document.getElementById('edit-name').value=act.label;
+  const g=document.getElementById('emoji-grid'); g.innerHTML='';
+  EMOJIS.forEach(em=>{
+    const b=document.createElement('button');
+    b.style.cssText=`font-size:1.2rem;background:${em===act.emoji?'#dff0fb':'transparent'};border:2.5px solid ${em===act.emoji?'var(--ocean)':'transparent'};border-radius:8px;padding:4px;cursor:pointer;`;
+    b.textContent=em;
+    b.onclick=()=>{
+      _eEmoji=em;
+      g.querySelectorAll('button').forEach(x=>{x.style.background='transparent';x.style.borderColor='transparent';});
+      b.style.background='#dff0fb'; b.style.borderColor='var(--ocean)';
+    };
+    g.appendChild(b);
+  });
+  openModal('edit-modal');
+}
+function saveEdit(){
+  const nm=document.getElementById('edit-name').value.trim(); if(!nm) return;
+  const act=S.acts.find(a=>a.id===_eAid);
+  if(act){ act.label=nm; if(_eEmoji) act.emoji=_eEmoji; saveS(); render(); }
+  closeModal('edit-modal'); showToast('✅ Saved!');
+}
+function clearActPhotos(){
+  Object.keys(S.actPhotos).forEach(k=>{ if(k.startsWith(_eAid+'_')) delete S.actPhotos[k]; });
+  saveS(); render(); closeModal('edit-modal'); showToast('🗑️ Photos cleared');
+}
+
+// ═══════════════════════════════════════════════════════════
+// WEEKEND EVENT MODAL — photo upload
+// ═══════════════════════════════════════════════════════════
+let _eDi2=null, _eSlot=null, _evPhotoB64=null;
+
+function openEventModal(di, slot){
+  _eDi2=di; _eSlot=slot; _evPhotoB64=null;
+  const W=wk(), ex=S.events[`${di}_${slot}_${W}`];
+
+  document.getElementById('event-sub').textContent=`${DAYS_FULL[di]} — slot ${slot+1}`;
+  document.getElementById('ev-rm-btn').style.display=ex?'block':'none';
+
+  // Name input
+  document.getElementById('ev-name-inp').value = ex ? ex.l : '';
+
+  // Preview + remove photo button
+  const prev=document.getElementById('ev-preview-inner');
+  const rmPhotoBtn=document.getElementById('ev-rm-photo-btn');
+  if(ex && ex.photo){
+    prev.innerHTML=`<img src="${ex.photo}" style="width:100%;height:140px;object-fit:cover;border-radius:14px;">`;
+    _evPhotoB64=ex.photo;
+    rmPhotoBtn.style.display='flex';
+  } else {
+    prev.innerHTML='<span style="font-size:3rem">📷</span>';
+    rmPhotoBtn.style.display='none';
+  }
+
+  openModal('event-modal');
+}
+
+function evRemovePhoto(){
+  _evPhotoB64=null;
+  document.getElementById('ev-preview-inner').innerHTML='<span style="font-size:3rem">📷</span>';
+  document.getElementById('ev-rm-photo-btn').style.display='none';
+  showToast('🗑️ Photo removed');
+}
+
+function evTriggerCam(){
+  const i=document.getElementById('ev-cam-input'); i.value=''; i.click();
+}
+function evTriggerGallery(){
+  const i=document.getElementById('ev-gal-input'); i.value=''; i.click();
+}
+function evHandlePhoto(file){
+  if(!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    _evPhotoB64=ev.target.result;
+    const prev=document.getElementById('ev-preview-inner');
+    prev.innerHTML=`<img src="${_evPhotoB64}" style="width:100%;height:140px;object-fit:cover;border-radius:14px;">`;
+  };
+  r.readAsDataURL(file);
+}
+document.getElementById('ev-cam-input').addEventListener('change',e=>evHandlePhoto(e.target.files[0]));
+document.getElementById('ev-gal-input').addEventListener('change',e=>evHandlePhoto(e.target.files[0]));
+
+function saveEvent(){
+  const name=document.getElementById('ev-name-inp').value.trim();
+  if(!name && !_evPhotoB64){ closeModal('event-modal'); return; }
+  const W=wk();
+  const label = name || 'Weekend Fun';
+  S.events[`${_eDi2}_${_eSlot}_${W}`]={ l:label, photo:_evPhotoB64||null };
+  saveS(); closeModal('event-modal'); render();
+  showToast(`🎉 ${label} added!`);
+  jacobSay(`${label}! 🎉`);
+}
+
+function removeEvent(){
+  const W=wk(), k=`${_eDi2}_${_eSlot}_${W}`;
+  delete S.events[k]; delete S.done[`event_${k}`]; saveS();
+  closeModal('event-modal'); render(); showToast('🗑️ Event removed');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════════════════
+function confirmReset(){
+  if(!confirm("Reset today's check marks?\n(Activities and photos are kept.)")) return;
+  const W=wk(), di=TODAY_IDX;
+  Object.keys(S.done).forEach(k=>{ if(k.includes(`_${di}_${W}`)) delete S.done[k]; });
+  saveS(); render(); showToast('🔄 Today reset!');
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════════════════════════
+function openModal(id){ document.getElementById(id).classList.add('show'); lucide.createIcons(); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+['photo-modal','edit-modal','event-modal','reward-modal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',e=>{ if(e.target===document.getElementById(id)) closeModal(id); });
+});
+// act-popup closes on overlay click (handled inline in HTML)
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+let _tt=null;
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  if(_tt) clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUTO MIDNIGHT REFRESH
+// ═══════════════════════════════════════════════════════════
+function scheduleRefresh(){
+  const now=new Date(), mid=new Date(); mid.setHours(24,0,5,0);
+  setTimeout(()=>location.reload(), mid-now);
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+window.speechSynthesis&&window.speechSynthesis.getVoices();
+loadS(); render(); scheduleRefresh();
+window.addEventListener('resize',positionJacob);
+setTimeout(()=>{
+  const greets=['Vroom! 🏎️','Let\'s race! 🚀','Zoom zoom! ⚡','Full speed! 🏁','Go go go! 🏎️'];
+  jacobSay(greets[TODAY_IDX%greets.length]);
+},900);
+
+// ═══════════════════════════════════════════════════════════
+// PWA — Register Service Worker
+// ═══════════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('Jacob Hero: Service Worker registered ✅'))
+      .catch(e => console.warn('SW registration failed:', e));
+  });
+}
+</script>
+</body>
+</html>

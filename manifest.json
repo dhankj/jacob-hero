@@ -1,0 +1,27 @@
+{
+  "name": "Jacob's Daily Hero",
+  "short_name": "Jacob Hero",
+  "description": "Jacob's visual daily schedule app",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#2d3561",
+  "theme_color": "#2d3561",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "apple-mobile-web-app-capable": "yes",
+  "apple-mobile-web-app-status-bar-style": "black-translucent",
+  "apple-mobile-web-app-title": "Jacob Hero"
+}
