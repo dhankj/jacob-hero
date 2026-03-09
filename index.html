@@ -949,38 +949,58 @@ function saveS() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// AUDIO
+// AUDIO — iOS requires AudioContext unlocked in user gesture
 // ═══════════════════════════════════════════════════════════
-let AC=null;
-function ac(){ if(!AC) AC=new(window.AudioContext||window.webkitAudioContext)(); return AC; }
-function ding(type='done'){
-  try{
-    const c=ac();
-    // iOS/browsers suspend AudioContext until user gesture — resume first
-    const play = () => {
-      const o=c.createOscillator(), g=c.createGain();
-      o.connect(g); g.connect(c.destination);
-      if(type==='done'){
-        o.type='sine';
-        o.frequency.setValueAtTime(523,c.currentTime);
-        o.frequency.setValueAtTime(659,c.currentTime+0.1);
-        o.frequency.setValueAtTime(784,c.currentTime+0.2);
-        g.gain.setValueAtTime(0.4,c.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.8);
-        o.start(); o.stop(c.currentTime+0.8);
+let AC = null;
+
+// Unlock AudioContext on very first touch anywhere
+function unlockAudio() {
+  if (AC) return;
+  try {
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    // Play a silent buffer to fully unlock on iOS
+    const buf = AC.createBuffer(1, 1, 22050);
+    const src = AC.createBufferSource();
+    src.buffer = buf;
+    src.connect(AC.destination);
+    src.start(0);
+    if (AC.state === 'suspended') AC.resume();
+  } catch(e) {}
+}
+document.addEventListener('touchstart', unlockAudio, { once: true });
+document.addEventListener('mousedown',  unlockAudio, { once: true });
+
+function ding(type = 'done') {
+  // Ensure context exists and is running
+  if (!AC) {
+    try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
+  }
+  const go = () => {
+    try {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.connect(g); g.connect(AC.destination);
+      if (type === 'done') {
+        o.type = 'sine';
+        o.frequency.setValueAtTime(523, AC.currentTime);
+        o.frequency.setValueAtTime(659, AC.currentTime + 0.12);
+        o.frequency.setValueAtTime(784, AC.currentTime + 0.24);
+        g.gain.setValueAtTime(0.45, AC.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.9);
+        o.start(); o.stop(AC.currentTime + 0.9);
       } else {
-        o.type='triangle'; o.frequency.setValueAtTime(440,c.currentTime);
-        g.gain.setValueAtTime(0.2,c.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.3);
-        o.start(); o.stop(c.currentTime+0.3);
+        o.type = 'triangle';
+        o.frequency.setValueAtTime(440, AC.currentTime);
+        g.gain.setValueAtTime(0.22, AC.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.3);
+        o.start(); o.stop(AC.currentTime + 0.3);
       }
-    };
-    if(c.state==='suspended'){
-      c.resume().then(play);
-    } else {
-      play();
-    }
-  }catch(e){ console.warn('ding error',e); }
+    } catch(e) { console.warn('ding play error', e); }
+  };
+  if (AC.state === 'suspended') {
+    AC.resume().then(go);
+  } else {
+    go();
+  }
 }
 function speak(fullText){
   if(!window.speechSynthesis) return;
