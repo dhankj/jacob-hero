@@ -689,7 +689,63 @@
 
   .file-input { display:none; }
 
-  /* ═══ PRINT ══════════════════════════════════════ */
+  /* ═══ SETTINGS MODAL ══════════════════════════════════════ */
+  #settings-modal .modal-box { max-width:420px; }
+  .settings-section { margin-bottom:18px; }
+  .settings-section h4 {
+    font-family:'Baloo 2',cursive; font-size:0.82rem; font-weight:800;
+    color:var(--deep); text-transform:uppercase; letter-spacing:0.5px;
+    margin-bottom:10px; padding-bottom:5px;
+    border-bottom:2px solid var(--sky);
+  }
+  .settings-row {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:10px; gap:10px;
+  }
+  .settings-label {
+    font-family:'Nunito',sans-serif; font-size:0.82rem; font-weight:700;
+    color:var(--deep); flex-shrink:0;
+  }
+  .settings-label small {
+    display:block; font-size:0.68rem; font-weight:500; color:#aaa; margin-top:1px;
+  }
+  .voice-list {
+    display:flex; flex-direction:column; gap:6px; max-height:200px;
+    overflow-y:auto; margin-bottom:8px;
+  }
+  .voice-item {
+    display:flex; align-items:center; gap:10px;
+    background:var(--sky); border:2.5px solid transparent;
+    border-radius:12px; padding:9px 13px; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:700;
+    color:var(--deep); transition:border-color 0.18s, background 0.18s;
+  }
+  .voice-item:hover { border-color:var(--ocean); }
+  .voice-item.selected { border-color:var(--ocean); background:#d8eef8; }
+  .voice-item .voice-icon { font-size:1.1rem; flex-shrink:0; }
+  .voice-item .voice-info { flex:1; }
+  .voice-item .voice-name { font-size:0.8rem; font-weight:800; }
+  .voice-item .voice-desc { font-size:0.67rem; color:#888; font-weight:500; }
+  .voice-preview-btn {
+    background:none; border:none; cursor:pointer; font-size:0.85rem;
+    padding:2px 6px; border-radius:6px; color:var(--ocean);
+    font-weight:700; flex-shrink:0;
+  }
+  .speed-btns { display:flex; gap:6px; }
+  .speed-btn {
+    flex:1; padding:7px 4px; border:2.5px solid #e0e6ff; border-radius:10px;
+    background:white; font-family:'Nunito',sans-serif; font-size:0.75rem;
+    font-weight:800; color:var(--deep); cursor:pointer;
+    transition:border-color 0.18s, background 0.18s;
+  }
+  .speed-btn.active { border-color:var(--ocean); background:#d8eef8; color:var(--ocean); }
+  .child-name-inp {
+    width:100%; padding:9px 12px; border:2.5px solid #e0e6ff; border-radius:11px;
+    font-family:'Nunito',sans-serif; font-size:0.92rem; font-weight:700;
+    color:var(--deep); outline:none; transition:border-color 0.2s;
+  }
+  .child-name-inp:focus { border-color:var(--ocean); }
+
   @media print {
     @page { size:A4 landscape; margin:6mm; }
 
@@ -774,6 +830,9 @@
       <span class="today-pill" id="today-badge">MON</span>
     </div>
     <div class="header-actions">
+      <button class="hdr-btn" onclick="openSettings()">
+        ⚙️ Settings
+      </button>
       <button class="hdr-btn" onclick="window.print()">
         🖨️ Print
       </button>
@@ -856,6 +915,42 @@
         <div class="wave-bar"></div>
         <div class="wave-bar"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-bg" id="settings-modal">
+  <div class="modal-box" style="max-width:420px;">
+    <h3>⚙️ Settings</h3>
+
+    <!-- Child name -->
+    <div class="settings-section">
+      <h4>👦 Child's Name</h4>
+      <input class="child-name-inp" id="settings-name" type="text" placeholder="Jacob" maxlength="20">
+    </div>
+
+    <!-- Voice selection -->
+    <div class="settings-section">
+      <h4>🎙️ Voice</h4>
+      <div class="voice-list" id="voice-list">
+        <div style="font-size:0.75rem;color:#bbb;padding:8px;">Loading voices…</div>
+      </div>
+    </div>
+
+    <!-- Speed -->
+    <div class="settings-section">
+      <h4>⏩ Speaking Speed</h4>
+      <div class="speed-btns">
+        <button class="speed-btn" data-speed="0.7" onclick="setSpeed(0.7,this)">🐢 Slow</button>
+        <button class="speed-btn active" data-speed="0.88" onclick="setSpeed(0.88,this)">🚶 Normal</button>
+        <button class="speed-btn" data-speed="1.1" onclick="setSpeed(1.1,this)">🏃 Fast</button>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="mb secondary" onclick="closeModal('settings-modal')">Cancel</button>
+      <button class="mb primary" onclick="saveSettings()">✅ Save</button>
     </div>
   </div>
 </div>
@@ -992,6 +1087,11 @@ let S = {
   done: {},        // { key: bool }
   jacobPhoto: null,
   actPhotos: {},   // { 'actId_di': base64 }
+  settings: {
+    childName: 'Jacob',
+    voiceName: '',   // empty = auto-pick best English voice
+    speed: 0.88,
+  }
 };
 
 function wk() {
@@ -1112,12 +1212,111 @@ function ding(type = 'done') {
 function speak(fullText){
   if(!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(fullText);
-  u.rate=0.88; u.pitch=1.05; u.volume=1;
-  const v=window.speechSynthesis.getVoices();
-  const nv=v.find(x=>x.lang.startsWith('en')&&x.name.includes('Female'))||v.find(x=>x.lang.startsWith('en'));
-  if(nv) u.voice=nv;
+  const u = new SpeechSynthesisUtterance(fullText);
+  const cfg = S.settings || {};
+  u.rate   = cfg.speed  || 0.88;
+  u.pitch  = 1.05;
+  u.volume = 1;
+  const voices = window.speechSynthesis.getVoices();
+  if (cfg.voiceName) {
+    const picked = voices.find(v => v.name === cfg.voiceName);
+    if (picked) u.voice = picked;
+  } else {
+    // auto: prefer natural-sounding English voice
+    const auto = voices.find(v => v.lang.startsWith('en') && /samantha|karen|daniel|moira|tessa|fiona|kate|siri/i.test(v.name))
+                 || voices.find(v => v.lang.startsWith('en-AU'))
+                 || voices.find(v => v.lang.startsWith('en'));
+    if (auto) u.voice = auto;
+  }
   window.speechSynthesis.speak(u);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════
+let _settingsSpeed = 0.88;
+
+function openSettings(){
+  if (!S.settings) S.settings = { childName:'Jacob', voiceName:'', speed:0.88 };
+  _settingsSpeed = S.settings.speed || 0.88;
+
+  // Child name
+  document.getElementById('settings-name').value = S.settings.childName || 'Jacob';
+
+  // Speed buttons
+  document.querySelectorAll('.speed-btn').forEach(b => {
+    b.classList.toggle('active', parseFloat(b.dataset.speed) === _settingsSpeed);
+  });
+
+  // Voice list
+  buildVoiceList();
+  openModal('settings-modal');
+}
+
+function buildVoiceList(){
+  const voices = window.speechSynthesis.getVoices();
+  const enVoices = voices.filter(v => v.lang.startsWith('en'));
+  const list = document.getElementById('voice-list');
+  if (!enVoices.length) {
+    list.innerHTML = '<div style="font-size:0.75rem;color:#bbb;padding:8px;">No voices found — try on iPad</div>';
+    return;
+  }
+  const current = S.settings.voiceName || '';
+  list.innerHTML = enVoices.map(v => {
+    const isSel = v.name === current || (!current && v === enVoices[0]);
+    const gender = /samantha|karen|moira|tessa|fiona|kate|victoria|zoe|serena|alice|ava/i.test(v.name) ? '👩' : '👨';
+    const flag   = v.lang.startsWith('en-AU') ? '🇦🇺' : v.lang.startsWith('en-GB') ? '🇬🇧' : v.lang.startsWith('en-US') ? '🇺🇸' : '🌐';
+    return `<div class="voice-item${isSel?' selected':''}" onclick="selectVoice('${v.name.replace(/'/g,"\\'")}',this)">
+      <span class="voice-icon">${gender}</span>
+      <div class="voice-info">
+        <div class="voice-name">${flag} ${v.name}</div>
+        <div class="voice-desc">${v.lang}${v.localService?' · On-device':' · Online'}</div>
+      </div>
+      <button class="voice-preview-btn" onclick="event.stopPropagation();previewVoice('${v.name.replace(/'/g,"\\'")}')">▶ Try</button>
+    </div>`;
+  }).join('');
+}
+
+function selectVoice(name, el){
+  document.querySelectorAll('.voice-item').forEach(x => x.classList.remove('selected'));
+  el.classList.add('selected');
+  _settingsVoice = name;
+}
+let _settingsVoice = '';
+
+function previewVoice(name){
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const voices = window.speechSynthesis.getVoices();
+  const v = voices.find(x => x.name === name);
+  const u = new SpeechSynthesisUtterance(`Hi! I'm ${name.split(' ')[0]}. I'll be your helper today!`);
+  u.rate = _settingsSpeed; u.pitch = 1.05; u.volume = 1;
+  if(v) u.voice = v;
+  window.speechSynthesis.speak(u);
+}
+
+function setSpeed(val, btn){
+  _settingsSpeed = val;
+  document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function saveSettings(){
+  const name = document.getElementById('settings-name').value.trim() || 'Jacob';
+  // find selected voice
+  const selEl = document.querySelector('.voice-item.selected .voice-name');
+  const vName = _settingsVoice || (selEl ? selEl.textContent.replace(/^.\s/,'') : '');
+  if(!S.settings) S.settings = {};
+  S.settings.childName = name;
+  S.settings.voiceName = vName;
+  S.settings.speed = _settingsSpeed;
+  saveS();
+  // Update header title
+  document.querySelector('.header-title').innerHTML =
+    `⭐ ${name}'s Daily Hero <span class="today-pill" id="today-badge">${DAYS_SH[TODAY_IDX]}</span>`;
+  closeModal('settings-modal');
+  showToast(`✅ Settings saved!`);
+  speak(`Great! I'm ready to help ${name} today!`);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1145,7 +1344,9 @@ function render(){
 }
 
 function renderHeader(){
-  document.getElementById('today-badge').textContent=DAYS_SH[TODAY_IDX];
+  const name = (S.settings && S.settings.childName) || 'Jacob';
+  document.querySelector('.header-title').innerHTML =
+    `⭐ ${name}'s Daily Hero <span class="today-pill" id="today-badge">${DAYS_SH[TODAY_IDX]}</span>`;
 }
 
 function renderRoad(){
@@ -1790,9 +1991,15 @@ function confirmReset(){
 // ═══════════════════════════════════════════════════════════
 function openModal(id){ document.getElementById(id).classList.add('show'); }
 function closeModal(id){ document.getElementById(id).classList.remove('show'); }
-['photo-modal','edit-modal','event-modal','reward-modal'].forEach(id=>{
+['photo-modal','edit-modal','event-modal','reward-modal','settings-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{ if(e.target===document.getElementById(id)) closeModal(id); });
 });
+// Reload voice list when voices become available (async on some browsers)
+if(window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => {
+    if(document.getElementById('settings-modal').classList.contains('show')) buildVoiceList();
+  };
+}
 // act-popup closes on overlay click (handled inline in HTML)
 
 // ═══════════════════════════════════════════════════════════
