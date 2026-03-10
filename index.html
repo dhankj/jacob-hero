@@ -1194,8 +1194,8 @@ function makeActCard(act,di,W){
       <button class="cam-btn" data-act="${act.id}" data-di="${di}" data-action="photo">
         <i data-lucide="camera" style="width:9px;height:9px"></i>
       </button>
-      <button class="done-btn" data-act="${act.id}" data-di="${di}" data-dk="${dk}" data-w="${W}" data-action="done">
-        <i data-lucide="${done?'x':'check'}" style="width:12px;height:12px;stroke-width:3;color:white"></i>
+      <button class="done-btn" data-act="${act.id}" data-di="${di}" data-dk="${dk}" data-w="${W}" data-action="done" style="font-size:13px;font-weight:900;color:white;">
+        ${done?'✕':'✓'}
       </button>
     </div>
     <div class="card-label-area"><span class="card-label">${act.label}</span></div>`;
@@ -1247,8 +1247,8 @@ function makeEventSlot(di,slot,W){
           <div class="done-circle"><i data-lucide="check" style="width:11px;height:11px;stroke-width:3"></i></div>
         </div>
         <div class="event-done-badge">Done!</div>
-        <button class="event-done-btn" data-action="ev-done">
-          <i data-lucide="${done?'x':'check'}" style="width:12px;height:12px;stroke-width:3;color:white"></i>
+        <button class="event-done-btn" data-action="ev-done" style="font-size:13px;font-weight:900;color:white;">
+          ${done?'✕':'✓'}
         </button>
       </div>
       <div class="event-label-area"><span class="event-name">${ev.l}</span></div>`;
@@ -1448,8 +1448,11 @@ function toggleDone(aid,di,W){
     card.classList.toggle('done',!was);
     const btn=card.querySelector('.done-btn');
     if(btn){
-      btn.innerHTML=`<i data-lucide="${!was?'x':'check'}" style="width:12px;height:12px;stroke-width:3;color:white"></i>`;
-      lucide.createIcons();
+      // Use plain ✓ / ✕ text so we never depend on lucide
+      btn.textContent = !was ? '✕' : '✓';
+      btn.style.fontSize = '13px';
+      btn.style.fontWeight = '900';
+      btn.style.color = 'white';
     }
   }
   if(!was){
@@ -1471,8 +1474,10 @@ function toggleEventDone(dk,slot,label){
   slot.classList.toggle('ev-done',!was);
   const btn=slot.querySelector('.event-done-btn');
   if(btn){
-    btn.innerHTML=`<i data-lucide="${!was?'x':'check'}" style="width:12px;height:12px;stroke-width:3;color:white"></i>`;
-    lucide.createIcons();
+    btn.textContent = !was ? '✕' : '✓';
+    btn.style.fontSize = '13px';
+    btn.style.fontWeight = '900';
+    btn.style.color = 'white';
   }
   if(!was){
     ding('done'); burst(slot);
