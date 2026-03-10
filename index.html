@@ -144,6 +144,46 @@
   .hdr-btn.danger { border-color:rgba(239,71,111,0.4); }
   .header-actions { display:flex; gap:6px; }
 
+  /* ═══ SKY BAR (above racetrack) ═══════════════════ */
+  #sky-bar {
+    position: relative; height: 36px; border-radius: 12px 12px 0 0;
+    overflow: hidden; margin: 0;
+  }
+  #sky-gradient-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, #1a1a4e 0%, #f97316 18%, #60a5fa 40%, #93c5fd 60%, #f97316 82%, #1a1a4e 100%);
+    transition: background 60s linear;
+  }
+  /* Sun/moon orb */
+  #sky-orb {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    font-size: 1.3rem; line-height: 1;
+    filter: drop-shadow(0 0 6px rgba(255,220,50,0.9));
+    transition: left 60s linear, top 60s linear;
+    z-index: 3; pointer-events: none;
+  }
+  /* Stars overlay */
+  #sky-stars {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    opacity: 0; transition: opacity 2s;
+  }
+  #sky-stars.visible { opacity: 1; }
+  .sky-star {
+    position: absolute; font-size: 0.5rem;
+    animation: star-twinkle 2s ease-in-out infinite alternate;
+  }
+  @keyframes star-twinkle { from{opacity:0.3} to{opacity:1} }
+  /* Date + clock */
+  #sky-clock {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Baloo 2', cursive; font-weight: 800;
+    color: white; text-shadow: 0 1px 6px rgba(0,0,0,0.7);
+    z-index: 4; pointer-events: none;
+  }
+  #sky-date { font-size: 0.78rem; opacity: 0.95; }
+  #sky-time { font-size: 0.95rem; letter-spacing: 0.5px; }
+
   /* ═══ JACOB JOURNEY STRIP ══════════════════════ */
   #journey-strip { flex-shrink:0; padding:5px 10px 3px; }
 
@@ -863,6 +903,18 @@
   .ct-btn .ct-label { font-family:'Nunito',sans-serif; font-size:0.6rem; font-weight:800; color:var(--deep); }
   .ct-btn .ct-desc  { font-size:0.5rem; color:#888; }
 
+  .activity-card.holiday-card {
+    box-shadow: 0 2px 14px rgba(255,209,102,0.45);
+    outline: 2px solid rgba(255,209,102,0.6);
+  }
+  .activity-card.holiday-card .card-emoji-big {
+    animation: holiday-bounce 0.8s ease-in-out infinite alternate;
+  }
+  @keyframes holiday-bounce {
+    from { transform: scale(1) rotate(-3deg); }
+    to   { transform: scale(1.12) rotate(3deg); }
+  }
+
   /* Calm Mode toggle switch */
   .calm-toggle {
     position: relative; display: inline-block;
@@ -1223,6 +1275,21 @@
 
   <!-- JACOB JOURNEY STRIP — RACING TRACK -->
   <div id="journey-strip">
+
+    <!-- ☀️ Sky bar: clock + sun/moon arc -->
+    <div id="sky-bar">
+      <div id="sky-gradient-bg"></div>
+      <!-- Sun / Moon orb that slides along the arc -->
+      <div id="sky-orb">☀️</div>
+      <!-- Stars (night only) -->
+      <div id="sky-stars"></div>
+      <!-- Date + clock -->
+      <div id="sky-clock">
+        <span id="sky-date"></span>
+        <span id="sky-time"></span>
+      </div>
+    </div>
+
     <div class="racetrack">
       <!-- Asphalt -->
       <div class="track-asphalt"></div>
@@ -1394,6 +1461,66 @@
             <span class="calm-slider"></span>
           </label>
         </div>
+      </div>
+
+      <!-- School Holiday -->
+      <div class="settings-section">
+        <h4>🎉 School Holiday</h4>
+        <div style="font-size:0.78rem;color:#666;line-height:1.4;margin-bottom:10px;">
+          During holidays, the School card is replaced with a special activity on weekdays.
+        </div>
+        <!-- Active holiday banner -->
+        <div id="holiday-active-banner" style="display:none;background:linear-gradient(135deg,#ffd166,#fd9e5b);border-radius:10px;padding:8px 12px;margin-bottom:10px;align-items:center;gap:8px;">
+          <span style="font-size:1.1rem;">🎉</span>
+          <div style="flex:1;">
+            <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:0.82rem;color:#2d3561;" id="holiday-banner-text">Holiday active!</div>
+            <div style="font-size:0.65rem;color:#7a5800;" id="holiday-banner-dates"></div>
+          </div>
+          <button onclick="clearHoliday()" style="background:rgba(0,0,0,0.15);border:none;border-radius:8px;padding:4px 8px;font-size:0.65rem;font-weight:800;color:#2d3561;cursor:pointer;">✕ Clear</button>
+        </div>
+
+        <!-- Date pickers side by side -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <!-- Start date -->
+          <div>
+            <div style="font-size:0.65rem;font-weight:800;color:#888;margin-bottom:4px;">📅 START DATE</div>
+            <button id="hol-start-btn" onclick="openCalPicker('start')"
+              style="width:100%;padding:8px;border:2px solid #e0e0e0;border-radius:10px;background:white;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:700;color:#2d3561;cursor:pointer;text-align:center;">
+              <span id="hol-start-label">Tap to select</span>
+            </button>
+          </div>
+          <!-- End date -->
+          <div>
+            <div style="font-size:0.65rem;font-weight:800;color:#888;margin-bottom:4px;">📅 END DATE</div>
+            <button id="hol-end-btn" onclick="openCalPicker('end')"
+              style="width:100%;padding:8px;border:2px solid #e0e0e0;border-radius:10px;background:white;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:700;color:#2d3561;cursor:pointer;text-align:center;">
+              <span id="hol-end-label">Tap to select</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Inline mini calendar picker (hidden by default) -->
+        <div id="cal-picker-wrap" style="display:none;background:#f8f9ff;border-radius:14px;padding:10px;margin-bottom:10px;border:2px solid #e0e0e0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <button onclick="calNav(-1)" style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:2px 8px;">‹</button>
+            <span id="cal-month-label" style="font-family:'Baloo 2',cursive;font-weight:800;font-size:0.9rem;color:#2d3561;"></span>
+            <button onclick="calNav(1)"  style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:2px 8px;">›</button>
+          </div>
+          <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;"></div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button onclick="closeCalPicker()" style="flex:1;padding:6px;background:#eee;border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Holiday name -->
+        <div style="margin-bottom:8px;">
+          <div style="font-size:0.65rem;font-weight:800;color:#888;margin-bottom:3px;">HOLIDAY ACTIVITY NAME</div>
+          <input type="text" id="holiday-name" placeholder="e.g. Swimming Camp 🏊" maxlength="30"
+            style="width:100%;padding:7px 10px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
+        </div>
+        <button onclick="applyHolidayFromSettings()" style="width:100%;padding:9px;background:linear-gradient(135deg,#ffd166,#fd9e5b);border:none;border-radius:12px;font-family:'Baloo 2',cursive;font-size:0.85rem;font-weight:800;color:#2d3561;cursor:pointer;box-shadow:0 3px 10px rgba(253,158,91,0.4);">
+          🎉 Apply Holiday
+        </button>
       </div>
 
     </div><!-- end settings-scroll -->
@@ -1804,6 +1931,9 @@ function openSettings(){
   const calmCb = document.getElementById('calm-checkbox');
   if(calmCb) calmCb.checked = !!(S.settings && S.settings.calm);
 
+  // Holiday
+  openSettingsWithHoliday();
+
   // Speed buttons
   document.querySelectorAll('.speed-btn').forEach(b => {
     b.classList.toggle('active', parseFloat(b.dataset.speed) === _settingsSpeed);
@@ -1960,23 +2090,19 @@ function renderRoad(){
 
     let evHtml = '';
     if(isWk){
-      // Show thumbnails for all filled slots, + button if any empty
-      const thumbs = [0,1,2].map(slot=>{
-        const ev=S.events[`${i}_${slot}_${W}`];
-        if(!ev) return '';
+      // Only slot 0 now (single event per weekend day)
+      const ev = S.events[`${i}_0_${W}`];
+      let thumbHtml = '';
+      if(ev){
         const img = ev.photo
           ? `<img src="${ev.photo}" alt="${ev.l}">`
           : `<span class="ev-emoji">${ev.e||'🎉'}</span>`;
-        return `<div class="lane-ev-thumb" onclick="openEventModal(${i},${slot})" title="${ev.l}">${img}</div>`;
-      }).join('');
-
-      const hasEmpty = [0,1,2].some(slot=>!S.events[`${i}_${slot}_${W}`]);
-      const firstEmpty = [0,1,2].find(slot=>!S.events[`${i}_${slot}_${W}`]);
-      const addBtn = (hasEmpty && !document.body.classList.contains('locked'))
-        ? `<div class="lane-add-icon" onclick="openEventModal(${i},${firstEmpty})">＋</div>`
+        thumbHtml = `<div class="lane-ev-thumb" onclick="openEventModal(${i},0)" title="${ev.l}">${img}</div>`;
+      }
+      const addBtn = (!ev && !document.body.classList.contains('locked'))
+        ? `<div class="lane-add-icon" onclick="openEventModal(${i},0)">＋</div>`
         : '';
-
-      evHtml = `<div class="lane-events">${thumbs}${addBtn}</div>`;
+      evHtml = `<div class="lane-events">${thumbHtml}${addBtn}</div>`;
     }
 
     return `<div class="road-lane">
@@ -2079,10 +2205,17 @@ function renderGrid(){
     col.style.borderTop = `3px solid ${getDayClr()[di % getDayClr().length]}`;
 
     if(WEEKEND.includes(di)){
-      // Always exactly 5 slots: Wake Up, Breakfast, + 3 event slots
-      // so heights match weekday columns perfectly
-      S.acts.slice(0,2).forEach(a=>col.appendChild(makeActCard(a,di,W)));
-      for(let s=0;s<3;s++) col.appendChild(makeEventSlot(di,s,W));
+      // 5 slots matching weekday exactly:
+      // Wake Up, Breakfast, [Event], Dinner, Sleep
+      const wakeUp    = S.acts[0]; // Wake Up
+      const breakfast = S.acts[1]; // Breakfast
+      const dinner    = S.acts[3]; // Dinner
+      const sleep     = S.acts[4]; // Sleep
+      col.appendChild(makeActCard(wakeUp,    di, W));
+      col.appendChild(makeActCard(breakfast, di, W));
+      col.appendChild(makeEventSlot(di, 0, W));  // single event slot
+      col.appendChild(makeActCard(dinner,    di, W));
+      col.appendChild(makeActCard(sleep,     di, W));
     } else {
       S.acts.forEach(a=>col.appendChild(makeActCard(a,di,W)));
     }
@@ -2094,19 +2227,34 @@ function renderGrid(){
 // ACTIVITY CARD
 // ═══════════════════════════════════════════════════════════
 function makeActCard(act,di,W){
+  // School holiday swap: if this is the School card (index 2) and holiday covers this day
+  const isSchool = (S.acts.indexOf(act) === 2);
+  const h = S.settings && S.settings.holiday;
+  const onHoliday = isSchool && !WEEKEND.includes(di) && isDateInHoliday(di);
+  const displayAct = onHoliday
+    ? { id: act.id, label: h.name || 'School Holiday 🎉', emoji: '🎉' }
+    : act;
+
   const clr = getDayClr()[di % getDayClr().length];
   const dk=`${act.id}_${di}_${W}`;
   const done=!!S.done[dk];
-  const ph=S.actPhotos[`${act.id}_${di}`]||null;
+  const ph = S.actPhotos[`${act.id}_${di}`]||null;  // always load photo, holiday or not
 
   const c=document.createElement('div');
-  c.className=`activity-card${done?' done':''}`;
+  c.className=`activity-card${done?' done':''}${onHoliday?' holiday-card':''}`;
   c.dataset.dk=dk; c.dataset.aid=act.id; c.dataset.di=di;
 
+  // Holiday card gets festive gradient top bar
+  const barStyle = onHoliday
+    ? 'background:linear-gradient(90deg,#ffd166,#fd9e5b,#ff7eb3)'
+    : `background:${clr}`;
+
   c.innerHTML=`
-    <div class="card-top-bar" style="background:${clr}"></div>
+    <div class="card-top-bar" style="${barStyle}"></div>
     <div class="card-img-zone">
-      ${ph?`<img class="act-photo" src="${ph}" alt="${act.label}">`:`<div class="card-placeholder"><div class="card-emoji-big">${act.emoji}</div></div>`}
+      ${ph
+        ? `<img class="act-photo" src="${ph}" alt="${displayAct.label}">`
+        : `<div class="card-placeholder"><div class="card-emoji-big">${displayAct.emoji}</div></div>`}
       <div class="done-veil"></div>
       <div class="done-badge">Done!</div>
       <button class="cam-btn" data-act="${act.id}" data-di="${di}" data-action="photo">
@@ -2116,7 +2264,7 @@ function makeActCard(act,di,W){
         ${done ? '✓' : ''}
       </button>` : ''}
     </div>
-    <div class="card-label-area"><span class="card-label">${act.label}</span></div>`;
+    <div class="card-label-area"><span class="card-label">${displayAct.label}</span></div>`;
 
   c.addEventListener('click', e => {
     // Check if a button inside was tapped
@@ -2208,31 +2356,44 @@ function openActPopup(act, di) {
   const clr = getDayClr()[di % getDayClr().length];
   const childName = (S.settings && S.settings.childName) || 'Jacob';
 
-  // Color bar — matches the column colour
-  topBar.style.background = clr;
+  // Holiday swap: if this is the School card and holiday is active for this day
+  const isSchool = (S.acts.indexOf(act) === 2);
+  const onHoliday = isSchool && !WEEKEND.includes(di) && isDateInHoliday(di);
+  const h = S.settings && S.settings.holiday;
+  const displayLabel = onHoliday ? (h.name || 'School Holiday 🎉') : act.label;
+  const displayEmoji = onHoliday ? '🎉' : act.emoji;
 
-  // Photo or emoji
+  // Color bar — festive gradient on holiday, normal otherwise
+  topBar.style.background = onHoliday
+    ? 'linear-gradient(90deg,#ffd166,#fd9e5b,#ff7eb3)'
+    : clr;
+
+  // Photo or emoji — always show photo if uploaded, even on holiday
   const ph = S.actPhotos[`${act.id}_${di}`] || null;
   if (ph) {
-    imgZone.innerHTML = `<img src="${ph}" alt="${act.label}" style="width:100%;height:100%;object-fit:contain;background:#111;">`;
+    imgZone.innerHTML = `<img src="${ph}" alt="${displayLabel}" style="width:100%;height:100%;object-fit:contain;background:#111;">`;
   } else {
-    imgZone.innerHTML = `<div class="act-popup-emoji-big">${act.emoji}</div>`;
+    imgZone.innerHTML = `<div class="act-popup-emoji-big">${displayEmoji}</div>`;
   }
 
   // Label and subtitle
-  label.textContent = act.label;
-  subtitle.textContent = `${childName}, it's time to ${act.label.toLowerCase()}!`;
+  label.textContent = displayLabel;
+  subtitle.textContent = onHoliday
+    ? `${childName}, ${displayLabel}!`
+    : `${childName}, it's time to ${displayLabel.toLowerCase()}!`;
 
   // Show popup
   popup.classList.add('show');
 
   // Sound + voice
   ding('tap');
-  speak(`${childName}, it's time to ${act.label}!`);
-  jacobSay(`${act.emoji} ${act.label}!`);
+  speak(onHoliday
+    ? `${childName}, ${displayLabel}!`
+    : `${childName}, it's time to ${displayLabel}!`);
+  jacobSay(`${displayEmoji} ${displayLabel}!`);
 
   // Wave animation color
-  document.querySelectorAll('.wave-bar').forEach(b => { b.style.background = clr; });
+  document.querySelectorAll('.wave-bar').forEach(b => { b.style.background = onHoliday ? '#ffd166' : clr; });
 
   // Auto-close after 8 seconds
   if (_popupSpeakTimer) clearTimeout(_popupSpeakTimer);
@@ -2471,10 +2632,20 @@ function toggleEventDone(dk,slot,label){
 }
 
 function checkAllDone(W){
-  if(WEEKEND.includes(TODAY_IDX)) return;
-  const tot=S.acts.length;
-  const dn=S.acts.filter(a=>S.done[`${a.id}_${TODAY_IDX}_${W}`]).length;
-  if(dn===tot&&tot>0){
+  const isWknd = WEEKEND.includes(TODAY_IDX);
+  let tot, dn;
+  if(isWknd){
+    // Wake Up, Breakfast, Dinner, Sleep = 4 fixed acts + 1 event slot
+    const fixedActs = [S.acts[0], S.acts[1], S.acts[3], S.acts[4]].filter(Boolean);
+    const hasEv = !!S.events[`${TODAY_IDX}_0_${W}`];
+    tot = fixedActs.length + (hasEv ? 1 : 0);
+    dn  = fixedActs.filter(a=>S.done[`${a.id}_${TODAY_IDX}_${W}`]).length
+        + (hasEv && S.done[`event_${TODAY_IDX}_0_${W}`] ? 1 : 0);
+  } else {
+    tot = S.acts.length;
+    dn  = S.acts.filter(a=>S.done[`${a.id}_${TODAY_IDX}_${W}`]).length;
+  }
+  if(dn===tot && tot>0){
     const childName = (S.settings && S.settings.childName) || 'Jacob';
     const tomorrowIdx = (TODAY_IDX + 1) % 7;
     const tomorrowName = DAYS_FULL[tomorrowIdx];
@@ -2498,11 +2669,11 @@ function updateProgress(){
   const W=wk();
   let tot,dn;
   if(WEEKEND.includes(TODAY_IDX)){
-    const base=S.acts.slice(0,2);
-    const evs=[0,1,2].filter(s=>S.events[`${TODAY_IDX}_${s}_${W}`]);
-    tot=base.length+evs.length;
-    dn=base.filter(a=>S.done[`${a.id}_${TODAY_IDX}_${W}`]).length
-      +evs.filter(s=>S.done[`event_${TODAY_IDX}_${s}_${W}`]).length;
+    const fixedActs = [S.acts[0], S.acts[1], S.acts[3], S.acts[4]].filter(Boolean);
+    const hasEv = !!S.events[`${TODAY_IDX}_0_${W}`];
+    tot = fixedActs.length + (hasEv ? 1 : 0);
+    dn  = fixedActs.filter(a=>S.done[`${a.id}_${TODAY_IDX}_${W}`]).length
+        + (hasEv && S.done[`event_${TODAY_IDX}_0_${W}`] ? 1 : 0);
   } else {
     tot=S.acts.length; dn=S.acts.filter(a=>S.done[`${a.id}_${TODAY_IDX}_${W}`]).length;
   }
@@ -2537,6 +2708,180 @@ function burst(el){
 // LOCK SYSTEM
 // ═══════════════════════════════════════════════════════════
 function isLocked(){ return !!(S.settings && S.settings.locked); }
+
+// ═══════════════════════════════════════════════════════════
+// SCHOOL HOLIDAY
+// ═══════════════════════════════════════════════════════════
+function isHolidayActive(){
+  const h = S.settings && S.settings.holiday;
+  if(!h || !h.start || !h.end) return false;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const start = new Date(h.start); start.setHours(0,0,0,0);
+  const end   = new Date(h.end);   end.setHours(23,59,59,999);
+  return today >= start && today <= end;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCHOOL HOLIDAY + MINI CALENDAR PICKER
+// ═══════════════════════════════════════════════════════════
+let _calTarget = 'start'; // 'start' | 'end'
+let _calYear, _calMonth;
+let _holStart = null; // 'YYYY-MM-DD'
+let _holEnd   = null;
+
+function openCalPicker(target){
+  _calTarget = target;
+  const existing = target === 'start' ? _holStart : _holEnd;
+  const ref = existing ? new Date(existing + 'T00:00:00') : new Date();
+  _calYear  = ref.getFullYear();
+  _calMonth = ref.getMonth();
+  document.getElementById('cal-picker-wrap').style.display = 'block';
+  renderCalGrid();
+  // Scroll calendar into view
+  setTimeout(()=>document.getElementById('cal-picker-wrap').scrollIntoView({behavior:'smooth',block:'nearest'}), 50);
+}
+
+function closeCalPicker(){
+  document.getElementById('cal-picker-wrap').style.display = 'none';
+}
+
+function calNav(dir){
+  _calMonth += dir;
+  if(_calMonth > 11){ _calMonth = 0; _calYear++; }
+  if(_calMonth < 0) { _calMonth = 11; _calYear--; }
+  renderCalGrid();
+}
+
+function renderCalGrid(){
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS_H = ['S','M','T','W','T','F','S'];
+  document.getElementById('cal-month-label').textContent = `${MONTHS[_calMonth]} ${_calYear}`;
+
+  const firstDay = new Date(_calYear, _calMonth, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(_calYear, _calMonth+1, 0).getDate();
+
+  let html = DAYS_H.map(d=>`<div style="font-size:0.55rem;font-weight:800;color:#aaa;padding:2px 0;">${d}</div>`).join('');
+
+  // Blank cells before first day
+  for(let i=0; i<firstDay; i++) html += '<div></div>';
+
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = `${_calYear}-${String(_calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const thisDate = new Date(_calYear, _calMonth, d);
+    const isToday = thisDate.getTime() === today.getTime();
+    const isStart = dateStr === _holStart;
+    const isEnd   = dateStr === _holEnd;
+    const inRange = _holStart && _holEnd && dateStr > _holStart && dateStr < _holEnd;
+    const isTarget = _calTarget==='start' ? isStart : isEnd;
+
+    let bg = 'transparent', color = '#2d3561', fw = '600', border = 'none';
+    if(isTarget)  { bg='#2d3561'; color='white'; fw='800'; }
+    else if(isStart||isEnd) { bg='rgba(45,53,97,0.15)'; fw='800'; }
+    else if(inRange) { bg='rgba(255,209,102,0.35)'; }
+    else if(isToday) { border='2px solid #ffd166'; fw='800'; }
+
+    html += `<div onclick="calSelectDay('${dateStr}')"
+      style="padding:3px 1px;border-radius:6px;cursor:pointer;font-size:0.7rem;font-weight:${fw};
+             color:${color};background:${bg};border:${border};line-height:1.6;
+             transition:background 0.12s;">${d}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
+function calSelectDay(dateStr){
+  if(_calTarget === 'start'){
+    _holStart = dateStr;
+    // If end is before new start, clear end
+    if(_holEnd && _holEnd < _holStart) _holEnd = null;
+  } else {
+    _holEnd = dateStr;
+    // If start is after new end, clear start
+    if(_holStart && _holStart > _holEnd) _holStart = null;
+  }
+  updateHolBtnLabels();
+  renderCalGrid();
+  closeCalPicker();
+  // Auto-open other picker if not set
+  if(_calTarget === 'start' && !_holEnd) setTimeout(()=>openCalPicker('end'), 200);
+}
+
+function fmtHolDate(str){
+  if(!str) return 'Tap to select';
+  const d = new Date(str + 'T00:00:00');
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+}
+
+function updateHolBtnLabels(){
+  document.getElementById('hol-start-label').textContent = fmtHolDate(_holStart);
+  document.getElementById('hol-end-label').textContent   = fmtHolDate(_holEnd);
+  // Highlight buttons when selected
+  document.getElementById('hol-start-btn').style.borderColor = _holStart ? '#ffd166' : '#e0e0e0';
+  document.getElementById('hol-end-btn').style.borderColor   = _holEnd   ? '#ffd166' : '#e0e0e0';
+}
+
+function isDateInHoliday(di){
+  const h = S.settings && S.settings.holiday;
+  if(!h || !h.start || !h.end) return false;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayDi = (today.getDay() + 6) % 7;
+  const diff = di - todayDi;
+  const colDate = new Date(today); colDate.setDate(today.getDate() + diff);
+  colDate.setHours(0,0,0,0);
+  const start = new Date(h.start + 'T00:00:00');
+  const end   = new Date(h.end   + 'T00:00:00'); end.setHours(23,59,59,999);
+  return colDate >= start && colDate <= end;
+}
+
+function openSettingsWithHoliday(){
+  const h = S.settings && S.settings.holiday;
+  const banner = document.getElementById('holiday-active-banner');
+  _holStart = (h && h.start) || null;
+  _holEnd   = (h && h.end)   || null;
+  updateHolBtnLabels();
+  if(h && h.start && h.end){
+    banner.style.display = 'flex';
+    document.getElementById('holiday-banner-text').textContent = h.name || 'School Holiday';
+    const fmt = s => fmtHolDate(s);
+    document.getElementById('holiday-banner-dates').textContent = `${fmt(h.start)} – ${fmt(h.end)}`;
+    document.getElementById('holiday-name').value = h.name || '';
+  } else {
+    banner.style.display = 'none';
+  }
+  closeCalPicker();
+}
+
+function applyHolidayFromSettings(){
+  if(!_holStart || !_holEnd){ alert('Please select a start and end date.'); return; }
+  if(_holStart > _holEnd){ alert('End date must be after start date.'); return; }
+  const name = document.getElementById('holiday-name').value.trim() || 'School Holiday 🎉';
+  if(!S.settings) S.settings = {};
+  S.settings.holiday = { start: _holStart, end: _holEnd, name };
+  saveS();
+  render();
+  openSettingsWithHoliday();
+  showToast('🎉 Holiday applied!');
+}
+
+function clearHoliday(){
+  if(!S.settings) return;
+  S.settings.holiday = null;
+  _holStart = null; _holEnd = null;
+  saveS();
+  render();
+  openSettingsWithHoliday();
+  showToast('School schedule restored');
+}
+
+function showToast(msg){
+  const t = document.getElementById('lock-toast');
+  if(!t) return;
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
 
 function applyColourTheme(){
   const ct = (S.settings && S.settings.colorTheme) || 'sky';
@@ -2837,18 +3182,19 @@ function buildAndPrint(){
         cards.push({ label: act.label, emoji: act.emoji, photo, color, di, ri });
       });
     } else {
-      // Weekend: Wake Up, Breakfast, then 3 event slots
-      const baseActs = S.acts.slice(0, 2);
-      baseActs.forEach((act, ri) => {
-        const photo = S.actPhotos[`${act.id}_${di}`] || null;
-        cards.push({ label: act.label, emoji: act.emoji, photo, color, di, ri });
-      });
-      [0,1,2].forEach(slot => {
-        const ev = S.events[`${di}_${slot}_${W}`];
-        if(ev){
-          cards.push({ label: ev.l, emoji: ev.e||'🎉', photo: ev.photo||null, color, di });
+      // Weekend: Wake Up, Breakfast, Event (slot 0), Dinner, Sleep
+      const wkOrder = [S.acts[0], S.acts[1], null, S.acts[3], S.acts[4]];
+      wkOrder.forEach((act, ri) => {
+        if(act === null){
+          const ev = S.events[`${di}_0_${W}`];
+          if(ev){
+            cards.push({ label: ev.l, emoji: ev.e||'🎉', photo: ev.photo||null, color, di });
+          } else {
+            cards.push({ label: 'Weekend Fun', emoji: '🎉', photo: null, color, empty: true, di });
+          }
         } else {
-          cards.push({ label: '—', emoji: '', photo: null, color, empty: true, di });
+          const photo = S.actPhotos[`${act.id}_${di}`] || null;
+          cards.push({ label: act.label, emoji: act.emoji, photo, color, di, ri });
         }
       });
     }
@@ -2929,6 +3275,93 @@ function scheduleRefresh(){
 }
 
 // ═══════════════════════════════════════════════════════════
+// SKY BAR — clock + sun/moon arc
+// ═══════════════════════════════════════════════════════════
+function updateSkyBar(){
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+
+  // Time as fraction 0..1 of day (6am=0 → 8pm=1 for sun arc)
+  // Sun visible 5am–8pm, moon 8pm–5am
+  const totalMins = h * 60 + m;
+  const sunriseMin = 5 * 60;   // 5:00am
+  const sunsetMin  = 20 * 60;  // 8:00pm
+  const isDay = totalMins >= sunriseMin && totalMins < sunsetMin;
+
+  // Progress 0..1 across day or night arc
+  let progress;
+  if(isDay){
+    progress = (totalMins - sunriseMin) / (sunsetMin - sunriseMin);
+  } else {
+    const nightDuration = 24*60 - (sunsetMin - sunriseMin);
+    const nightMins = totalMins >= sunsetMin
+      ? totalMins - sunsetMin
+      : totalMins + (24*60 - sunsetMin);
+    progress = nightMins / nightDuration;
+  }
+
+  // Orb position: parabolic arc across width, dips at edges
+  const orbEl = document.getElementById('sky-orb');
+  const starsEl = document.getElementById('sky-stars');
+  const bgEl = document.getElementById('sky-gradient-bg');
+  if(!orbEl) return;
+
+  const barW = orbEl.parentElement.offsetWidth || 300;
+  const leftPct = 4 + progress * 88; // 4%..92%
+
+  // Arc height: highest at progress=0.5
+  const arcDepth = 8; // px from vertical centre
+  const arcOffset = -Math.sin(progress * Math.PI) * arcDepth;
+  orbEl.style.left = leftPct + '%';
+  orbEl.style.top = `calc(50% + ${arcOffset}px)`;
+  orbEl.style.transform = 'translateY(-50%)';
+  orbEl.textContent = isDay ? '☀️' : '🌙';
+
+  // Sky gradient based on time of day
+  let skyGrad;
+  if(totalMins < 5*60){           // midnight–5am: deep night
+    skyGrad = 'linear-gradient(180deg, #0a0a2e 0%, #1a1a4e 100%)';
+  } else if(totalMins < 7*60){    // 5–7am: sunrise
+    skyGrad = 'linear-gradient(180deg, #1a1a4e 0%, #f97316 50%, #fed7aa 100%)';
+  } else if(totalMins < 17*60){   // 7am–5pm: daytime
+    skyGrad = 'linear-gradient(180deg, #1e40af 0%, #60a5fa 50%, #bae6fd 100%)';
+  } else if(totalMins < 20*60){   // 5–8pm: sunset
+    skyGrad = 'linear-gradient(180deg, #7c2d12 0%, #f97316 40%, #fbbf24 100%)';
+  } else {                         // 8pm+: night
+    skyGrad = 'linear-gradient(180deg, #0a0a2e 0%, #1e1b4b 100%)';
+  }
+  bgEl.style.background = skyGrad;
+
+  // Stars at night
+  if(!isDay){
+    starsEl.classList.add('visible');
+    if(!starsEl.childElementCount){
+      starsEl.innerHTML = Array.from({length:12},(_,i)=>{
+        const top=Math.random()*80+5, left=Math.random()*90+2;
+        const delay=(Math.random()*2).toFixed(1);
+        return `<div class="sky-star" style="top:${top}%;left:${left}%;animation-delay:${delay}s">⭐</div>`;
+      }).join('');
+    }
+  } else {
+    starsEl.classList.remove('visible');
+  }
+
+  // Clock
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hh = h % 12 || 12;
+  const mm = String(m).padStart(2,'0');
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('sky-time').textContent = `${hh}:${mm} ${ampm}`;
+  document.getElementById('sky-date').textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
+}
+
+function startSkyBar(){
+  updateSkyBar();
+  setInterval(updateSkyBar, 10000); // update every 10s
+}
+
+// ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
 window.speechSynthesis && window.speechSynthesis.getVoices();
@@ -2938,6 +3371,7 @@ loadS().then(() => {
   applyLockState();
   applyColourTheme();
   applyCalmState();
+  startSkyBar();
   scheduleRefresh();
   window.addEventListener('resize', positionJacob);
   setTimeout(() => {
