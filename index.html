@@ -963,14 +963,15 @@ function openDB() {
 
 function saveS() {
   openDB().then(db => {
-    const tx  = db.transaction(STORE, 'readwrite');
+    const tx = db.transaction(STORE, 'readwrite');
     tx.objectStore(STORE).put(JSON.parse(JSON.stringify(S)), SK);
-    tx.onerror = () => showToast('⚠️ Save failed');
+  }).catch(() => {
+    try { localStorage.setItem(SK, JSON.stringify(S)); } catch(e) {}
   });
 }
 
 function loadS() {
-  return openDB().then(db => new Promise((res, rej) => {
+  return openDB().then(db => new Promise((res) => {
     const tx  = db.transaction(STORE, 'readonly');
     const req = tx.objectStore(STORE).get(SK);
     req.onsuccess = e => {
@@ -982,8 +983,17 @@ function loadS() {
       }
       res();
     };
-    req.onerror = () => { res(); }; // silent fail — start fresh
-  }));
+    req.onerror = () => res();
+  })).catch(() => {
+    // Fallback to localStorage (file://, private browsing, etc)
+    try {
+      const r = localStorage.getItem(SK);
+      if (r) S = { ...S, ...JSON.parse(r) };
+    } catch(e) {}
+    if (!S.acts || !S.acts.length) {
+      S.acts = DEFAULT_ACTS.map((a,i) => ({id:'a'+i, label:a.label, emoji:a.emoji, ci:a.ci}));
+    }
+  });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1479,14 +1489,6 @@ function toggleEventDone(dk,slot,label){
   }
   updateProgress();
 }
-  if(!was){
-    ding('done'); burst(slot);
-    showToast(`🎉 ${label} — Amazing, Jacob!`);
-    jacobSay('So fun! 🎉');
-    setTimeout(()=>speak(`${label} done! Amazing, Jacob!`), 300);
-  }
-  updateProgress();
-}
 
 function checkAllDone(W){
   if(WEEKEND.includes(TODAY_IDX)) return;
@@ -1765,6 +1767,11 @@ loadS().then(() => {
     const greets = ['Vroom! 🏎️','Let\'s race! 🚀','Zoom zoom! ⚡','Full speed! 🏁','Go go go! 🏎️'];
     jacobSay(greets[TODAY_IDX % greets.length]);
   }, 900);
+}).catch(() => {
+  // Last resort — render with defaults
+  if (!S.acts || !S.acts.length)
+    S.acts = DEFAULT_ACTS.map((a,i) => ({id:'a'+i, label:a.label, emoji:a.emoji, ci:a.ci}));
+  render();
 });
 
 // ═══════════════════════════════════════════════════════════
