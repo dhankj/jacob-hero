@@ -369,18 +369,32 @@
   .card-placeholder { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
   .card-emoji-big { font-size:clamp(0.9rem,2vw,1.7rem); line-height:1; }
 
+  /* Done overlay — just green tint, no white circle */
   .done-veil {
-    position:absolute; inset:0; background:rgba(6,214,160,0.4);
-    display:flex; align-items:center; justify-content:center;
+    position:absolute; inset:0; background:rgba(6,214,160,0.35);
     opacity:0; transition:opacity 0.3s; z-index:3;
-  }
-  .done-circle {
-    width:clamp(16px,2.2vw,28px); height:clamp(16px,2.2vw,28px);
-    background:white; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    color:var(--grass); box-shadow:0 2px 8px rgba(6,214,160,0.4);
+    pointer-events:none;
   }
   .activity-card.done .done-veil { opacity:1; }
+
+  /* Done button — empty white box normally, green check when done */
+  .done-btn {
+    position:absolute; top:4px; right:4px;
+    background: white;
+    border: 2.5px solid #ccc;
+    border-radius: 6px;
+    width: 22px; height: 22px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; z-index:4;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    transition: background 0.18s, border-color 0.18s, transform 0.15s;
+    font-size: 14px; font-weight: 900; color: transparent;
+  }
+  .done-btn:active { transform: scale(0.88); }
+  .activity-card.done .done-btn {
+    background: #06d6a0;
+    border-color: #06d6a0;
+    color: white;
+  }
 
   .cam-btn {
     position:absolute; bottom:4px; right:4px;
@@ -389,19 +403,6 @@
     display:flex; align-items:center; justify-content:center;
   }
   .cam-btn:active { background:rgba(45,53,97,0.95); }
-
-  .done-btn {
-    position:absolute; top:4px; right:4px;
-    background: #06d6a0;
-    border: 2px solid white;
-    border-radius: 7px;
-    width: 22px; height: 22px; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; z-index:4;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-    transition: background 0.18s, transform 0.15s;
-  }
-  .done-btn:active { transform: scale(0.88); }
-  .activity-card.done .done-btn { background: #ef476f; }
 
   .done-badge {
     position:absolute; top:4px; left:4px;
@@ -461,19 +462,23 @@
   }
   .event-slot.ev-done .event-done-veil { opacity:1; }
 
-  /* Done button — same visible style as activity done-btn */
   .event-done-btn {
     position:absolute; top:4px; right:4px;
-    background: #06d6a0;
-    border: 2px solid white;
-    border-radius: 7px;
+    background: white;
+    border: 2.5px solid #ccc;
+    border-radius: 6px;
     width: 22px; height: 22px; cursor:pointer;
     display:flex; align-items:center; justify-content:center; z-index:4;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-    transition: background 0.18s, transform 0.15s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    transition: background 0.18s, border-color 0.18s, transform 0.15s;
+    font-size: 14px; font-weight: 900; color: transparent;
   }
   .event-done-btn:active { transform: scale(0.88); }
-  .event-slot.ev-done .event-done-btn { background: #ef476f; }
+  .event-slot.ev-done .event-done-btn {
+    background: #06d6a0;
+    border-color: #06d6a0;
+    color: white;
+  }
 
   /* Done badge */
   .event-done-badge {
@@ -1189,13 +1194,13 @@ function makeActCard(act,di,W){
     <div class="card-top-bar" style="background:${clr}"></div>
     <div class="card-img-zone">
       ${ph?`<img class="act-photo" src="${ph}" alt="${act.label}">`:`<div class="card-placeholder"><div class="card-emoji-big">${act.emoji}</div></div>`}
-      <div class="done-veil"><div class="done-circle"><i data-lucide="check" style="width:11px;height:11px;stroke-width:3"></i></div></div>
+      <div class="done-veil"></div>
       <div class="done-badge">Done!</div>
       <button class="cam-btn" data-act="${act.id}" data-di="${di}" data-action="photo">
         <i data-lucide="camera" style="width:9px;height:9px"></i>
       </button>
-      <button class="done-btn" data-act="${act.id}" data-di="${di}" data-dk="${dk}" data-w="${W}" data-action="done" style="font-size:13px;font-weight:900;color:white;">
-        ${done?'✕':'✓'}
+      <button class="done-btn" data-act="${act.id}" data-di="${di}" data-dk="${dk}" data-w="${W}" data-action="done">
+        ${done ? '✓' : ''}
       </button>
     </div>
     <div class="card-label-area"><span class="card-label">${act.label}</span></div>`;
@@ -1243,12 +1248,10 @@ function makeEventSlot(di,slot,W){
       <div class="event-top-bar"></div>
       <div class="event-img-zone" style="position:relative;">
         ${imgContent}
-        <div class="event-done-veil">
-          <div class="done-circle"><i data-lucide="check" style="width:11px;height:11px;stroke-width:3"></i></div>
-        </div>
+        <div class="event-done-veil"></div>
         <div class="event-done-badge">Done!</div>
-        <button class="event-done-btn" data-action="ev-done" style="font-size:13px;font-weight:900;color:white;">
-          ${done?'✕':'✓'}
+        <button class="event-done-btn" data-action="ev-done">
+          ${done ? '✓' : ''}
         </button>
       </div>
       <div class="event-label-area"><span class="event-name">${ev.l}</span></div>`;
@@ -1447,22 +1450,16 @@ function toggleDone(aid,di,W){
   if(card){
     card.classList.toggle('done',!was);
     const btn=card.querySelector('.done-btn');
-    if(btn){
-      // Use plain ✓ / ✕ text so we never depend on lucide
-      btn.textContent = !was ? '✕' : '✓';
-      btn.style.fontSize = '13px';
-      btn.style.fontWeight = '900';
-      btn.style.color = 'white';
-    }
+    if(btn) btn.textContent = !was ? '✓' : '';
   }
   if(!was){
     const act=S.acts.find(a=>a.id===aid);
     const label=act?act.label:'that';
     ding('done');
     burst(card);
-    showToast(`🌟 ${label} — Well done, Jacob!`);
+    showToast(`🌟 ${label} done! Great job Jacob!`);
     jacobSay('Great job! ⭐');
-    setTimeout(()=>speak(`${label} done! Well done, Jacob!`), 300);
+    setTimeout(()=>speak(`${label} done. Great job Jacob!`), 300);
     checkAllDone(W);
   }
   updateProgress();
@@ -1473,12 +1470,15 @@ function toggleEventDone(dk,slot,label){
   S.done[dk]=!was; saveS();
   slot.classList.toggle('ev-done',!was);
   const btn=slot.querySelector('.event-done-btn');
-  if(btn){
-    btn.textContent = !was ? '✕' : '✓';
-    btn.style.fontSize = '13px';
-    btn.style.fontWeight = '900';
-    btn.style.color = 'white';
+  if(btn) btn.textContent = !was ? '✓' : '';
+  if(!was){
+    ding('done'); burst(slot);
+    showToast(`🌟 ${label} done! Great job Jacob!`);
+    jacobSay('So fun! 🎉');
+    setTimeout(()=>speak(`${label} done. Great job Jacob!`), 300);
   }
+  updateProgress();
+}
   if(!was){
     ding('done'); burst(slot);
     showToast(`🎉 ${label} — Amazing, Jacob!`);
