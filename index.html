@@ -917,14 +917,14 @@ const DEFAULT_ACTS = [
   {label:'Sleep',    emoji:'🌙', ci:9},
 ];
 
-const SK = 'jacob_hero_v7';
+const SK = 'jacob_hero_v8';
 
 // ═══════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════
 let S = {
   acts: [],        // {id, label, emoji, ci}
-  events: {},      // { 'di_slot_wk': {e,l} }
+  events: {},      // { 'di_slot_wk': {l, photo} }
   done: {},        // { key: bool }
   jacobPhoto: null,
   actPhotos: {},   // { 'actId_di': base64 }
@@ -936,16 +936,49 @@ function wk() {
   return `${d.getFullYear()}-W${w}`;
 }
 
-function loadS() {
-  try { const r=localStorage.getItem(SK); if(r) S={...S,...JSON.parse(r)}; } catch(e){}
-  if(!S.acts||!S.acts.length) {
-    S.acts=DEFAULT_ACTS.map((a,i)=>({id:'a'+i,label:a.label,emoji:a.emoji,ci:a.ci}));
-    saveS();
-  }
+// ═══════════════════════════════════════════════════════════
+// INDEXEDDB STORAGE  (replaces localStorage — no 5MB limit)
+// ═══════════════════════════════════════════════════════════
+const DB_NAME = 'JacobHeroDB';
+const DB_VER  = 1;
+const STORE   = 'state';
+let _db = null;
+
+function openDB() {
+  return new Promise((res, rej) => {
+    if (_db) { res(_db); return; }
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      e.target.result.createObjectStore(STORE);
+    };
+    req.onsuccess = e => { _db = e.target.result; res(_db); };
+    req.onerror   = e => rej(e.target.error);
+  });
 }
+
 function saveS() {
-  try { localStorage.setItem(SK,JSON.stringify(S)); }
-  catch(e) { showToast('⚠️ Storage full – clear old photos'); }
+  openDB().then(db => {
+    const tx  = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put(JSON.parse(JSON.stringify(S)), SK);
+    tx.onerror = () => showToast('⚠️ Save failed');
+  });
+}
+
+function loadS() {
+  return openDB().then(db => new Promise((res, rej) => {
+    const tx  = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).get(SK);
+    req.onsuccess = e => {
+      const saved = e.target.result;
+      if (saved) S = { ...S, ...saved };
+      if (!S.acts || !S.acts.length) {
+        S.acts = DEFAULT_ACTS.map((a,i) => ({id:'a'+i, label:a.label, emoji:a.emoji, ci:a.ci}));
+        saveS();
+      }
+      res();
+    };
+    req.onerror = () => { res(); }; // silent fail — start fresh
+  }));
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1509,6 +1542,29 @@ function setupLP(el,cb){
 }
 
 // ═══════════════════════════════════════════════════════════
+// PHOTO COMPRESSION — shrink before saving to localStorage
+// Target: max 400px wide/tall, JPEG quality 0.55 → ~15-25KB
+// ═══════════════════════════════════════════════════════════
+function compressImage(file, maxSize, quality, callback) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > h) { if (w > maxSize) { h = h * maxSize / w; w = maxSize; } }
+      else        { if (h > maxSize) { w = w * maxSize / h; h = maxSize; } }
+      canvas.width = Math.round(w);
+      canvas.height = Math.round(h);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      callback(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ═══════════════════════════════════════════════════════════
 // PHOTO MODAL
 // ═══════════════════════════════════════════════════════════
 let _pAid=null,_pDi=null;
@@ -1527,12 +1583,10 @@ function removeActPhoto(){
 }
 function handleActPhoto(file){
   if(!file||!_pAid) return;
-  const r=new FileReader();
-  r.onload=ev=>{
-    S.actPhotos[`${_pAid}_${_pDi}`]=ev.target.result; saveS();
+  compressImage(file, 400, 0.55, b64 => {
+    S.actPhotos[`${_pAid}_${_pDi}`] = b64; saveS();
     closeModal('photo-modal'); render(); showToast('📸 Photo saved!');
-  };
-  r.readAsDataURL(file);
+  });
 }
 document.getElementById('cam-input').addEventListener('change',e=>handleActPhoto(e.target.files[0]));
 document.getElementById('gal-input').addEventListener('change',e=>handleActPhoto(e.target.files[0]));
@@ -1543,14 +1597,12 @@ document.getElementById('gal-input').addEventListener('change',e=>handleActPhoto
 function triggerJacobPhoto(){ const i=document.getElementById('jacob-input'); i.value=''; i.click(); }
 document.getElementById('jacob-input').addEventListener('change',e=>{
   const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=ev=>{
-    S.jacobPhoto=ev.target.result; saveS();
+  compressImage(f, 300, 0.6, b64 => {
+    S.jacobPhoto = b64; saveS();
     const driver=document.getElementById('car-driver');
-    if(driver) driver.innerHTML=`<img src="${ev.target.result}" alt="Jacob">`;
+    if(driver) driver.innerHTML=`<img src="${b64}" alt="Jacob">`;
     showToast("🏎️ Jacob's photo is in the car!"); jacobSay("That's me driving! 😄");
-  };
-  r.readAsDataURL(f);
+  });
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -1631,13 +1683,12 @@ function evTriggerGallery(){
 }
 function evHandlePhoto(file){
   if(!file) return;
-  const r=new FileReader();
-  r.onload=ev=>{
-    _evPhotoB64=ev.target.result;
-    const prev=document.getElementById('ev-preview-inner');
-    prev.innerHTML=`<img src="${_evPhotoB64}" style="width:100%;height:140px;object-fit:cover;border-radius:14px;">`;
-  };
-  r.readAsDataURL(file);
+  compressImage(file, 400, 0.55, b64 => {
+    _evPhotoB64 = b64;
+    const prev = document.getElementById('ev-preview-inner');
+    prev.innerHTML = `<img src="${b64}" style="width:100%;height:140px;object-fit:cover;border-radius:14px;">`;
+    document.getElementById('ev-rm-photo-btn').style.display = 'flex';
+  });
 }
 document.getElementById('ev-cam-input').addEventListener('change',e=>evHandlePhoto(e.target.files[0]));
 document.getElementById('ev-gal-input').addEventListener('change',e=>evHandlePhoto(e.target.files[0]));
@@ -1699,13 +1750,17 @@ function scheduleRefresh(){
 // ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
-window.speechSynthesis&&window.speechSynthesis.getVoices();
-loadS(); render(); scheduleRefresh();
-window.addEventListener('resize',positionJacob);
-setTimeout(()=>{
-  const greets=['Vroom! 🏎️','Let\'s race! 🚀','Zoom zoom! ⚡','Full speed! 🏁','Go go go! 🏎️'];
-  jacobSay(greets[TODAY_IDX%greets.length]);
-},900);
+window.speechSynthesis && window.speechSynthesis.getVoices();
+
+loadS().then(() => {
+  render();
+  scheduleRefresh();
+  window.addEventListener('resize', positionJacob);
+  setTimeout(() => {
+    const greets = ['Vroom! 🏎️','Let\'s race! 🚀','Zoom zoom! ⚡','Full speed! 🏁','Go go go! 🏎️'];
+    jacobSay(greets[TODAY_IDX % greets.length]);
+  }, 900);
+});
 
 // ═══════════════════════════════════════════════════════════
 // PWA — Register Service Worker
