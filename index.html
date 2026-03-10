@@ -687,6 +687,22 @@
   .rw-box p { font-size:0.83rem; opacity:0.8; }
   .rw-btn { margin-top:18px; background:var(--sun); color:var(--deep); border:none; border-radius:12px; padding:10px 26px; font-family:'Baloo 2',cursive; font-size:0.9rem; font-weight:800; cursor:pointer; }
 
+  .rw-tomorrow {
+    margin-top:16px; background:rgba(255,255,255,0.1);
+    border-radius:14px; padding:12px 16px;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .rw-tonight {
+    font-size:1rem; font-weight:800; letter-spacing:0.3px;
+    color:#ffd166;
+  }
+  .rw-next {
+    font-size:0.88rem; opacity:0.85; color:white;
+  }
+  .rw-next strong {
+    color:#74b9ff; font-size:1rem;
+  }
+
   .file-input { display:none; }
 
   .theme-btn {
@@ -1224,8 +1240,12 @@
 <div class="modal-bg" id="reward-modal">
   <div class="rw-box">
     <span class="rw-star">🌟</span>
-    <h2>Amazing, Jacob!</h2>
-    <p>You finished everything today!<br>You're a true Daily Hero! 🦸</p>
+    <h2 id="rw-title">Amazing, Jacob!</h2>
+    <p id="rw-msg">You finished everything today!<br>You're a true Daily Hero! 🦸</p>
+    <div class="rw-tomorrow" id="rw-tomorrow">
+      <div class="rw-tonight">🌙 Today finished</div>
+      <div class="rw-next">Tomorrow is <strong id="rw-tomorrow-name">Wednesday</strong></div>
+    </div>
     <button class="rw-btn" onclick="closeModal('reward-modal')">YAY! ✨</button>
   </div>
 </div>
@@ -2144,7 +2164,21 @@ function checkAllDone(W){
   if(WEEKEND.includes(TODAY_IDX)) return;
   const tot=S.acts.length;
   const dn=S.acts.filter(a=>S.done[`${a.id}_${TODAY_IDX}_${W}`]).length;
-  if(dn===tot&&tot>0) setTimeout(()=>document.getElementById('reward-modal').classList.add('show'),800);
+  if(dn===tot&&tot>0){
+    const childName = (S.settings && S.settings.childName) || 'Jacob';
+    const tomorrowIdx = (TODAY_IDX + 1) % 7;
+    const tomorrowName = DAYS_FULL[tomorrowIdx];
+    document.getElementById('rw-title').textContent = `Amazing, ${childName}!`;
+    document.getElementById('rw-msg').innerHTML = `You finished everything today!<br>You're a true Daily Hero! 🦸`;
+    document.getElementById('rw-tomorrow-name').textContent = tomorrowName;
+    setTimeout(()=>{
+      document.getElementById('reward-modal').classList.add('show');
+      ding('done');
+    }, 800);
+    setTimeout(()=>{
+      speak(`Amazing ${childName}! You finished everything today! You are a true Daily Hero! Today is finished. Tomorrow is ${tomorrowName}!`);
+    }, 1200);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
