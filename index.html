@@ -14,7 +14,6 @@
 
 <title>Jacob's Daily Hero</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.383.0/umd/lucide.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -776,10 +775,10 @@
     </div>
     <div class="header-actions">
       <button class="hdr-btn" onclick="window.print()">
-        <i data-lucide="printer" style="width:12px;height:12px"></i> Print
+        🖨️ Print
       </button>
       <button class="hdr-btn danger" onclick="confirmReset()">
-        <i data-lucide="refresh-ccw" style="width:12px;height:12px"></i> Reset
+        🔄 Reset
       </button>
     </div>
   </div>
@@ -820,7 +819,7 @@
 
       <!-- Upload Jacob photo -->
       <button id="jacob-photo-btn" onclick="triggerJacobPhoto()">
-        <i data-lucide="camera" style="width:9px;height:9px"></i> Jacob 📷
+        📷 Jacob
       </button>
     </div>
   </div>
@@ -1143,7 +1142,6 @@ function render(){
   renderGrid();
   updateProgress();
   positionJacob();
-  lucide.createIcons();
 }
 
 function renderHeader(){
@@ -1267,7 +1265,7 @@ function makeActCard(act,di,W){
       <div class="done-veil"></div>
       <div class="done-badge">Done!</div>
       <button class="cam-btn" data-act="${act.id}" data-di="${di}" data-action="photo">
-        <i data-lucide="camera" style="width:9px;height:9px"></i>
+        📷
       </button>
       <button class="done-btn" data-act="${act.id}" data-di="${di}" data-dk="${dk}" data-w="${W}" data-action="done">
         ${done ? '✓' : ''}
@@ -1790,7 +1788,7 @@ function confirmReset(){
 // ═══════════════════════════════════════════════════════════
 // MODAL HELPERS
 // ═══════════════════════════════════════════════════════════
-function openModal(id){ document.getElementById(id).classList.add('show'); lucide.createIcons(); }
+function openModal(id){ document.getElementById(id).classList.add('show'); }
 function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 ['photo-modal','edit-modal','event-modal','reward-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{ if(e.target===document.getElementById(id)) closeModal(id); });
