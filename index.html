@@ -237,13 +237,13 @@
   }
   /* Jacob photo inside car */
   .car-driver {
-    position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
-    width: 18px; height: 18px; border-radius: 50%;
-    overflow: hidden; border: 2px solid white;
+    position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+    width: 34px; height: 34px; border-radius: 50%;
+    overflow: hidden; border: 3px solid white;
     background: linear-gradient(135deg, #a29bfe, #74b9ff);
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.7rem; z-index: 2;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    font-size: 1.2rem; z-index: 2;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   }
   .car-driver img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -263,7 +263,7 @@
   .car-wheels {
     display: flex; gap: 20px; margin-top: 1px;
   }
-  .wheel {
+  .car-wheel {
     width: 10px; height: 10px; border-radius: 50%;
     background: radial-gradient(circle at 30% 30%, #555, #111);
     border: 2px solid #333;
@@ -689,6 +689,32 @@
 
   .file-input { display:none; }
 
+  .theme-btn {
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    background:var(--sky); border:2.5px solid transparent;
+    border-radius:12px; padding:8px 4px; cursor:pointer;
+    font-size:1.6rem; line-height:1;
+    transition:border-color 0.18s, background 0.18s, transform 0.15s;
+  }
+  .theme-btn:active { transform:scale(0.92); }
+  .theme-btn.selected { border-color:var(--ocean); background:#d8eef8; }
+  .theme-btn span { font-family:'Nunito',sans-serif; font-size:0.55rem; font-weight:800; color:var(--deep); }
+
+  /* Theme character (non-car) */
+  .theme-char {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center;
+    line-height: 1;
+  }
+  @keyframes rocket-fly {
+    from { transform: translateY(0) rotate(-3deg); }
+    to   { transform: translateY(-4px) rotate(3deg); }
+  }
+  @keyframes unicorn-bounce {
+    from { transform: translateY(0) rotate(-1deg) scaleX(1.05); }
+    to   { transform: translateY(-3px) rotate(1deg) scaleX(0.97); }
+  }
+
   /* ═══ SETTINGS MODAL ══════════════════════════════════════ */
   #settings-modal .modal-box { max-width:420px; }
   .settings-section { margin-bottom:18px; }
@@ -876,10 +902,6 @@
         </div>
       </div>
 
-      <!-- Upload Jacob photo -->
-      <button id="jacob-photo-btn" onclick="triggerJacobPhoto()">
-        📷 Jacob
-      </button>
     </div>
   </div>
 
@@ -923,6 +945,32 @@
 <div class="modal-bg" id="settings-modal">
   <div class="modal-box" style="max-width:420px;">
     <h3>⚙️ Settings</h3>
+
+    <!-- Character theme -->
+    <div class="settings-section">
+      <h4>🎭 Character & World</h4>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:4px;" id="theme-picker">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+    <!-- Jacob photo -->
+    <div class="settings-section">
+      <h4>🚗 Character Photo</h4>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+        <div id="settings-car-preview" style="width:54px;height:54px;border-radius:50%;overflow:hidden;border:3px solid #2d3561;background:linear-gradient(135deg,#a29bfe,#74b9ff);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;">👦</div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+          <button class="ph-opt" onclick="triggerJacobCam()" style="margin:0;">
+            <div class="ph-ico" style="background:#dff0fb">📷</div>
+            <div style="text-align:left;font-size:0.78rem;">Take a Photo</div>
+          </button>
+          <button class="ph-opt" onclick="triggerJacobGallery()" style="margin:0;">
+            <div class="ph-ico" style="background:#f0fff8">🖼️</div>
+            <div style="text-align:left;font-size:0.78rem;">Choose from Gallery</div>
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Child name -->
     <div class="settings-section">
@@ -1058,6 +1106,41 @@ const WEEKEND    = [5, 6];
 const CARD_CLR   = ['#f7c94a','#06d6a0','#ef476f','#118ab2','#a29bfe','#fd9e5b','#55efc4','#ff7eb3','#ffd166','#74b9ff','#fab1d1','#4db8ff'];
 // One colour per day column (Mon→Sun) — used for card top-bars & column accent
 const DAY_CLR    = ['#74b9ff','#06d6a0','#ffd166','#a29bfe','#fd9e5b','#ff7eb3','#55efc4'];
+
+// ── Character Themes ──────────────────────────────────────
+const THEMES = {
+  car: {
+    id:'car', label:'Racing Car', emoji:'🏎️',
+    trackBg:'linear-gradient(180deg,#3a3a3a 0%,#2a2a2a 40%,#1e1e1e 100%)',
+    edge1:'#ef476f', edge2:'white', lineClr:'#ffd166',
+    scenery:['🌲','🏠','🌲','🌳','🏢','🌲','⛽','🌲','🏠','🌳','🚦','🌲','🏗️','🌲','🌳'],
+  },
+  dino: {
+    id:'dino', label:'Dino', emoji:'🦕',
+    trackBg:'linear-gradient(180deg,#1a5c1a 0%,#2d7a2d 50%,#1a4a1a 100%)',
+    edge1:'#06d6a0', edge2:'#ffd166', lineClr:'#a8ff78',
+    scenery:['🌴','🌿','🦋','🌺','🌴','🍃','🌿','🌴','🦜','🌸','🍀','🌴','🌿','🦋','🌺'],
+  },
+  rocket: {
+    id:'rocket', label:'Rocket', emoji:'🚀',
+    trackBg:'linear-gradient(180deg,#0a0a2e 0%,#1a1a4e 50%,#0d0d3b 100%)',
+    edge1:'#a29bfe', edge2:'#ffd166', lineClr:'rgba(255,255,255,0.8)',
+    scenery:['⭐','🌟','✨','🌙','⭐','💫','🪐','⭐','🌟','✨','☄️','⭐','💫','🌟','🪐'],
+  },
+  turtle: {
+    id:'turtle', label:'Turtle', emoji:'🐢',
+    trackBg:'linear-gradient(180deg,#004d70 0%,#0099cc 50%,#006994 100%)',
+    edge1:'#55efc4', edge2:'#ffd166', lineClr:'#74b9ff',
+    scenery:['🌊','🐚','🌴','🐠','🌊','⭐','🌴','🐡','🌊','🐚','🦀','🌊','🐠','🌴','🌊'],
+  },
+  unicorn: {
+    id:'unicorn', label:'Unicorn', emoji:'🦄',
+    trackBg:'linear-gradient(180deg,#ffb3f0 0%,#ffeaa7 50%,#c8a8ff 100%)',
+    edge1:'#fd79a8', edge2:'#fdcb6e', lineClr:'white',
+    scenery:['🌈','⭐','🌸','☁️','🌈','✨','🦋','🌸','🌈','💖','☁️','🌸','⭐','🌈','💫'],
+  },
+};
+function getTheme(){ return THEMES[(S.settings&&S.settings.theme)||'car']||THEMES.car; }
 const EMOJIS     = ['☀️','🍳','🎒','🥗','🧩','📚','🍽️','🛁','🌙','⚽','🎨','🎵','🚌','🛌','🧸','🎮','🍎','🥛','🚿','👕','🦷','🏃','📱','🎯','🌸','🎪'];
 
 const EVENTS = [
@@ -1239,11 +1322,29 @@ function speak(fullText){
 let _settingsSpeed = 0.88;
 
 function openSettings(){
-  if (!S.settings) S.settings = { childName:'Jacob', voiceName:'', speed:0.88 };
+  if (!S.settings) S.settings = { childName:'Jacob', voiceName:'', speed:0.88, theme:'car' };
   _settingsSpeed = S.settings.speed || 0.88;
 
   // Child name
   document.getElementById('settings-name').value = S.settings.childName || 'Jacob';
+
+  _settingsTheme = S.settings.theme || 'car';
+
+  // Theme picker
+  const currentTheme = S.settings.theme || 'car';
+  const picker = document.getElementById('theme-picker');
+  picker.innerHTML = Object.values(THEMES).map(t => `
+    <button class="theme-btn${t.id===currentTheme?' selected':''}" onclick="selectTheme('${t.id}',this)">
+      ${t.emoji}<span>${t.label}</span>
+    </button>`).join('');
+
+  // Jacob photo preview
+  const prev = document.getElementById('settings-car-preview');
+  if (prev) {
+    prev.innerHTML = S.jacobPhoto
+      ? `<img src="${S.jacobPhoto}" style="width:100%;height:100%;object-fit:cover;">`
+      : '👦';
+  }
 
   // Speed buttons
   document.querySelectorAll('.speed-btn').forEach(b => {
@@ -1253,6 +1354,13 @@ function openSettings(){
   // Voice list
   buildVoiceList();
   openModal('settings-modal');
+}
+
+let _settingsTheme = 'car';
+function selectTheme(id, btn){
+  _settingsTheme = id;
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
 }
 
 function buildVoiceList(){
@@ -1305,17 +1413,20 @@ function setSpeed(val, btn){
 
 function saveSettings(){
   const name = document.getElementById('settings-name').value.trim() || 'Jacob';
-  // find selected voice
   const selEl = document.querySelector('.voice-item.selected .voice-name');
   const vName = _settingsVoice || (selEl ? selEl.textContent.replace(/^.\s/,'') : '');
+  const theme = _settingsTheme || (S.settings && S.settings.theme) || 'car';
   if(!S.settings) S.settings = {};
   S.settings.childName = name;
   S.settings.voiceName = vName;
   S.settings.speed = _settingsSpeed;
+  S.settings.theme = theme;
   saveS();
-  // Update header title
+  // Update title + re-render road with new theme
   document.querySelector('.header-title').innerHTML =
     `⭐ ${name}'s Daily Hero <span class="today-pill" id="today-badge">${DAYS_SH[TODAY_IDX]}</span>`;
+  renderRoad();
+  positionJacob();
   closeModal('settings-modal');
   showToast(`✅ Settings saved!`);
   speak(`Great! I'm ready to help ${name} today!`);
@@ -1353,11 +1464,24 @@ function renderHeader(){
 
 function renderRoad(){
   const W=wk();
+  const theme = getTheme();
 
-  // Build scrolling scenery (trees, buildings, signs) — doubled for seamless loop
-  const sceneryItems = ['🌲','🏠','🌲','🌳','🏢','🌲','⛽','🌲','🏠','🌳','🚦','🌲','🏗️','🌲','🌳','🏠','🌲','🌲','🏢','🌳'];
-  const doubled = [...sceneryItems,...sceneryItems,...sceneryItems];
-  document.getElementById('track-scenery').innerHTML = doubled.map((s,i)=>`
+  // Apply track background
+  document.querySelector('.track-asphalt').style.background = theme.trackBg;
+
+  // Apply edge colors
+  const styleId = 'theme-edge-style';
+  let styleEl = document.getElementById(styleId);
+  if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = styleId; document.head.appendChild(styleEl); }
+  styleEl.textContent = `
+    .track-edge-top { background: repeating-linear-gradient(90deg, ${theme.edge1} 0, ${theme.edge1} 18px, ${theme.edge2} 18px, ${theme.edge2} 30px) !important; }
+    .track-edge-bot { background: repeating-linear-gradient(90deg, ${theme.edge2} 0, ${theme.edge2} 18px, ${theme.edge1} 18px, ${theme.edge1} 30px) !important; }
+    .track-lines { background: repeating-linear-gradient(90deg, ${theme.lineClr} 0px, ${theme.lineClr} 28px, transparent 28px, transparent 52px) !important; }
+  `;
+
+  // Build scrolling scenery
+  const items = [...theme.scenery,...theme.scenery,...theme.scenery];
+  document.getElementById('track-scenery').innerHTML = items.map(s=>`
     <div class="scenery-item" style="margin-right:${18+Math.random()*28|0}px;font-size:${0.9+Math.random()*0.5}rem;opacity:${0.3+Math.random()*0.35}">${s}</div>
   `).join('');
 
@@ -1376,12 +1500,42 @@ function renderRoad(){
     </div>`;
   }).join('');
 
-  // Jacob in car: show photo only if uploaded, else emoji
-  const driver = document.getElementById('car-driver');
-  if(S.jacobPhoto){
-    driver.innerHTML=`<img src="${S.jacobPhoto}" alt="Jacob">`;
+  // Render character based on theme
+  const charEl = document.getElementById('jacob-char');
+  if (theme.id === 'car') {
+    charEl.innerHTML = `
+      <div id="jacob-speech" class="jacob-speech"></div>
+      <div class="jacob-car" onclick="onCarClick()" style="cursor:pointer;">
+        <div class="car-roof"></div>
+        <div class="car-body">
+          <div class="car-driver" id="car-driver">👦</div>
+          <div class="car-window-l"></div>
+          <div class="car-window-r"></div>
+        </div>
+        <div class="car-wheels">
+          <div class="car-wheel"></div>
+          <div class="car-wheel"></div>
+        </div>
+      </div>`;
   } else {
-    driver.innerHTML='👦';
+    const anim = theme.id==='rocket' ? 'rocket-fly' : theme.id==='unicorn' ? 'unicorn-bounce' : 'car-bounce';
+    const shadow = theme.id==='rocket' ? 'drop-shadow(0 3px 8px rgba(162,155,254,0.6))'
+                 : theme.id==='unicorn' ? 'drop-shadow(0 3px 8px rgba(253,121,168,0.5))'
+                 : 'drop-shadow(0 3px 6px rgba(0,0,0,0.4))';
+    // scaleX(-1) flips emoji to face right (most animal emojis face left by default)
+    const flip = theme.id==='rocket' ? '' : 'scaleX(-1)';
+    charEl.innerHTML = `
+      <div id="jacob-speech" class="jacob-speech"></div>
+      <div class="theme-char" onclick="onCarClick()" style="cursor:pointer;font-size:2.4rem;animation:${anim} 0.5s ease-in-out infinite alternate;filter:${shadow};transform:${flip};">
+        <div class="car-driver" id="car-driver" style="position:absolute;top:-12px;left:50%;transform:translateX(-50%) ${flip};">👦</div>
+        ${theme.emoji}
+      </div>`;
+  }
+
+  // Restore Jacob photo if set
+  const driver = document.getElementById('car-driver');
+  if(driver && S.jacobPhoto){
+    driver.innerHTML=`<img src="${S.jacobPhoto}" alt="Jacob">`;
   }
 }
 
@@ -1659,53 +1813,134 @@ function onCarClick() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// DAY HEADER TAP → TIME CONCEPT TEACHING
+// CAR DRIVE ANIMATION — drives to target day then returns
+// ═══════════════════════════════════════════════════════════
+let _carAnimating = false;
+
+function animateCarTo(targetDi, onArrival, onReturn) {
+  if (_carAnimating) return;
+  _carAnimating = true;
+
+  const car = document.getElementById('jacob-char');
+  const track = document.querySelector('.racetrack');
+  if (!car || !track) { _carAnimating = false; return; }
+
+  const W = track.offsetWidth;
+  const seg = W / 7;
+  const todayX = seg * TODAY_IDX + seg / 2;
+  const targetX = seg * targetDi + seg / 2;
+  const goingForward = targetDi > TODAY_IDX;
+
+  // Flip car if going right (normal) or left
+  car.style.transition = 'left 0.6s cubic-bezier(0.4,0,0.2,1), transform 0.6s cubic-bezier(0.4,0,0.2,1)';
+
+  // Phase 1: drive TO target
+  car.style.left = targetX + 'px';
+  car.style.transform = 'translateX(-50%) scaleX(1)'; // facing right
+
+  setTimeout(() => {
+    if (onArrival) onArrival();
+
+    // Brief pause at target
+    setTimeout(() => {
+      // Phase 2: drive BACK to today
+      car.style.transform = 'translateX(-50%) scaleX(-1)'; // flip to face left
+      car.style.left = todayX + 'px';
+
+      setTimeout(() => {
+        car.style.transform = 'translateX(-50%) scaleX(1)'; // flip back to normal
+        car.style.transition = '';
+        if (onReturn) onReturn();
+        _carAnimating = false;
+      }, 650);
+
+    }, 800);
+  }, 650);
+}
+
+// ═══════════════════════════════════════════════════════════
+// DAY HEADER TAP → TIME CONCEPT TEACHING + CAR ANIMATION
 // ═══════════════════════════════════════════════════════════
 function onDayTap(di) {
-  const dayName  = DAYS_FULL[di];
-  const isWknd   = WEEKEND.includes(di);
+  const childName = (S.settings && S.settings.childName) || 'Jacob';
+  const dayName   = DAYS_FULL[di];
+  const isWknd    = WEEKEND.includes(di);
   const daysAhead = di - TODAY_IDX;
-  const dayType  = isWknd ? 'a fun weekend day' : 'a school day';
+  const todayName = DAYS_FULL[TODAY_IDX];
+  const dayType   = isWknd ? 'a fun weekend day' : 'a school day';
 
   let msg, bubble, emoji;
 
   if (di === TODAY_IDX) {
-    // TODAY
+    // TODAY — just bounce in place
     emoji = isWknd ? '🎉' : '🎒';
-    if (isWknd) {
-      msg    = `Today is ${dayName}! It's the weekend — time to have fun!`;
-      bubble = `Today is ${dayName}! ${emoji}`;
-    } else {
-      msg    = `Today is ${dayName}! It's a school day — let's get ready!`;
-      bubble = `Today is ${dayName}! ${emoji}`;
+    msg    = isWknd
+      ? `Today is ${dayName}! It's the weekend, time to have fun!`
+      : `Today is ${dayName}! It's a school day, let's get ready!`;
+    bubble = `Today is ${dayName}! ${emoji}`;
+    speak(msg);
+    jacobSay(bubble);
+    ding('tap');
+
+    // Bounce car in place
+    const car = document.getElementById('jacob-char');
+    if (car) {
+      car.style.transition = 'transform 0.15s';
+      car.style.transform = 'translateX(-50%) scale(1.25)';
+      setTimeout(() => { car.style.transform = 'translateX(-50%) scale(1)'; car.style.transition=''; }, 300);
     }
-  } else if (daysAhead === 1) {
-    // TOMORROW
-    emoji = isWknd ? '🎉' : '📅';
-    msg    = `Tomorrow is ${dayName}! ${isWknd ? "It's the weekend — so exciting!" : "It's a school day, get ready!"}`;
-    bubble = `Tomorrow: ${dayName}! ${emoji}`;
-  } else if (daysAhead === 2) {
-    emoji = '📆';
-    msg    = `In 2 days it will be ${dayName}! That's ${dayType}.`;
-    bubble = `In 2 days: ${dayName} ${emoji}`;
-  } else {
-    emoji = '🗓️';
-    msg    = `In ${daysAhead} days it will be ${dayName}! That's ${dayType}.`;
-    bubble = `In ${daysAhead} days: ${dayName} ${emoji}`;
+    // Flash header
+    const hdrs = document.querySelectorAll('.day-col-hdr');
+    const hdr = hdrs[di];
+    if (hdr) {
+      hdr.style.transform = 'scale(1.12)';
+      hdr.style.boxShadow = '0 4px 16px rgba(17,138,178,0.4)';
+      setTimeout(() => { hdr.style.transform = ''; hdr.style.boxShadow = ''; }, 350);
+    }
+    return;
   }
 
-  speak(msg);
-  jacobSay(bubble);
-  ding('tap');
+  // FUTURE DAY — drive there and back
+  if (daysAhead === 1) {
+    emoji = isWknd ? '🎉' : '📅';
+    msg    = `Tomorrow is ${dayName}! ${isWknd ? "It's the weekend — so exciting!" : "It's a school day!"}`;
+    bubble = `Tomorrow: ${dayName}! ${emoji}`;
+  } else {
+    emoji = daysAhead <= 2 ? '📆' : '🗓️';
+    const waitMsg = daysAhead === 1 ? 'one more sleep'
+                  : daysAhead === 2 ? 'two more sleeps'
+                  : `${daysAhead} more sleeps`;
+    msg    = `${dayName} is in ${daysAhead} days — ${waitMsg} to go! Today is ${todayName}.`;
+    bubble = `${waitMsg} until ${dayName}! ${emoji}`;
+  }
 
-  // Flash the tapped column header briefly
+  ding('tap');
+  jacobSay(bubble);
+
+  // Flash the target header
   const hdrs = document.querySelectorAll('.day-col-hdr');
   const hdr  = hdrs[di];
-  if (hdr) {
-    hdr.style.transform = 'scale(1.12)';
-    hdr.style.boxShadow = '0 4px 16px rgba(17,138,178,0.4)';
-    setTimeout(() => { hdr.style.transform = ''; hdr.style.boxShadow = ''; }, 350);
-  }
+
+  animateCarTo(di,
+    // On arrival — flash header and speak
+    () => {
+      if (hdr) {
+        hdr.style.transform = 'scale(1.12)';
+        hdr.style.boxShadow = `0 4px 20px ${DAY_CLR[di % DAY_CLR.length]}99`;
+      }
+      speak(msg);
+    },
+    // On return — reset header
+    () => {
+      if (hdr) { hdr.style.transform = ''; hdr.style.boxShadow = ''; }
+      // Remind where today is
+      const todayHdr = hdrs[TODAY_IDX];
+      if (todayHdr) {
+        todayHdr.style.transform = 'scale(1.08)';
+        setTimeout(() => { todayHdr.style.transform = ''; }, 400);
+      }
+    }
+  );
 }
 function toggleDone(aid,di,W){
   const dk=`${aid}_${di}_${W}`;
@@ -1858,14 +2093,29 @@ document.getElementById('gal-input').addEventListener('change',e=>handleActPhoto
 // ═══════════════════════════════════════════════════════════
 // JACOB PHOTO
 // ═══════════════════════════════════════════════════════════
-function triggerJacobPhoto(){ const i=document.getElementById('jacob-input'); i.value=''; i.click(); }
+function triggerJacobPhoto(){ document.getElementById('jacob-input').value=''; document.getElementById('jacob-input').click(); }
+function triggerJacobCam(){
+  const i = document.getElementById('jacob-input');
+  i.removeAttribute('accept'); i.setAttribute('capture','user');
+  i.value=''; i.click();
+}
+function triggerJacobGallery(){
+  const i = document.getElementById('jacob-input');
+  i.removeAttribute('capture'); i.setAttribute('accept','image/*');
+  i.value=''; i.click();
+}
 document.getElementById('jacob-input').addEventListener('change',e=>{
   const f=e.target.files[0]; if(!f) return;
   compressImage(f, 300, 0.6, b64 => {
     S.jacobPhoto = b64; saveS();
+    // Update car driver
     const driver=document.getElementById('car-driver');
     if(driver) driver.innerHTML=`<img src="${b64}" alt="Jacob">`;
-    showToast("🏎️ Jacob's photo is in the car!"); jacobSay("That's me driving! 😄");
+    // Update settings preview
+    const prev = document.getElementById('settings-car-preview');
+    if(prev) prev.innerHTML=`<img src="${b64}" style="width:100%;height:100%;object-fit:cover;">`;
+    showToast("🏎️ Jacob's photo is in the car!");
+    jacobSay("That's me driving! 😄");
   });
 });
 
