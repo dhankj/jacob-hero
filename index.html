@@ -164,21 +164,34 @@
     width: 1px; background: rgba(255,255,255,0.08);
   }
   .lane-day-label {
-    font-family: 'Baloo 2', cursive; font-size: 0.6rem; font-weight: 800;
-    color: rgba(255,255,255,0.4); line-height: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    font-family: 'Baloo 2', cursive; font-size: 0.62rem; font-weight: 800;
+    color: rgba(255,255,255,0.82); line-height: 1;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5);
   }
-  .lane-day-label.is-today   { color: #ffd166; opacity: 1; font-size: 0.66rem; }
-  .lane-day-label.is-weekend { color: #fd9e5b; opacity: 0.9; }
+  .lane-day-label.is-today   { color: #ffd166; font-size: 0.68rem; }
+  .lane-day-label.is-weekend { color: #ffcc80; }
 
-  /* Weekend event icons on track */
-  .lane-event-icon {
-    font-size: 1rem; cursor: pointer; line-height: 1;
-    transition: transform 0.15s; position: relative; z-index: 4;
+  /* Weekend event thumbnails on track */
+  .lane-events {
+    display: flex; flex-direction: row; gap: 2px;
+    align-items: center; justify-content: center;
+    flex-wrap: nowrap; margin-top: 1px;
     pointer-events: all;
-    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
   }
-  .lane-event-icon:active { transform: scale(1.3); }
-  .lane-add-icon { font-size: 0.7rem; opacity: 0.3; cursor: pointer; pointer-events: all; color: white; }
+  .lane-ev-thumb {
+    width: 20px; height: 20px; border-radius: 4px;
+    overflow: hidden; cursor: pointer; flex-shrink: 0;
+    border: 1.5px solid rgba(255,255,255,0.5);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.3);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.12s;
+    pointer-events: all; position: relative; z-index: 4;
+  }
+  .lane-ev-thumb:active { transform: scale(1.25); }
+  .lane-ev-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .lane-ev-thumb .ev-emoji { font-size: 0.75rem; line-height: 1; }
+  .lane-add-icon { font-size: 0.75rem; opacity: 0.5; cursor: pointer; pointer-events: all; color: white; margin-top: 2px; }
 
   /* ── Jacob car ── */
   #jacob-char {
@@ -1010,6 +1023,72 @@
 
     /* Day-when label hidden in print */
     .day-when-label { display:none !important; }
+
+    /* ── PAGE 2: PECS Card Sheet ── */
+    #pecs-sheet {
+      display: block !important;
+      page-break-before: always !important;
+      width: 100% !important;
+      padding: 4mm !important;
+    }
+    #pecs-sheet h2 {
+      font-family: 'Baloo 2', cursive !important;
+      font-size: 11pt !important; font-weight: 800 !important;
+      color: #2d3561 !important; margin-bottom: 4mm !important;
+      text-align: center !important;
+      border-bottom: 2px solid #2d3561 !important;
+      padding-bottom: 2mm !important;
+    }
+    .pecs-grid {
+      display: grid !important;
+      grid-template-columns: repeat(5, 1fr) !important;
+      gap: 4mm !important;
+      width: 100% !important;
+    }
+    .pecs-card {
+      border: 2.5px solid #2d3561 !important;
+      border-radius: 6mm !important;
+      overflow: hidden !important;
+      break-inside: avoid !important;
+      page-break-inside: avoid !important;
+      background: white !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    .pecs-card-img {
+      width: 100% !important;
+      aspect-ratio: 1 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      overflow: hidden !important;
+      background: #f8f9fa !important;
+    }
+    .pecs-card-img img {
+      width: 100% !important; height: 100% !important;
+      object-fit: contain !important;
+    }
+    .pecs-card-emoji {
+      font-size: 28pt !important; line-height: 1 !important;
+    }
+    .pecs-card-label {
+      text-align: center !important;
+      font-family: 'Baloo 2', cursive !important;
+      font-size: 9pt !important; font-weight: 800 !important;
+      color: #2d3561 !important;
+      padding: 2mm 1mm !important;
+      background: white !important;
+      border-top: 1.5px solid #eee !important;
+    }
+    .pecs-card-bar {
+      height: 5px !important;
+      flex-shrink: 0 !important;
+    }
+    /* Cut guide */
+    .pecs-cut-hint {
+      font-size: 7pt !important; color: #aaa !important;
+      text-align: center !important; margin-top: 3mm !important;
+    }
   }
 </style>
 </head>
@@ -1030,7 +1109,7 @@
       <button class="hdr-btn" onclick="openSettings()" id="settings-btn">
         ⚙️ Settings
       </button>
-      <button class="hdr-btn" onclick="window.print()">
+      <button class="hdr-btn" onclick="buildAndPrint()">
         🖨️ Print
       </button>
       <button class="hdr-btn danger" onclick="confirmReset()">
@@ -1310,6 +1389,13 @@
 
 <!-- TOAST -->
 <div id="toast"></div>
+
+<!-- PECS CARD SHEET — hidden on screen, printed as page 2 -->
+<div id="pecs-sheet" style="display:none;">
+  <h2 id="pecs-title">✂️ PECS Cards — Cut out &amp; Laminate</h2>
+  <div class="pecs-grid" id="pecs-grid"><!-- filled by JS before print --></div>
+  <div class="pecs-cut-hint">✂ Cut along the borders · Laminate for durability · Attach velcro to use on a schedule board</div>
+</div>
 
 <!-- Hidden inputs -->
 <input type="file" id="cam-input"    class="file-input" accept="image/*" capture="camera">
@@ -1728,14 +1814,31 @@ function renderRoad(){
   document.getElementById('road-lanes').innerHTML=DAYS_SH.map((d,i)=>{
     const isTd=i===TODAY_IDX, isWk=WEEKEND.includes(i);
     const cls=isTd?'is-today':(isWk?'is-weekend':'');
-    const ev=S.events[`${i}_0_${W}`];
+
+    let evHtml = '';
+    if(isWk){
+      // Show thumbnails for all filled slots, + button if any empty
+      const thumbs = [0,1,2].map(slot=>{
+        const ev=S.events[`${i}_${slot}_${W}`];
+        if(!ev) return '';
+        const img = ev.photo
+          ? `<img src="${ev.photo}" alt="${ev.l}">`
+          : `<span class="ev-emoji">${ev.e||'🎉'}</span>`;
+        return `<div class="lane-ev-thumb" onclick="openEventModal(${i},${slot})" title="${ev.l}">${img}</div>`;
+      }).join('');
+
+      const hasEmpty = [0,1,2].some(slot=>!S.events[`${i}_${slot}_${W}`]);
+      const firstEmpty = [0,1,2].find(slot=>!S.events[`${i}_${slot}_${W}`]);
+      const addBtn = (hasEmpty && !document.body.classList.contains('locked'))
+        ? `<div class="lane-add-icon" onclick="openEventModal(${i},${firstEmpty})">＋</div>`
+        : '';
+
+      evHtml = `<div class="lane-events">${thumbs}${addBtn}</div>`;
+    }
+
     return `<div class="road-lane">
       <div class="lane-day-label ${cls}">${d}</div>
-      ${isWk
-        ? (ev
-          ? `<div class="lane-event-icon" onclick="openEventModal(${i},0)" title="${ev.l}">🎉</div>`
-          : `<div class="lane-add-icon" onclick="openEventModal(${i},0)">＋</div>`)
-        : ''}
+      ${evHtml}
     </div>`;
   }).join('');
 
@@ -2561,6 +2664,55 @@ function removeEvent(){
   const W=wk(), k=`${_eDi2}_${_eSlot}_${W}`;
   delete S.events[k]; delete S.done[`event_${k}`]; saveS();
   closeModal('event-modal'); render(); showToast('🗑️ Event removed');
+}
+
+// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// PRINT — builds PECS card sheet then triggers print
+// ═══════════════════════════════════════════════════════════
+function buildAndPrint(){
+  const childName = (S.settings && S.settings.childName) || 'Jacob';
+  const W = wk();
+
+  // Collect unique cards: weekday activities + any event with photo/emoji
+  const cards = [];
+
+  // 1. Standard activities (deduplicated — same activity looks the same each day)
+  S.acts.forEach(act => {
+    // Find best photo (prefer today, then any day)
+    let photo = null;
+    for(let di=0; di<7; di++){
+      const p = S.actPhotos[`${act.id}_${di}`];
+      if(p){ photo=p; break; }
+    }
+    cards.push({ label: act.label, emoji: act.emoji, photo, color: DAY_CLR[cards.length % DAY_CLR.length] });
+  });
+
+  // 2. Weekend events that have been added
+  [5,6].forEach(di=>{
+    [0,1,2].forEach(slot=>{
+      const ev = S.events[`${di}_${slot}_${W}`];
+      if(ev) cards.push({ label: ev.l, emoji: ev.e||'🎉', photo: ev.photo||null, color: DAY_CLR[di] });
+    });
+  });
+
+  // Build grid HTML
+  const pecsTitle = document.getElementById('pecs-title');
+  pecsTitle.textContent = `✂️ ${childName}'s PECS Cards — Cut out & Laminate`;
+
+  const grid = document.getElementById('pecs-grid');
+  grid.innerHTML = cards.map(c => `
+    <div class="pecs-card">
+      <div class="pecs-card-bar" style="background:${c.color};"></div>
+      <div class="pecs-card-img">
+        ${c.photo
+          ? `<img src="${c.photo}" alt="${c.label}">`
+          : `<span class="pecs-card-emoji">${c.emoji}</span>`}
+      </div>
+      <div class="pecs-card-label">${c.label}</div>
+    </div>`).join('');
+
+  window.print();
 }
 
 // ═══════════════════════════════════════════════════════════
