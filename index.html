@@ -956,7 +956,7 @@
 
     <!-- Jacob photo -->
     <div class="settings-section">
-      <h4>🚗 Character Photo</h4>
+      <h4>🧒 Child's Photo</h4>
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
         <div id="settings-car-preview" style="width:54px;height:54px;border-radius:50%;overflow:hidden;border:3px solid #2d3561;background:linear-gradient(135deg,#a29bfe,#74b9ff);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;">👦</div>
         <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
@@ -967,6 +967,10 @@
           <button class="ph-opt" onclick="triggerJacobGallery()" style="margin:0;">
             <div class="ph-ico" style="background:#f0fff8">🖼️</div>
             <div style="text-align:left;font-size:0.78rem;">Choose from Gallery</div>
+          </button>
+          <button class="ph-opt" id="settings-rm-photo-btn" onclick="removeJacobPhoto()" style="margin:0;display:none;">
+            <div class="ph-ico" style="background:#fff0f3">🗑️</div>
+            <div style="text-align:left;font-size:0.78rem;color:#ef476f;">Remove Photo</div>
           </button>
         </div>
       </div>
@@ -1333,17 +1337,26 @@ function openSettings(){
   // Theme picker
   const currentTheme = S.settings.theme || 'car';
   const picker = document.getElementById('theme-picker');
-  picker.innerHTML = Object.values(THEMES).map(t => `
-    <button class="theme-btn${t.id===currentTheme?' selected':''}" onclick="selectTheme('${t.id}',this)">
-      ${t.emoji}<span>${t.label}</span>
-    </button>`).join('');
+  picker.innerHTML = Object.values(THEMES).map(t => {
+    // Only flip animals (dino, turtle, unicorn) — car and rocket stay as-is
+    const needsFlip = (t.id === 'dino' || t.id === 'turtle' || t.id === 'unicorn');
+    const flipStyle = needsFlip ? 'display:inline-block;transform:scaleX(-1);font-size:1.6rem;' : 'font-size:1.6rem;';
+    return `<button class="theme-btn${t.id===currentTheme?' selected':''}" onclick="selectTheme('${t.id}',this)">
+      <span style="${flipStyle}">${t.emoji}</span><span>${t.label}</span>
+    </button>`;
+  }).join('');
 
   // Jacob photo preview
   const prev = document.getElementById('settings-car-preview');
+  const rmBtn = document.getElementById('settings-rm-photo-btn');
   if (prev) {
-    prev.innerHTML = S.jacobPhoto
-      ? `<img src="${S.jacobPhoto}" style="width:100%;height:100%;object-fit:cover;">`
-      : '👦';
+    if (S.jacobPhoto) {
+      prev.innerHTML = `<img src="${S.jacobPhoto}" style="width:100%;height:100%;object-fit:cover;">`;
+      if (rmBtn) rmBtn.style.display = 'flex';
+    } else {
+      prev.innerHTML = '👦';
+      if (rmBtn) rmBtn.style.display = 'none';
+    }
   }
 
   // Speed buttons
@@ -1522,13 +1535,15 @@ function renderRoad(){
     const shadow = theme.id==='rocket' ? 'drop-shadow(0 3px 8px rgba(162,155,254,0.6))'
                  : theme.id==='unicorn' ? 'drop-shadow(0 3px 8px rgba(253,121,168,0.5))'
                  : 'drop-shadow(0 3px 6px rgba(0,0,0,0.4))';
-    // scaleX(-1) flips emoji to face right (most animal emojis face left by default)
-    const flip = theme.id==='rocket' ? '' : 'scaleX(-1)';
+    // wrapper handles the flip, inner div handles animation — so they don't conflict
+    const flip = (theme.id !== 'rocket') ? 'scaleX(-1)' : 'scaleX(1)';
     charEl.innerHTML = `
       <div id="jacob-speech" class="jacob-speech"></div>
-      <div class="theme-char" onclick="onCarClick()" style="cursor:pointer;font-size:2.4rem;animation:${anim} 0.5s ease-in-out infinite alternate;filter:${shadow};transform:${flip};">
+      <div style="transform:${flip};display:flex;flex-direction:column;align-items:center;position:relative;">
         <div class="car-driver" id="car-driver" style="position:absolute;top:-12px;left:50%;transform:translateX(-50%) ${flip};">👦</div>
-        ${theme.emoji}
+        <div class="theme-char" onclick="onCarClick()" style="cursor:pointer;font-size:2.4rem;animation:${anim} 0.5s ease-in-out infinite alternate;filter:${shadow};">
+          ${theme.emoji}
+        </div>
       </div>`;
   }
 
@@ -1624,9 +1639,9 @@ function makeActCard(act,di,W){
       <button class="cam-btn" data-act="${act.id}" data-di="${di}" data-action="photo">
         📷
       </button>
-      <button class="done-btn" data-act="${act.id}" data-di="${di}" data-dk="${dk}" data-w="${W}" data-action="done">
+      ${di <= TODAY_IDX ? `<button class="done-btn" data-act="${act.id}" data-di="${di}" data-dk="${dk}" data-w="${W}" data-action="done">
         ${done ? '✓' : ''}
-      </button>
+      </button>` : ''}
     </div>
     <div class="card-label-area"><span class="card-label">${act.label}</span></div>`;
 
@@ -1675,9 +1690,9 @@ function makeEventSlot(di,slot,W){
         ${imgContent}
         <div class="event-done-veil"></div>
         <div class="event-done-badge">Done!</div>
-        <button class="event-done-btn" data-action="ev-done">
+        ${di <= TODAY_IDX ? `<button class="event-done-btn" data-action="ev-done">
           ${done ? '✓' : ''}
-        </button>
+        </button>` : ''}
       </div>
       <div class="event-label-area"><span class="event-name">${ev.l}</span></div>`;
 
@@ -1726,7 +1741,7 @@ function openActPopup(act, di) {
   // Photo or emoji
   const ph = S.actPhotos[`${act.id}_${di}`] || null;
   if (ph) {
-    imgZone.innerHTML = `<img src="${ph}" alt="${act.label}" style="width:100%;height:100%;object-fit:cover;">`;
+    imgZone.innerHTML = `<img src="${ph}" alt="${act.label}" style="width:100%;height:100%;object-fit:contain;background:#111;">`;
   } else {
     imgZone.innerHTML = `<div class="act-popup-emoji-big">${act.emoji}</div>`;
   }
@@ -1770,7 +1785,7 @@ function openEventPopup(ev, di, slot) {
 
   // Photo or fallback emoji
   if (ev.photo) {
-    imgZone.innerHTML = `<img src="${ev.photo}" alt="${ev.l}" style="width:100%;height:100%;object-fit:cover;">`;
+    imgZone.innerHTML = `<img src="${ev.photo}" alt="${ev.l}" style="width:100%;height:100%;object-fit:contain;background:#111;">`;
   } else {
     imgZone.innerHTML = `<div class="act-popup-emoji-big">🎉</div>`;
   }
@@ -1962,7 +1977,7 @@ function toggleDone(aid,di,W){
     showToast(`🌟 ${label} done! Great job ${childName}!`);
     jacobSay('Great job! ⭐');
     setTimeout(()=>speak(`${label} done. Great job ${childName}!`), 300);
-    checkAllDone(W);
+    if(di === TODAY_IDX) checkAllDone(W); // Yay only for today
   }
   updateProgress();
 }
@@ -2041,8 +2056,8 @@ function setupLP(el,cb){
 }
 
 // ═══════════════════════════════════════════════════════════
-// PHOTO COMPRESSION — shrink before saving to localStorage
-// Target: max 400px wide/tall, JPEG quality 0.55 → ~15-25KB
+// PHOTO COMPRESSION — IndexedDB has no size limit so we can
+// use higher quality: max 900px, JPEG 82% → ~80-150KB
 // ═══════════════════════════════════════════════════════════
 function compressImage(file, maxSize, quality, callback) {
   const reader = new FileReader();
@@ -2082,7 +2097,7 @@ function removeActPhoto(){
 }
 function handleActPhoto(file){
   if(!file||!_pAid) return;
-  compressImage(file, 400, 0.55, b64 => {
+  compressImage(file, 900, 0.82, b64 => {
     S.actPhotos[`${_pAid}_${_pDi}`] = b64; saveS();
     closeModal('photo-modal'); render(); showToast('📸 Photo saved!');
   });
@@ -2093,6 +2108,19 @@ document.getElementById('gal-input').addEventListener('change',e=>handleActPhoto
 // ═══════════════════════════════════════════════════════════
 // JACOB PHOTO
 // ═══════════════════════════════════════════════════════════
+function removeJacobPhoto(){
+  S.jacobPhoto = null; saveS();
+  // Update car driver
+  const driver = document.getElementById('car-driver');
+  if (driver) driver.innerHTML = '👦';
+  // Update settings preview
+  const prev = document.getElementById('settings-car-preview');
+  if (prev) prev.innerHTML = '👦';
+  const rmBtn = document.getElementById('settings-rm-photo-btn');
+  if (rmBtn) rmBtn.style.display = 'none';
+  showToast('🗑️ Photo removed');
+}
+
 function triggerJacobPhoto(){ document.getElementById('jacob-input').value=''; document.getElementById('jacob-input').click(); }
 function triggerJacobCam(){
   const i = document.getElementById('jacob-input');
@@ -2106,7 +2134,7 @@ function triggerJacobGallery(){
 }
 document.getElementById('jacob-input').addEventListener('change',e=>{
   const f=e.target.files[0]; if(!f) return;
-  compressImage(f, 300, 0.6, b64 => {
+  compressImage(f, 400, 0.82, b64 => {
     S.jacobPhoto = b64; saveS();
     // Update car driver
     const driver=document.getElementById('car-driver');
@@ -2114,6 +2142,8 @@ document.getElementById('jacob-input').addEventListener('change',e=>{
     // Update settings preview
     const prev = document.getElementById('settings-car-preview');
     if(prev) prev.innerHTML=`<img src="${b64}" style="width:100%;height:100%;object-fit:cover;">`;
+    const rmBtn = document.getElementById('settings-rm-photo-btn');
+    if(rmBtn) rmBtn.style.display = 'flex';
     showToast("🏎️ Jacob's photo is in the car!");
     jacobSay("That's me driving! 😄");
   });
@@ -2197,7 +2227,7 @@ function evTriggerGallery(){
 }
 function evHandlePhoto(file){
   if(!file) return;
-  compressImage(file, 400, 0.55, b64 => {
+  compressImage(file, 900, 0.82, b64 => {
     _evPhotoB64 = b64;
     const prev = document.getElementById('ev-preview-inner');
     prev.innerHTML = `<img src="${b64}" style="width:100%;height:140px;object-fit:cover;border-radius:14px;">`;
