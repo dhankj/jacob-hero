@@ -757,6 +757,50 @@
     to   { transform: translateY(-3px) rotate(1deg) scaleX(0.97); }
   }
 
+  /* Calm Mode toggle switch */
+  .calm-toggle {
+    position: relative; display: inline-block;
+    width: 52px; height: 28px; flex-shrink: 0; cursor: pointer;
+  }
+  .calm-toggle input { opacity: 0; width: 0; height: 0; }
+  .calm-slider {
+    position: absolute; inset: 0;
+    background: #ddd; border-radius: 28px;
+    transition: background 0.25s;
+  }
+  .calm-slider::before {
+    content: ''; position: absolute;
+    width: 22px; height: 22px; left: 3px; top: 3px;
+    background: white; border-radius: 50%;
+    transition: transform 0.25s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .calm-toggle input:checked + .calm-slider { background: #06d6a0; }
+  .calm-toggle input:checked + .calm-slider::before { transform: translateX(24px); }
+
+  /* ═══ CALM MODE ══════════════════════════════════════════ */
+  /* One class on body stops everything that moves */
+  body.calm * {
+    animation-play-state: paused !important;
+    animation: none !important;
+    transition: none !important;
+  }
+  /* Keep essential transitions for usability */
+  body.calm .modal-bg,
+  body.calm .modal-bg.show { transition: none !important; }
+  /* Static track in calm mode */
+  body.calm .track-scenery { display: none !important; }
+  body.calm .track-lines   { animation: none !important; background: rgba(255,255,255,0.15) !important; }
+  body.calm .track-edge-top,
+  body.calm .track-edge-bot { animation: none !important; }
+  body.calm .track-speed   { display: none !important; }
+  /* No confetti */
+  body.calm .confetti      { display: none !important; }
+  /* No wave bars in popup */
+  body.calm .act-popup-wave { display: none !important; }
+  /* No bouncing star in reward */
+  body.calm .rw-star { animation: none !important; font-size: 2.8rem !important; }
+
   /* ═══ SETTINGS MODAL ══════════════════════════════════════ */
   #settings-modal .modal-box {
     max-width:420px;
@@ -1148,6 +1192,20 @@
         </div>
       </div>
 
+      <!-- Calm Mode -->
+      <div class="settings-section">
+        <h4>🧘 Calm Mode</h4>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="font-size:0.78rem;color:#666;line-height:1.4;flex:1;">
+            Turns off all animations, confetti, and moving elements. Recommended for sensory-sensitive children.
+          </div>
+          <label class="calm-toggle" id="calm-toggle-wrap">
+            <input type="checkbox" id="calm-checkbox" onchange="setCalmMode(this.checked)">
+            <span class="calm-slider"></span>
+          </label>
+        </div>
+      </div>
+
     </div><!-- end settings-scroll -->
 
     <!-- Fixed footer -->
@@ -1521,6 +1579,10 @@ function openSettings(){
     }
   }
 
+  // Calm mode checkbox
+  const calmCb = document.getElementById('calm-checkbox');
+  if(calmCb) calmCb.checked = !!(S.settings && S.settings.calm);
+
   // Speed buttons
   document.querySelectorAll('.speed-btn').forEach(b => {
     b.classList.toggle('active', parseFloat(b.dataset.speed) === _settingsSpeed);
@@ -1596,12 +1658,14 @@ function saveSettings(){
   S.settings.voiceName = vName;
   S.settings.speed = _settingsSpeed;
   S.settings.theme = theme;
+  S.settings.calm = !!(document.getElementById('calm-checkbox') && document.getElementById('calm-checkbox').checked);
   saveS();
   // Update title + re-render road with new theme
   document.querySelector('.header-title').innerHTML =
     `⭐ ${name}'s Daily Hero <span class="today-pill" id="today-badge">${DAYS_SH[TODAY_IDX]}</span>`;
   renderRoad();
   positionJacob();
+  applyCalmState();
   closeModal('settings-modal');
   showToast(`✅ Settings saved!`);
   speak(`Great! I'm ready to help ${name} today!`);
@@ -2206,6 +2270,7 @@ function updateProgress(){
 // ═══════════════════════════════════════════════════════════
 function burst(el){
   if(!el) return;
+  if(document.body.classList.contains('calm')) return; // no confetti in calm mode
   const r=el.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
   const cls=['#ffd166','#06d6a0','#ef476f','#118ab2','#a29bfe','#fd9e5b'];
   for(let i=0;i<11;i++){
@@ -2226,6 +2291,17 @@ function burst(el){
 // LOCK SYSTEM
 // ═══════════════════════════════════════════════════════════
 function isLocked(){ return !!(S.settings && S.settings.locked); }
+
+function applyCalmState(){
+  const calm = !!(S.settings && S.settings.calm);
+  document.body.classList.toggle('calm', calm);
+}
+
+function setCalmMode(on){
+  if(!S.settings) S.settings = {};
+  S.settings.calm = on;
+  applyCalmState();
+}
 
 function applyLockState(){
   const locked = isLocked();
@@ -2537,6 +2613,7 @@ window.speechSynthesis && window.speechSynthesis.getVoices();
 loadS().then(() => {
   render();
   applyLockState();
+  applyCalmState();
   scheduleRefresh();
   window.addEventListener('resize', positionJacob);
   setTimeout(() => {
