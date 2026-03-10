@@ -1029,65 +1029,75 @@
       display: block !important;
       page-break-before: always !important;
       width: 100% !important;
-      padding: 4mm !important;
+      padding: 0 !important;
+      box-sizing: border-box !important;
     }
     #pecs-sheet h2 {
       font-family: 'Baloo 2', cursive !important;
-      font-size: 11pt !important; font-weight: 800 !important;
-      color: #2d3561 !important; margin-bottom: 4mm !important;
+      font-size: 9pt !important; font-weight: 800 !important;
+      color: #2d3561 !important; margin: 0 0 2mm 0 !important;
       text-align: center !important;
-      border-bottom: 2px solid #2d3561 !important;
-      padding-bottom: 2mm !important;
+      border-bottom: 1.5px solid #2d3561 !important;
+      padding-bottom: 1.5mm !important;
     }
+    /* 7 cols × 5 rows = 35 cards, fills A4 landscape exactly */
     .pecs-grid {
       display: grid !important;
-      grid-template-columns: repeat(5, 1fr) !important;
-      gap: 4mm !important;
+      grid-template-columns: repeat(7, 1fr) !important;
+      grid-template-rows: repeat(5, 1fr) !important;
+      gap: 2.5mm !important;
       width: 100% !important;
+      /* A4 landscape usable height minus title */
+      height: calc(100vh - 14mm) !important;
     }
     .pecs-card {
-      border: 2.5px solid #2d3561 !important;
-      border-radius: 6mm !important;
+      border: 2px solid #2d3561 !important;
+      border-radius: 3mm !important;
       overflow: hidden !important;
       break-inside: avoid !important;
       page-break-inside: avoid !important;
       background: white !important;
       display: flex !important;
       flex-direction: column !important;
+      min-height: 0 !important;
+    }
+    .pecs-card-bar {
+      height: 4px !important;
+      flex-shrink: 0 !important;
     }
     .pecs-card-img {
-      width: 100% !important;
-      aspect-ratio: 1 !important;
+      flex: 1 !important;
+      min-height: 0 !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
       overflow: hidden !important;
       background: #f8f9fa !important;
+      padding: 1mm !important;
     }
     .pecs-card-img img {
       width: 100% !important; height: 100% !important;
       object-fit: contain !important;
     }
     .pecs-card-emoji {
-      font-size: 28pt !important; line-height: 1 !important;
+      font-size: 16pt !important; line-height: 1 !important;
     }
     .pecs-card-label {
       text-align: center !important;
       font-family: 'Baloo 2', cursive !important;
-      font-size: 9pt !important; font-weight: 800 !important;
+      font-size: 6.5pt !important; font-weight: 800 !important;
       color: #2d3561 !important;
-      padding: 2mm 1mm !important;
+      padding: 1mm 0.5mm !important;
       background: white !important;
-      border-top: 1.5px solid #eee !important;
-    }
-    .pecs-card-bar {
-      height: 5px !important;
+      border-top: 1px solid #eee !important;
       flex-shrink: 0 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
     }
-    /* Cut guide */
     .pecs-cut-hint {
-      font-size: 7pt !important; color: #aaa !important;
-      text-align: center !important; margin-top: 3mm !important;
+      font-size: 6pt !important; color: #bbb !important;
+      text-align: center !important; margin-top: 1.5mm !important;
     }
   }
 </style>
@@ -2674,43 +2684,66 @@ function buildAndPrint(){
   const childName = (S.settings && S.settings.childName) || 'Jacob';
   const W = wk();
 
-  // Collect unique cards: weekday activities + any event with photo/emoji
+  // Build 35 cards: same layout as schedule grid (7 days × 5 rows)
+  // Row 0-4 for weekdays = acts[0..4], Sat/Sun = Wake Up, Breakfast, event0, event1, event2
   const cards = [];
 
-  // 1. Standard activities (deduplicated — same activity looks the same each day)
-  S.acts.forEach(act => {
-    // Find best photo (prefer today, then any day)
-    let photo = null;
-    for(let di=0; di<7; di++){
-      const p = S.actPhotos[`${act.id}_${di}`];
-      if(p){ photo=p; break; }
+  for(let di=0; di<7; di++){
+    const isWk = WEEKEND.includes(di);
+    const color = DAY_CLR[di];
+
+    if(!isWk){
+      // Weekday: 5 activity cards
+      S.acts.forEach((act, ri) => {
+        const photo = S.actPhotos[`${act.id}_${di}`] || null;
+        cards.push({ label: act.label, emoji: act.emoji, photo, color, di, ri });
+      });
+    } else {
+      // Weekend: Wake Up, Breakfast, then 3 event slots
+      const baseActs = S.acts.slice(0, 2);
+      baseActs.forEach((act, ri) => {
+        const photo = S.actPhotos[`${act.id}_${di}`] || null;
+        cards.push({ label: act.label, emoji: act.emoji, photo, color, di, ri });
+      });
+      [0,1,2].forEach(slot => {
+        const ev = S.events[`${di}_${slot}_${W}`];
+        if(ev){
+          cards.push({ label: ev.l, emoji: ev.e||'🎉', photo: ev.photo||null, color, di });
+        } else {
+          cards.push({ label: '—', emoji: '', photo: null, color, empty: true, di });
+        }
+      });
     }
-    cards.push({ label: act.label, emoji: act.emoji, photo, color: DAY_CLR[cards.length % DAY_CLR.length] });
-  });
+  }
 
-  // 2. Weekend events that have been added
-  [5,6].forEach(di=>{
-    [0,1,2].forEach(slot=>{
-      const ev = S.events[`${di}_${slot}_${W}`];
-      if(ev) cards.push({ label: ev.l, emoji: ev.e||'🎉', photo: ev.photo||null, color: DAY_CLR[di] });
-    });
-  });
+  document.getElementById('pecs-title').textContent = `✂️ ${childName}'s PECS Cards — Cut out & Laminate`;
 
-  // Build grid HTML
-  const pecsTitle = document.getElementById('pecs-title');
-  pecsTitle.textContent = `✂️ ${childName}'s PECS Cards — Cut out & Laminate`;
+  // Arrange as 7 columns × 5 rows (col = day, row = activity slot)
+  // cards array is currently [di0-row0..4, di1-row0..4, ...] — need to transpose to row-major for grid
+  // Build a 7×5 matrix then flatten row by row
+  const matrix = [];
+  for(let di=0; di<7; di++) matrix.push(cards.slice(di*5, di*5+5));
 
-  const grid = document.getElementById('pecs-grid');
-  grid.innerHTML = cards.map(c => `
-    <div class="pecs-card">
+  const rowMajor = [];
+  for(let row=0; row<5; row++){
+    for(let col=0; col<7; col++){
+      rowMajor.push(matrix[col][row]);
+    }
+  }
+
+  document.getElementById('pecs-grid').innerHTML = rowMajor.map(c => {
+    if(!c) return '<div class="pecs-card"></div>';
+    const imgContent = c.empty
+      ? `<span style="font-size:10pt;color:#ccc;">—</span>`
+      : c.photo
+        ? `<img src="${c.photo}" alt="${c.label}">`
+        : `<span class="pecs-card-emoji">${c.emoji}</span>`;
+    return `<div class="pecs-card">
       <div class="pecs-card-bar" style="background:${c.color};"></div>
-      <div class="pecs-card-img">
-        ${c.photo
-          ? `<img src="${c.photo}" alt="${c.label}">`
-          : `<span class="pecs-card-emoji">${c.emoji}</span>`}
-      </div>
+      <div class="pecs-card-img">${imgContent}</div>
       <div class="pecs-card-label">${c.label}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   window.print();
 }
