@@ -16,17 +16,95 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --sky: #dff0fb;
-    --grass: #06d6a0;
-    --coral: #ef476f;
-    --ocean: #118ab2;
-    --sun: #ffd166;
-    --deep: #2d3561;
-    --peach: #fd9e5b;
-    --lavender: #a29bfe;
-    --weekend-bg: rgba(255,179,71,0.12);
+  /* ═══ COLOUR THEMES ════════════════════════════════════════
+     Three palettes, switched via data-ct on <body>
+     Default: "sky" (original blue)
+  ══════════════════════════════════════════════════════════ */
+
+  /* 🌊 Sky (default) — bright, playful, original feel */
+  :root, body[data-ct="sky"] {
+    --bg-top:    #b8daf0;
+    --bg-mid:    #dff0fb;
+    --bg-bot:    #cdf5e8;
+    --header1:   #2d3561;
+    --header2:   #1a2040;
+    --header-sh: rgba(45,53,97,0.4);
+    --deep:      #2d3561;
+    --sky:       #dff0fb;
+    --sun:       #ffd166;
+    --ocean:     #118ab2;
+    --grass:     #06d6a0;
+    --coral:     #ef476f;
+    --peach:     #fd9e5b;
+    --lavender:  #a29bfe;
+    --weekend-bg:     rgba(255,179,71,0.12);
     --weekend-border: #ffb347;
+    --card-bg:   white;
+    --card-border: rgba(255,255,255,0.9);
+    --today-hdr: #2d3561;
+    --modal-bg:  white;
+    --primary-btn: #2d3561;
+    --day-clr-0: #74b9ff; --day-clr-1: #06d6a0; --day-clr-2: #ffd166;
+    --day-clr-3: #a29bfe; --day-clr-4: #fd9e5b; --day-clr-5: #ff7eb3; --day-clr-6: #55efc4;
+  }
+
+  /* 🌅 Sunset — warm, cosy, cream tones */
+  body[data-ct="sunset"] {
+    --bg-top:    #ffe4cc;
+    --bg-mid:    #fff3e8;
+    --bg-bot:    #fde8d0;
+    --header1:   #7c3a1e;
+    --header2:   #5c2a12;
+    --header-sh: rgba(124,58,30,0.35);
+    --deep:      #7c3a1e;
+    --sky:       #fff3e8;
+    --sun:       #ffb347;
+    --ocean:     #e07b39;
+    --grass:     #e8a838;
+    --coral:     #e85d3a;
+    --peach:     #f5a623;
+    --lavender:  #d4845a;
+    --weekend-bg:     rgba(255,179,71,0.15);
+    --weekend-border: #e0935a;
+    --card-bg:   #fffaf5;
+    --card-border: rgba(255,255,255,0.95);
+    --today-hdr: #7c3a1e;
+    --modal-bg:  #fffaf5;
+    --primary-btn: #7c3a1e;
+    --day-clr-0: #ffb347; --day-clr-1: #e8845a; --day-clr-2: #f5c842;
+    --day-clr-3: #e07b39; --day-clr-4: #d4845a; --day-clr-5: #f0a060; --day-clr-6: #e8c87a;
+  }
+
+  /* 🌿 Forest — calm, natural, ASD-friendly muted tones */
+  body[data-ct="forest"] {
+    --bg-top:    #c8dfc8;
+    --bg-mid:    #e8f5e8;
+    --bg-bot:    #d5ecd5;
+    --header1:   #2d5a2d;
+    --header2:   #1a3d1a;
+    --header-sh: rgba(45,90,45,0.35);
+    --deep:      #2d5a2d;
+    --sky:       #e8f5e8;
+    --sun:       #c8e060;
+    --ocean:     #4a8c5c;
+    --grass:     #5aaa6a;
+    --coral:     #7a9e3a;
+    --peach:     #8ab85a;
+    --lavender:  #6aaa7a;
+    --weekend-bg:     rgba(90,170,106,0.12);
+    --weekend-border: #8ab85a;
+    --card-bg:   #f8fdf8;
+    --card-border: rgba(255,255,255,0.95);
+    --today-hdr: #2d5a2d;
+    --modal-bg:  #f8fdf8;
+    --primary-btn: #2d5a2d;
+    --day-clr-0: #7ac87a; --day-clr-1: #5aaa6a; --day-clr-2: #c8e060;
+    --day-clr-3: #8ab85a; --day-clr-4: #6aaa7a; --day-clr-5: #9aca5a; --day-clr-6: #4a9c5a;
+  }
+
+  /* Apply theme variables throughout */
+  body::before {
+    background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 55%, var(--bg-bot) 100%) !important;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -45,9 +123,9 @@
   /* ═══ HEADER ═══════════════════════════════════ */
   #header {
     height: 50px;
-    background: linear-gradient(135deg, #2d3561, #1a2040);
+    background: linear-gradient(135deg, var(--header1), var(--header2));
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 14px; box-shadow: 0 3px 16px rgba(45,53,97,0.4); flex-shrink: 0;
+    padding: 0 14px; box-shadow: 0 3px 16px var(--header-sh); flex-shrink: 0;
   }
   .header-title {
     font-family: 'Baloo 2', cursive; font-size: 1.2rem; font-weight: 800;
@@ -333,7 +411,7 @@
   .day-col-hdr.weekend { background:rgba(255,179,71,0.22); border:1.5px solid rgba(255,179,71,0.45); color:#c0560a; cursor:pointer; }
   .day-col-hdr.weekend:active { transform:scale(0.94); }
   /* Today */
-  .day-col-hdr.today { background:var(--deep); color:white; box-shadow:0 3px 12px rgba(45,53,97,0.28); cursor:pointer; }
+  .day-col-hdr.today { background:var(--today-hdr); color:white; box-shadow:0 3px 12px var(--header-sh); cursor:pointer; }
   .day-col-hdr.today:active { transform:scale(0.96); }
   /* Tomorrow — special highlight ring */
   .day-col-hdr.tomorrow {
@@ -366,7 +444,7 @@
     flex:1; border-radius:13px; position:relative; overflow:hidden;
     cursor:pointer; transition:transform 0.14s, box-shadow 0.14s;
     box-shadow:0 2px 10px rgba(0,0,0,0.1);
-    background:white; display:flex; flex-direction:column; min-height:0;
+    background:var(--card-bg); display:flex; flex-direction:column; min-height:0;
   }
   .activity-card:active { transform:scale(0.95); }
   .activity-card.done { opacity:0.62; }
@@ -647,7 +725,7 @@
   }
   .modal-bg.show { display:flex; }
   .modal-box {
-    background:white; border-radius:22px; padding:22px;
+    background:var(--modal-bg); border-radius:22px; padding:22px;
     width:90%; max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,0.22);
   }
   .modal-box h3 { font-family:'Baloo 2',cursive; font-size:1.1rem; font-weight:800; color:var(--deep); margin-bottom:4px; }
@@ -673,7 +751,7 @@
   .edit-inp:focus { border-color:var(--ocean); }
   .modal-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
   .mb { padding:8px 16px; border:none; border-radius:9px; font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:800; cursor:pointer; }
-  .mb.primary { background:var(--deep); color:white; }
+  .mb.primary { background:var(--primary-btn); color:white; }
   .mb.secondary { background:#f0f4ff; color:var(--deep); }
   .mb.danger-btn { background:#fff0f3; color:var(--coral); }
 
@@ -769,6 +847,21 @@
     from { transform: translateY(0) rotate(-1deg) scaleX(1.05); }
     to   { transform: translateY(-3px) rotate(1deg) scaleX(0.97); }
   }
+
+  /* Colour theme picker */
+  .ct-btn {
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    border:2.5px solid transparent; border-radius:14px; padding:10px 6px;
+    cursor:pointer; background:var(--sky); transition:border-color 0.18s, transform 0.15s;
+  }
+  .ct-btn:active { transform:scale(0.92); }
+  .ct-btn.selected { border-color:var(--deep); }
+  .ct-swatch {
+    display:flex; gap:3px; margin-bottom:2px;
+  }
+  .ct-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .ct-btn .ct-label { font-family:'Nunito',sans-serif; font-size:0.6rem; font-weight:800; color:var(--deep); }
+  .ct-btn .ct-desc  { font-size:0.5rem; color:#888; }
 
   /* Calm Mode toggle switch */
   .calm-toggle {
@@ -1235,6 +1328,14 @@
         </div>
       </div>
 
+      <!-- Colour theme -->
+      <div class="settings-section">
+        <h4>🎨 Colour Theme</h4>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;" id="colour-theme-picker">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
       <!-- Child photo -->
       <div class="settings-section">
         <h4>🧒 Child's Photo</h4>
@@ -1425,6 +1526,18 @@ const WEEKEND    = [5, 6];
 const CARD_CLR   = ['#f7c94a','#06d6a0','#ef476f','#118ab2','#a29bfe','#fd9e5b','#55efc4','#ff7eb3','#ffd166','#74b9ff','#fab1d1','#4db8ff'];
 // One colour per day column (Mon→Sun) — used for card top-bars & column accent
 const DAY_CLR    = ['#74b9ff','#06d6a0','#ffd166','#a29bfe','#fd9e5b','#ff7eb3','#55efc4'];
+
+// ── Colour Themes ─────────────────────────────────────────
+const COLOUR_THEMES = {
+  sky:    { id:'sky',    label:'Sky',    emoji:'🌊', desc:'Bright & playful',
+            dayclr:['#74b9ff','#06d6a0','#ffd166','#a29bfe','#fd9e5b','#ff7eb3','#55efc4'] },
+  sunset: { id:'sunset', label:'Sunset', emoji:'🌅', desc:'Warm & cosy',
+            dayclr:['#ffb347','#e8845a','#f5c842','#e07b39','#d4845a','#f0a060','#e8c87a'] },
+  forest: { id:'forest', label:'Forest', emoji:'🌿', desc:'Calm & natural',
+            dayclr:['#7ac87a','#5aaa6a','#c8e060','#8ab85a','#6aaa7a','#9aca5a','#4a9c5a'] },
+};
+function getColourTheme(){ return COLOUR_THEMES[(S.settings&&S.settings.colorTheme)||'sky']||COLOUR_THEMES.sky; }
+function getDayClr(){ return getColourTheme().dayclr; }
 
 // ── Character Themes ──────────────────────────────────────
 const THEMES = {
@@ -1662,6 +1775,18 @@ function openSettings(){
     </button>`;
   }).join('');
 
+  // Colour theme picker
+  _settingsColorTheme = S.settings.colorTheme || 'sky';
+  const ctPicker = document.getElementById('colour-theme-picker');
+  ctPicker.innerHTML = Object.values(COLOUR_THEMES).map(ct => {
+    const dots = ct.dayclr.slice(0,4).map(c=>`<div class="ct-dot" style="background:${c}"></div>`).join('');
+    return `<button class="ct-btn${ct.id===_settingsColorTheme?' selected':''}" onclick="selectColorTheme('${ct.id}',this)">
+      <div class="ct-swatch">${dots}</div>
+      <span class="ct-label">${ct.emoji} ${ct.label}</span>
+      <span class="ct-desc">${ct.desc}</span>
+    </button>`;
+  }).join('');
+
   // Jacob photo preview
   const prev = document.getElementById('settings-car-preview');
   const rmBtn = document.getElementById('settings-rm-photo-btn');
@@ -1690,9 +1815,15 @@ function openSettings(){
 }
 
 let _settingsTheme = 'car';
+let _settingsColorTheme = 'sky';
 function selectTheme(id, btn){
   _settingsTheme = id;
   document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+function selectColorTheme(id, btn){
+  _settingsColorTheme = id;
+  document.querySelectorAll('.ct-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
 }
 
@@ -1754,6 +1885,7 @@ function saveSettings(){
   S.settings.voiceName = vName;
   S.settings.speed = _settingsSpeed;
   S.settings.theme = theme;
+  S.settings.colorTheme = _settingsColorTheme || 'sky';
   S.settings.calm = !!(document.getElementById('calm-checkbox') && document.getElementById('calm-checkbox').checked);
   saveS();
   // Update title + re-render road with new theme
@@ -1761,6 +1893,7 @@ function saveSettings(){
     `⭐ ${name}'s Daily Hero <span class="today-pill" id="today-badge">${DAYS_SH[TODAY_IDX]}</span>`;
   renderRoad();
   positionJacob();
+  applyColourTheme();
   applyCalmState();
   closeModal('settings-modal');
   showToast(`✅ Settings saved!`);
@@ -1943,7 +2076,7 @@ function renderGrid(){
     const col=document.createElement('div');
     col.className='day-col';
     col.dataset.day = DAYS_FULL[di];
-    col.style.borderTop = `3px solid ${DAY_CLR[di % DAY_CLR.length]}`;
+    col.style.borderTop = `3px solid ${getDayClr()[di % getDayClr().length]}`;
 
     if(WEEKEND.includes(di)){
       // Always exactly 5 slots: Wake Up, Breakfast, + 3 event slots
@@ -1961,7 +2094,7 @@ function renderGrid(){
 // ACTIVITY CARD
 // ═══════════════════════════════════════════════════════════
 function makeActCard(act,di,W){
-  const clr = DAY_CLR[di % DAY_CLR.length];
+  const clr = getDayClr()[di % getDayClr().length];
   const dk=`${act.id}_${di}_${W}`;
   const done=!!S.done[dk];
   const ph=S.actPhotos[`${act.id}_${di}`]||null;
@@ -2025,7 +2158,7 @@ function makeEventSlot(di,slot,W){
       : `<div style="font-size:clamp(1rem,2vw,1.8rem);pointer-events:none;">🎉</div>`;
 
     c.innerHTML=`
-      <div class="event-top-bar" style="background:${DAY_CLR[di % DAY_CLR.length]}"></div>
+      <div class="event-top-bar" style="background:${getDayClr()[di % getDayClr().length]}"></div>
       <div class="event-img-zone" style="position:relative;">
         ${imgContent}
         <div class="event-done-veil"></div>
@@ -2072,7 +2205,7 @@ function openActPopup(act, di) {
   const label = document.getElementById('popup-label');
   const subtitle = document.getElementById('popup-subtitle');
   const topBar = document.getElementById('popup-top-bar');
-  const clr = DAY_CLR[di % DAY_CLR.length];
+  const clr = getDayClr()[di % getDayClr().length];
   const childName = (S.settings && S.settings.childName) || 'Jacob';
 
   // Color bar — matches the column colour
@@ -2281,7 +2414,7 @@ function onDayTap(di) {
     () => {
       if (hdr) {
         hdr.style.transform = 'scale(1.12)';
-        hdr.style.boxShadow = `0 4px 20px ${DAY_CLR[di % DAY_CLR.length]}99`;
+        hdr.style.boxShadow = `0 4px 20px ${getDayClr()[di % getDayClr().length]}99`;
       }
       speak(msg);
     },
@@ -2404,6 +2537,11 @@ function burst(el){
 // LOCK SYSTEM
 // ═══════════════════════════════════════════════════════════
 function isLocked(){ return !!(S.settings && S.settings.locked); }
+
+function applyColourTheme(){
+  const ct = (S.settings && S.settings.colorTheme) || 'sky';
+  document.body.setAttribute('data-ct', ct);
+}
 
 function applyCalmState(){
   const calm = !!(S.settings && S.settings.calm);
@@ -2690,7 +2828,7 @@ function buildAndPrint(){
 
   for(let di=0; di<7; di++){
     const isWk = WEEKEND.includes(di);
-    const color = DAY_CLR[di];
+    const color = getDayClr()[di];
 
     if(!isWk){
       // Weekday: 5 activity cards
@@ -2798,6 +2936,7 @@ window.speechSynthesis && window.speechSynthesis.getVoices();
 loadS().then(() => {
   render();
   applyLockState();
+  applyColourTheme();
   applyCalmState();
   scheduleRefresh();
   window.addEventListener('resize', positionJacob);
