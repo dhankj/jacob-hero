@@ -815,75 +815,141 @@
   .child-name-inp:focus { border-color:var(--ocean); }
 
   @media print {
-    @page { size:A4 landscape; margin:6mm; }
+    @page { size:A4 landscape; margin:8mm; }
+
+    * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
 
     html, body {
-      width:100%!important; height:auto!important;
-      overflow:visible!important; background:white!important;
-      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+      width:100% !important; height:auto !important;
+      overflow:visible !important; background:white !important;
     }
-    body::before { display:none!important; }
+    body::before { display:none !important; }
 
     #app {
-      height:auto!important; overflow:visible!important;
-      display:flex!important; flex-direction:column!important;
-      background:white!important;
+      height:auto !important; overflow:visible !important;
+      display:block !important; background:white !important;
     }
 
-    /* Hide interactive elements */
-    #header .header-actions, #jacob-photo-btn,
+    /* Hide everything except grid */
+    #header, #journey-strip, #days-bar,
+    #progress-wrap, #toast, #lock-toast,
+    .modal-bg, #act-popup,
     .cam-btn, .done-btn, .event-done-btn,
-    #progress-wrap, #toast, .modal-bg, #act-popup,
-    .done-veil, .done-badge, .event-done-badge { display:none!important; }
+    .done-veil, .done-badge, .event-done-badge,
+    .event-done-veil { display:none !important; }
 
-    /* Header */
-    #header {
-      background:#2d3561!important; color:white!important;
-      -webkit-print-color-adjust:exact; print-color-adjust:exact;
-      height:32px!important; margin-bottom:3px!important;
-      flex-shrink:0!important;
-    }
-
-    /* Journey strip — keep small */
-    #journey-strip { padding:2px 4px!important; flex-shrink:0!important; }
-    .road { height:36px!important; }
-
-    /* Days bar */
-    #days-bar {
-      padding:2px 4px!important; gap:2px!important;
-      flex-shrink:0!important;
-    }
-    .day-col-hdr {
-      font-size:0.6rem!important; padding:2px!important;
-    }
-    .day-col-hdr.today {
-      background:#2d3561!important; color:white!important;
-      -webkit-print-color-adjust:exact; print-color-adjust:exact;
-    }
-
-    /* Grid */
+    /* Grid fills the page */
     #schedule-grid {
-      padding:0 4px 2px!important; gap:2px!important;
-      flex:1!important; height:auto!important;
-      overflow:visible!important;
+      display:grid !important;
+      grid-template-columns:repeat(7, 1fr) !important;
+      gap:4mm !important;
+      padding:0 !important;
+      width:100% !important;
+      height:auto !important;
+      overflow:visible !important;
     }
-    .day-col { gap:2px!important; }
 
-    /* Cards — fixed height, show photos */
+    /* Each day column */
+    .day-col {
+      display:flex !important;
+      flex-direction:column !important;
+      gap:3mm !important;
+      break-inside:avoid !important;
+    }
+
+    /* Day column header — printed as title strip */
+    .day-col::before {
+      content:attr(data-day) !important;
+      display:block !important;
+      text-align:center !important;
+      font-family:'Baloo 2',cursive !important;
+      font-size:9pt !important;
+      font-weight:800 !important;
+      color:white !important;
+      background:#2d3561 !important;
+      border-radius:6px !important;
+      padding:3px 0 !important;
+      margin-bottom:1mm !important;
+    }
+
+    /* Cards — tall and image-forward */
     .activity-card, .event-slot {
-      height:80px!important; flex:none!important;
-      border:1px solid #ddd!important;
-      box-shadow:none!important;
-      break-inside:avoid!important;
-      page-break-inside:avoid!important;
+      flex:1 !important;
+      height:auto !important;
+      min-height:28mm !important;
+      max-height:34mm !important;
+      border:2px solid #e0e0e0 !important;
+      border-radius:8px !important;
+      box-shadow:none !important;
+      break-inside:avoid !important;
+      page-break-inside:avoid !important;
+      display:flex !important;
+      flex-direction:column !important;
+      overflow:hidden !important;
+      background:white !important;
     }
-    .card-top-bar { height:3px!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-    .card-img-zone img.act-photo {
-      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+
+    /* Color top bar — keep theme colors */
+    .card-top-bar, .event-top-bar {
+      height:5px !important;
+      flex-shrink:0 !important;
     }
-    .card-label { font-size:0.5rem!important; }
-    .event-name  { font-size:0.5rem!important; }
-    .day-when-label { display:none!important; }
+
+    /* Photo / emoji zone — big and clear */
+    .card-img-zone, .event-img-zone {
+      flex:1 !important;
+      display:flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      overflow:hidden !important;
+      padding:2mm !important;
+    }
+    .act-photo {
+      width:100% !important;
+      height:100% !important;
+      object-fit:contain !important;
+      max-height:22mm !important;
+    }
+
+    /* Big emoji when no photo */
+    .card-emoji-big {
+      font-size:22pt !important;
+      line-height:1 !important;
+    }
+
+    /* Label */
+    .card-label-area, .event-label-area {
+      padding:1mm 2mm 2mm !important;
+      text-align:center !important;
+      flex-shrink:0 !important;
+    }
+    .card-label, .event-name {
+      font-size:7.5pt !important;
+      font-weight:800 !important;
+      color:#2d3561 !important;
+      line-height:1.2 !important;
+      display:block !important;
+    }
+
+    /* Done state — show checkmark nicely */
+    .activity-card.done .card-img-zone::after {
+      content:'✓' !important;
+      position:absolute !important;
+      top:2mm !important; right:2mm !important;
+      background:#06d6a0 !important;
+      color:white !important;
+      border-radius:50% !important;
+      width:5mm !important; height:5mm !important;
+      display:flex !important;
+      align-items:center !important; justify-content:center !important;
+      font-size:8pt !important; font-weight:900 !important;
+    }
+
+    /* Weekend empty slots — subtle */
+    .event-slot:not(.has-event) { border-style:dashed !important; opacity:0.4 !important; }
+
+    /* Day-when label hidden in print */
+    .day-when-label { display:none !important; }
   }
 </style>
 </head>
@@ -1679,6 +1745,7 @@ function renderGrid(){
   for(let di=0;di<7;di++){
     const col=document.createElement('div');
     col.className='day-col';
+    col.dataset.day = DAYS_FULL[di];
     col.style.borderTop = `3px solid ${DAY_CLR[di % DAY_CLR.length]}`;
 
     if(WEEKEND.includes(di)){
@@ -2390,10 +2457,9 @@ function removeEvent(){
 // RESET
 // ═══════════════════════════════════════════════════════════
 function confirmReset(){
-  if(!confirm("Reset today's check marks?\n(Activities and photos are kept.)")) return;
-  const W=wk(), di=TODAY_IDX;
-  Object.keys(S.done).forEach(k=>{ if(k.includes(`_${di}_${W}`)) delete S.done[k]; });
-  saveS(); render(); showToast('🔄 Today reset!');
+  if(!confirm("Reset ALL check marks for all days?\n(Activities and photos are kept.)")) return;
+  S.done = {};
+  saveS(); render(); showToast('🔄 All check marks reset!');
 }
 
 // ═══════════════════════════════════════════════════════════
