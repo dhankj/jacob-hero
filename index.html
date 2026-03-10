@@ -700,6 +700,32 @@
   .theme-btn.selected { border-color:var(--ocean); background:#d8eef8; }
   .theme-btn span { font-family:'Nunito',sans-serif; font-size:0.55rem; font-weight:800; color:var(--deep); }
 
+  /* Lock button */
+  #lock-btn { background: rgba(255,209,102,0.18) !important; border-color: rgba(255,209,102,0.4) !important; }
+  #lock-btn.locked { background: rgba(239,71,111,0.22) !important; border-color: rgba(239,71,111,0.5) !important; color: #ffb3c6 !important; }
+
+  /* When locked — hide edit UI */
+  body.locked .cam-btn,
+  body.locked #settings-btn { display: none !important; }
+  body.locked .lane-add-icon { pointer-events: none; opacity: 0 !important; }
+
+  /* Lock toast */
+  #lock-toast {
+    position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+    background: #2d3561; color: white; border-radius: 20px;
+    padding: 10px 22px; font-size: 0.82rem; font-weight: 800;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 9999;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none;
+    white-space: nowrap;
+  }
+  #lock-toast.show { opacity: 1; }
+
+  /* Unlock modal */
+  #unlock-modal .modal-box { text-align: center; max-width: 300px; }
+  #unlock-modal .unlock-icon { font-size: 3rem; margin-bottom: 8px; }
+  #unlock-modal h3 { margin-bottom: 6px; }
+  #unlock-modal p { font-size: 0.78rem; color: #888; margin-bottom: 18px; }
+
   /* Theme character (non-car) */
   .theme-char {
     position: relative;
@@ -716,7 +742,23 @@
   }
 
   /* ═══ SETTINGS MODAL ══════════════════════════════════════ */
-  #settings-modal .modal-box { max-width:420px; }
+  #settings-modal .modal-box {
+    max-width:420px;
+    display:flex; flex-direction:column;
+    max-height:88vh; padding:0; overflow:hidden;
+  }
+  #settings-modal .settings-header {
+    padding:18px 22px 10px; border-bottom:2px solid var(--sky); flex-shrink:0;
+  }
+  #settings-modal .settings-header h3 { margin-bottom:0; }
+  #settings-modal .settings-scroll {
+    flex:1; overflow-y:auto; padding:16px 22px;
+    -webkit-overflow-scrolling:touch;
+  }
+  #settings-modal .settings-footer {
+    padding:12px 22px 16px; border-top:2px solid var(--sky); flex-shrink:0;
+    background:white; border-radius:0 0 22px 22px;
+  }
   .settings-section { margin-bottom:18px; }
   .settings-section h4 {
     font-family:'Baloo 2',cursive; font-size:0.82rem; font-weight:800;
@@ -856,7 +898,10 @@
       <span class="today-pill" id="today-badge">MON</span>
     </div>
     <div class="header-actions">
-      <button class="hdr-btn" onclick="openSettings()">
+      <button class="hdr-btn" id="lock-btn" onclick="handleLockBtn()">
+        🔒 Lock
+      </button>
+      <button class="hdr-btn" onclick="openSettings()" id="settings-btn">
         ⚙️ Settings
       </button>
       <button class="hdr-btn" onclick="window.print()">
@@ -941,69 +986,99 @@
   </div>
 </div>
 
+<!-- UNLOCK MODAL -->
+<div class="modal-bg" id="unlock-modal">
+  <div class="modal-box" style="max-width:300px;text-align:center;">
+    <div class="unlock-icon">🔒</div>
+    <h3>App is Locked</h3>
+    <p>Tap Unlock to edit activities,<br>photos, and settings.</p>
+    <button class="mb primary" style="width:100%;font-size:1rem;" onclick="doUnlock()">🔓 Unlock</button>
+    <button class="cancel-lnk" onclick="closeModal('unlock-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- LOCK TOAST -->
+<div id="lock-toast"></div>
+
 <!-- SETTINGS MODAL -->
 <div class="modal-bg" id="settings-modal">
-  <div class="modal-box" style="max-width:420px;">
-    <h3>⚙️ Settings</h3>
+  <div class="modal-box">
 
-    <!-- Character theme -->
-    <div class="settings-section">
-      <h4>🎭 Character & World</h4>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:4px;" id="theme-picker">
-        <!-- filled by JS -->
-      </div>
+    <!-- Fixed header -->
+    <div class="settings-header">
+      <h3>⚙️ Settings</h3>
     </div>
 
-    <!-- Jacob photo -->
-    <div class="settings-section">
-      <h4>🧒 Child's Photo</h4>
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
-        <div id="settings-car-preview" style="width:54px;height:54px;border-radius:50%;overflow:hidden;border:3px solid #2d3561;background:linear-gradient(135deg,#a29bfe,#74b9ff);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;">👦</div>
-        <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
-          <button class="ph-opt" onclick="triggerJacobCam()" style="margin:0;">
-            <div class="ph-ico" style="background:#dff0fb">📷</div>
-            <div style="text-align:left;font-size:0.78rem;">Take a Photo</div>
-          </button>
-          <button class="ph-opt" onclick="triggerJacobGallery()" style="margin:0;">
-            <div class="ph-ico" style="background:#f0fff8">🖼️</div>
-            <div style="text-align:left;font-size:0.78rem;">Choose from Gallery</div>
-          </button>
-          <button class="ph-opt" id="settings-rm-photo-btn" onclick="removeJacobPhoto()" style="margin:0;display:none;">
-            <div class="ph-ico" style="background:#fff0f3">🗑️</div>
-            <div style="text-align:left;font-size:0.78rem;color:#ef476f;">Remove Photo</div>
-          </button>
+    <!-- Scrollable content -->
+    <div class="settings-scroll">
+
+      <!-- Character theme -->
+      <div class="settings-section">
+        <h4>🎭 Character & World</h4>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:4px;" id="theme-picker">
+          <!-- filled by JS -->
         </div>
       </div>
-    </div>
 
-    <!-- Child name -->
-    <div class="settings-section">
-      <h4>👦 Child's Name</h4>
-      <input class="child-name-inp" id="settings-name" type="text" placeholder="Jacob" maxlength="20">
-    </div>
-
-    <!-- Voice selection -->
-    <div class="settings-section">
-      <h4>🎙️ Voice</h4>
-      <div class="voice-list" id="voice-list">
-        <div style="font-size:0.75rem;color:#bbb;padding:8px;">Loading voices…</div>
+      <!-- Child photo -->
+      <div class="settings-section">
+        <h4>🧒 Child's Photo</h4>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+          <div id="settings-car-preview" style="width:54px;height:54px;border-radius:50%;overflow:hidden;border:3px solid #2d3561;background:linear-gradient(135deg,#a29bfe,#74b9ff);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;">👦</div>
+          <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+            <button class="ph-opt" onclick="triggerJacobCam()" style="margin:0;">
+              <div class="ph-ico" style="background:#dff0fb">📷</div>
+              <div style="text-align:left;font-size:0.78rem;">Take a Photo</div>
+            </button>
+            <button class="ph-opt" onclick="triggerJacobGallery()" style="margin:0;">
+              <div class="ph-ico" style="background:#f0fff8">🖼️</div>
+              <div style="text-align:left;font-size:0.78rem;">Choose from Gallery</div>
+            </button>
+            <button class="ph-opt" id="settings-rm-photo-btn" onclick="removeJacobPhoto()" style="margin:0;display:none;">
+              <div class="ph-ico" style="background:#fff0f3">🗑️</div>
+              <div style="text-align:left;font-size:0.78rem;color:#ef476f;">Remove Photo</div>
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!-- Speed -->
-    <div class="settings-section">
-      <h4>⏩ Speaking Speed</h4>
-      <div class="speed-btns">
-        <button class="speed-btn" data-speed="0.7" onclick="setSpeed(0.7,this)">🐢 Slow</button>
-        <button class="speed-btn active" data-speed="0.88" onclick="setSpeed(0.88,this)">🚶 Normal</button>
-        <button class="speed-btn" data-speed="1.1" onclick="setSpeed(1.1,this)">🏃 Fast</button>
+      <!-- Child name -->
+      <div class="settings-section">
+        <h4>👦 Child's Name</h4>
+        <input class="child-name-inp" id="settings-name" type="text" placeholder="Jacob" maxlength="20">
       </div>
+
+      <!-- Voice selection -->
+      <div class="settings-section">
+        <h4>🎙️ Voice</h4>
+        <div class="voice-list" id="voice-list">
+          <div style="font-size:0.75rem;color:#bbb;padding:8px;">Loading voices…</div>
+        </div>
+      </div>
+
+      <!-- Speed -->
+      <div class="settings-section">
+        <h4>⏩ Speaking Speed</h4>
+        <div class="speed-btns">
+          <button class="speed-btn" data-speed="0.7" onclick="setSpeed(0.7,this)">🐢 Slow</button>
+          <button class="speed-btn active" data-speed="0.88" onclick="setSpeed(0.88,this)">🚶 Normal</button>
+          <button class="speed-btn" data-speed="1.1" onclick="setSpeed(1.1,this)">🏃 Fast</button>
+        </div>
+      </div>
+
+    </div><!-- end settings-scroll -->
+
+    <!-- Fixed footer -->
+    <div class="settings-footer">
+      <div style="display:flex;gap:8px;width:100%;margin-bottom:8px;">
+        <button class="mb secondary" style="flex:1;" onclick="closeModal('settings-modal')">Cancel</button>
+        <button class="mb primary" style="flex:2;" onclick="saveSettings()">✅ Save</button>
+      </div>
+      <button class="mb" id="settings-lock-btn" style="width:100%;background:linear-gradient(135deg,#2d3561,#1a2040);color:white;border:none;" onclick="toggleLockFromSettings()">
+        🔒 Lock App
+      </button>
     </div>
 
-    <div class="modal-footer">
-      <button class="mb secondary" onclick="closeModal('settings-modal')">Cancel</button>
-      <button class="mb primary" onclick="saveSettings()">✅ Save</button>
-    </div>
   </div>
 </div>
 
@@ -1326,7 +1401,8 @@ function speak(fullText){
 let _settingsSpeed = 0.88;
 
 function openSettings(){
-  if (!S.settings) S.settings = { childName:'Jacob', voiceName:'', speed:0.88, theme:'car' };
+  if (isLocked()) { openModal('unlock-modal'); return; }
+  if (!S.settings) S.settings = { childName:'Jacob', voiceName:'', speed:0.88, theme:'car', locked:false };
   _settingsSpeed = S.settings.speed || 0.88;
 
   // Child name
@@ -2045,9 +2121,64 @@ function burst(el){
 // ═══════════════════════════════════════════════════════════
 // LONG PRESS
 // ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// LOCK SYSTEM
+// ═══════════════════════════════════════════════════════════
+function isLocked(){ return !!(S.settings && S.settings.locked); }
+
+function applyLockState(){
+  const locked = isLocked();
+  document.body.classList.toggle('locked', locked);
+  const lockBtn = document.getElementById('lock-btn');
+  if (lockBtn) {
+    lockBtn.textContent = locked ? '🔓 Unlock' : '🔒 Lock';
+    lockBtn.classList.toggle('locked', locked);
+  }
+  const settingsLockBtn = document.getElementById('settings-lock-btn');
+  if (settingsLockBtn) settingsLockBtn.textContent = locked ? '🔓 Unlock App' : '🔒 Lock App';
+}
+
+function handleLockBtn(){
+  if (isLocked()) {
+    openModal('unlock-modal');
+  } else {
+    if(!S.settings) S.settings={};
+    S.settings.locked = true; saveS();
+    applyLockState();
+    showLockToast('🔒 App locked — Jacob can play freely!');
+  }
+}
+
+function doUnlock(){
+  if(!S.settings) S.settings={};
+  S.settings.locked = false; saveS();
+  applyLockState();
+  closeModal('unlock-modal');
+  showLockToast('🔓 Unlocked — you can edit everything!');
+}
+
+function toggleLockFromSettings(){
+  if (isLocked()) {
+    doUnlock();
+    closeModal('settings-modal');
+  } else {
+    if(!S.settings) S.settings={};
+    S.settings.locked = true; saveS();
+    applyLockState();
+    closeModal('settings-modal');
+    showLockToast('🔒 App locked — Jacob can play freely!');
+  }
+}
+
+function showLockToast(msg){
+  const t = document.getElementById('lock-toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
 function setupLP(el,cb){
   let t=null;
-  const s=()=>{ t=setTimeout(()=>{cb();t=null;},620); };
+  const s=()=>{ if(isLocked()) return; t=setTimeout(()=>{cb();t=null;},620); };
   const c=()=>{ if(t){clearTimeout(t);t=null;} };
   el.addEventListener('touchstart',s,{passive:true});
   ['touchend','touchmove'].forEach(ev=>el.addEventListener(ev,c));
@@ -2083,6 +2214,7 @@ function compressImage(file, maxSize, quality, callback) {
 // ═══════════════════════════════════════════════════════════
 let _pAid=null,_pDi=null;
 function openPhotoModal(aid,di){
+  if(isLocked()) return;
   _pAid=aid; _pDi=di;
   const act=S.acts.find(a=>a.id===aid);
   document.getElementById('photo-sub').textContent=`"${act?act.label:''}" · ${DAYS_FULL[di]}`;
@@ -2304,6 +2436,7 @@ window.speechSynthesis && window.speechSynthesis.getVoices();
 
 loadS().then(() => {
   render();
+  applyLockState();
   scheduleRefresh();
   window.addEventListener('resize', positionJacob);
   setTimeout(() => {
