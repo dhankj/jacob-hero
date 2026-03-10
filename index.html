@@ -364,8 +364,13 @@
   .card-img-zone {
     flex:1; position:relative; overflow:hidden;
     display:flex; align-items:center; justify-content:center; min-height:0;
+    background:#f8f9ff;
   }
-  .card-img-zone img.act-photo { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .card-img-zone img.act-photo {
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:contain; /* contain = no cropping, full photo visible */
+    background:#f8f9ff;
+  }
   .card-placeholder { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
   .card-emoji-big { font-size:clamp(0.9rem,2vw,1.7rem); line-height:1; }
 
@@ -687,20 +692,75 @@
 
   /* ═══ PRINT ══════════════════════════════════════ */
   @media print {
-    @page { size:A4 landscape; margin:8mm; }
-    html,body { width:100%!important; height:auto!important; overflow:visible!important; background:white!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    @page { size:A4 landscape; margin:6mm; }
+
+    html, body {
+      width:100%!important; height:auto!important;
+      overflow:visible!important; background:white!important;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }
     body::before { display:none!important; }
-    #app { height:auto!important; overflow:visible!important; display:block!important; }
-    #header { background:#2d3561!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; height:38px!important; margin-bottom:4px; }
-    #header .header-actions, #jacob-photo-btn, .cam-btn, .done-btn, .event-done-btn, #progress-wrap, #toast, .modal-bg, #act-popup { display:none!important; }
-    #journey-strip { padding:2px 6px!important; }
-    .road { height:42px!important; }
-    #days-bar { padding:2px 6px!important; gap:3px!important; }
-    #schedule-grid { padding:0 6px 3px!important; gap:3px!important; height:auto!important; overflow:visible!important; }
-    .day-col { height:auto!important; }
-    .activity-card, .event-slot { height:88px!important; flex:none!important; border:1.5px solid #ddd!important; box-shadow:none!important; }
-    .day-col-hdr.today { background:#2d3561!important; color:white!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-    .card-top-bar, .event-slot.filled { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+    #app {
+      height:auto!important; overflow:visible!important;
+      display:flex!important; flex-direction:column!important;
+      background:white!important;
+    }
+
+    /* Hide interactive elements */
+    #header .header-actions, #jacob-photo-btn,
+    .cam-btn, .done-btn, .event-done-btn,
+    #progress-wrap, #toast, .modal-bg, #act-popup,
+    .done-veil, .done-badge, .event-done-badge { display:none!important; }
+
+    /* Header */
+    #header {
+      background:#2d3561!important; color:white!important;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+      height:32px!important; margin-bottom:3px!important;
+      flex-shrink:0!important;
+    }
+
+    /* Journey strip — keep small */
+    #journey-strip { padding:2px 4px!important; flex-shrink:0!important; }
+    .road { height:36px!important; }
+
+    /* Days bar */
+    #days-bar {
+      padding:2px 4px!important; gap:2px!important;
+      flex-shrink:0!important;
+    }
+    .day-col-hdr {
+      font-size:0.6rem!important; padding:2px!important;
+    }
+    .day-col-hdr.today {
+      background:#2d3561!important; color:white!important;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }
+
+    /* Grid */
+    #schedule-grid {
+      padding:0 4px 2px!important; gap:2px!important;
+      flex:1!important; height:auto!important;
+      overflow:visible!important;
+    }
+    .day-col { gap:2px!important; }
+
+    /* Cards — fixed height, show photos */
+    .activity-card, .event-slot {
+      height:80px!important; flex:none!important;
+      border:1px solid #ddd!important;
+      box-shadow:none!important;
+      break-inside:avoid!important;
+      page-break-inside:avoid!important;
+    }
+    .card-top-bar { height:3px!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .card-img-zone img.act-photo {
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }
+    .card-label { font-size:0.5rem!important; }
+    .event-name  { font-size:0.5rem!important; }
+    .day-when-label { display:none!important; }
   }
 </style>
 </head>
@@ -779,9 +839,9 @@
 
 </div>
 
-<!-- ACTIVITY POPUP — fullscreen tap to dismiss -->
+<!-- ACTIVITY POPUP — tap anywhere to dismiss -->
 <div id="act-popup" onclick="closeActPopup()">
-  <div class="act-popup-card" onclick="event.stopPropagation()">
+  <div class="act-popup-card" onclick="closeActPopup()">
     <button class="act-popup-close" onclick="closeActPopup()">✕</button>
     <div class="act-popup-top-bar" id="popup-top-bar"></div>
     <div class="act-popup-img" id="popup-img-zone">
@@ -1251,7 +1311,7 @@ function makeEventSlot(di,slot,W){
 
   if(ev){
     const imgContent = ev.photo
-      ? `<img src="${ev.photo}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;" alt="${ev.l}">`
+      ? `<img src="${ev.photo}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#f8f9ff;pointer-events:none;" alt="${ev.l}">`
       : `<div style="font-size:clamp(1rem,2vw,1.8rem);pointer-events:none;">🎉</div>`;
 
     c.innerHTML=`
@@ -1488,7 +1548,7 @@ function toggleEventDone(dk,slot,label){
     setTimeout(()=>speak(`${label} done. Great job Jacob!`), 300);
   }
   updateProgress();
-
+}
 
 function checkAllDone(W){
   if(WEEKEND.includes(TODAY_IDX)) return;
