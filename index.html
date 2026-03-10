@@ -1056,6 +1056,8 @@ const DAYS_SH    = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
 const TODAY_IDX  = (new Date().getDay() + 6) % 7; // 0=Mon
 const WEEKEND    = [5, 6];
 const CARD_CLR   = ['#f7c94a','#06d6a0','#ef476f','#118ab2','#a29bfe','#fd9e5b','#55efc4','#ff7eb3','#ffd166','#74b9ff','#fab1d1','#4db8ff'];
+// One colour per day column (Mon→Sun) — used for card top-bars & column accent
+const DAY_CLR    = ['#74b9ff','#06d6a0','#ffd166','#a29bfe','#fd9e5b','#ff7eb3','#55efc4'];
 const EMOJIS     = ['☀️','🍳','🎒','🥗','🧩','📚','🍽️','🛁','🌙','⚽','🎨','🎵','🚌','🛌','🧸','🎮','🍎','🥛','🚿','👕','🦷','🏃','📱','🎯','🌸','🎪'];
 
 const EVENTS = [
@@ -1431,8 +1433,8 @@ function renderGrid(){
   const W=wk();
   for(let di=0;di<7;di++){
     const col=document.createElement('div');
-    // Same class for ALL columns — no special weekend padding
     col.className='day-col';
+    col.style.borderTop = `3px solid ${DAY_CLR[di % DAY_CLR.length]}`;
 
     if(WEEKEND.includes(di)){
       // Always exactly 5 slots: Wake Up, Breakfast, + 3 event slots
@@ -1450,7 +1452,7 @@ function renderGrid(){
 // ACTIVITY CARD
 // ═══════════════════════════════════════════════════════════
 function makeActCard(act,di,W){
-  const clr=CARD_CLR[act.ci%CARD_CLR.length];
+  const clr = DAY_CLR[di % DAY_CLR.length];
   const dk=`${act.id}_${di}_${W}`;
   const done=!!S.done[dk];
   const ph=S.actPhotos[`${act.id}_${di}`]||null;
@@ -1514,7 +1516,7 @@ function makeEventSlot(di,slot,W){
       : `<div style="font-size:clamp(1rem,2vw,1.8rem);pointer-events:none;">🎉</div>`;
 
     c.innerHTML=`
-      <div class="event-top-bar"></div>
+      <div class="event-top-bar" style="background:${DAY_CLR[di % DAY_CLR.length]}"></div>
       <div class="event-img-zone" style="position:relative;">
         ${imgContent}
         <div class="event-done-veil"></div>
@@ -1561,10 +1563,11 @@ function openActPopup(act, di) {
   const label = document.getElementById('popup-label');
   const subtitle = document.getElementById('popup-subtitle');
   const topBar = document.getElementById('popup-top-bar');
-  const CARD_CLR_LIST = ['#f7c94a','#06d6a0','#ef476f','#118ab2','#a29bfe','#fd9e5b','#55efc4','#ff7eb3','#ffd166','#74b9ff','#fab1d1','#4db8ff'];
+  const clr = DAY_CLR[di % DAY_CLR.length];
+  const childName = (S.settings && S.settings.childName) || 'Jacob';
 
-  // Color bar
-  topBar.style.background = CARD_CLR_LIST[act.ci % CARD_CLR_LIST.length];
+  // Color bar — matches the column colour
+  topBar.style.background = clr;
 
   // Photo or emoji
   const ph = S.actPhotos[`${act.id}_${di}`] || null;
@@ -1576,26 +1579,20 @@ function openActPopup(act, di) {
 
   // Label and subtitle
   label.textContent = act.label;
-  const dayName = DAYS_FULL[di];
-  subtitle.textContent = `Jacob, it's time to ${act.label.toLowerCase()}!`;
+  subtitle.textContent = `${childName}, it's time to ${act.label.toLowerCase()}!`;
 
   // Show popup
   popup.classList.add('show');
 
-  // Sound + voice — ONE clean sentence
+  // Sound + voice
   ding('tap');
-  const msg = `Jacob, it's time to ${act.label}!`;
-  speak(msg);
-
-  // Bubble on car (short version)
+  speak(`${childName}, it's time to ${act.label}!`);
   jacobSay(`${act.emoji} ${act.label}!`);
 
   // Wave animation color
-  document.querySelectorAll('.wave-bar').forEach(b => {
-    b.style.background = CARD_CLR_LIST[act.ci % CARD_CLR_LIST.length];
-  });
+  document.querySelectorAll('.wave-bar').forEach(b => { b.style.background = clr; });
 
-  // Auto-close after 8 seconds if parent doesn't tap
+  // Auto-close after 8 seconds
   if (_popupSpeakTimer) clearTimeout(_popupSpeakTimer);
   _popupSpeakTimer = setTimeout(() => closeActPopup(), 8000);
 }
@@ -1724,11 +1721,12 @@ function toggleDone(aid,di,W){
   if(!was){
     const act=S.acts.find(a=>a.id===aid);
     const label=act?act.label:'that';
+    const childName = (S.settings && S.settings.childName) || 'Jacob';
     ding('done');
     burst(card);
-    showToast(`🌟 ${label} done! Great job Jacob!`);
+    showToast(`🌟 ${label} done! Great job ${childName}!`);
     jacobSay('Great job! ⭐');
-    setTimeout(()=>speak(`${label} done. Great job Jacob!`), 300);
+    setTimeout(()=>speak(`${label} done. Great job ${childName}!`), 300);
     checkAllDone(W);
   }
   updateProgress();
