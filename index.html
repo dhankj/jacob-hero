@@ -318,15 +318,13 @@
   }
   .lane-ev-thumb {
     width: 20px; height: 20px; border-radius: 4px;
-    overflow: hidden; cursor: pointer; flex-shrink: 0;
+    overflow: hidden; flex-shrink: 0;
     border: 1.5px solid rgba(255,255,255,0.5);
     box-shadow: 0 1px 4px rgba(0,0,0,0.4);
     background: rgba(0,0,0,0.3);
     display: flex; align-items: center; justify-content: center;
-    transition: transform 0.12s;
-    pointer-events: all; position: relative; z-index: 4;
+    pointer-events: none; position: relative; z-index: 4;
   }
-  .lane-ev-thumb:active { transform: scale(1.25); }
   .lane-ev-thumb img { width: 100%; height: 100%; object-fit: cover; }
   .lane-ev-thumb .ev-emoji { font-size: 0.75rem; line-height: 1; }
   .lane-add-icon { font-size: 0.75rem; opacity: 0.5; cursor: pointer; pointer-events: all; color: white; margin-top: 2px; }
@@ -343,22 +341,20 @@
   /* Speech bubble — fixed above journey strip, always on top */
   .jacob-speech {
     position: fixed;
-    bottom: 0; /* will be set by JS */
-    left: 50%;
-    transform: translateX(-50%) translateY(0);
+    z-index: 600; pointer-events: none;
     background: white; border-radius: 14px; padding: 6px 14px;
     font-family: 'Baloo 2', cursive;
     font-size: 0.72rem; font-weight: 800; color: var(--deep);
     white-space: nowrap; box-shadow: 0 4px 18px rgba(0,0,0,0.22);
     opacity: 0; transition: opacity 0.25s;
-    z-index: 600; pointer-events: none;
+    transform: translateX(-50%);
   }
   .jacob-speech::after {
     content: ''; position: absolute; top: 100%; left: 50%;
     transform: translateX(-50%);
     border: 6px solid transparent; border-top-color: white;
   }
-  #jacob-char.speaking .jacob-speech { opacity: 1; }
+  .jacob-speech.visible { opacity: 1; }
 
   /* Car body */
   .jacob-car {
@@ -806,12 +802,18 @@
     display:none; position:fixed; inset:0;
     background:rgba(0,0,0,0.55); z-index:200;
     align-items:center; justify-content:center; backdrop-filter:blur(8px);
+    opacity:0; transition: opacity 0.3s ease;
   }
   .modal-bg.show { display:flex; }
+  .modal-bg.show.visible { opacity:1; }
   .modal-box {
     background:var(--modal-bg); border-radius:22px; padding:22px;
     width:90%; max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,0.22);
+    transform: scale(0.92) translateY(12px);
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+    opacity:0;
   }
+  .modal-bg.show.visible .modal-box { transform: scale(1) translateY(0); opacity:1; }
   .modal-box h3 { font-family:'Baloo 2',cursive; font-size:1.1rem; font-weight:800; color:var(--deep); margin-bottom:4px; }
   .modal-sub { font-size:0.73rem; color:#aaa; margin-bottom:14px; }
 
@@ -957,6 +959,49 @@
   @keyframes holiday-bounce {
     from { transform: scale(1) rotate(-3deg); }
     to   { transform: scale(1.12) rotate(3deg); }
+  }
+
+  /* ═══ SLEEPS COUNTER ══════════════════════════════ */
+  .sleeps-moons {
+    font-size: 2rem; line-height: 1.4; letter-spacing: 2px;
+    margin: 10px 0 6px; display: block;
+    animation: moon-pulse 1.5s ease-in-out infinite alternate;
+  }
+  @keyframes moon-pulse { from{opacity:0.7} to{opacity:1} }
+  .sleeps-label {
+    font-family:'Baloo 2',cursive; font-size:1rem; font-weight:800;
+    color:var(--deep); margin-bottom:4px; display:block;
+  }
+  .sleeps-num {
+    font-family:'Baloo 2',cursive; font-size:2.8rem; font-weight:800;
+    color:var(--deep); line-height:1;
+  }
+  .sleeps-word { font-size:0.85rem; color:#888; margin-top:2px; display:block; }
+
+  /* First → Then layout */
+  .first-then-wrap {
+    display:flex; flex-direction:row; align-items:stretch; gap:0; margin-top:8px;
+  }
+  .first-box, .then-box {
+    border-radius:16px; padding:14px 10px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; flex:1;
+  }
+  .first-box { background:#e8f4fd; border:2px solid #b8daf0; }
+  .then-box  { background:#f0fff4; border:2px solid #b2f0cc; }
+  .ft-tag {
+    font-family:'Baloo 2',cursive; font-size:0.62rem; font-weight:800;
+    text-transform:uppercase; letter-spacing:1.5px; opacity:0.5;
+    display:block; margin-bottom:5px;
+  }
+  .ft-content { display:flex; flex-direction:column; align-items:center; }
+  .ft-emoji { font-size:2.2rem; line-height:1; margin-bottom:4px; }
+  .ft-label { font-family:'Baloo 2',cursive; font-size:0.95rem; font-weight:800; color:var(--deep); margin-top:4px; }
+  .ft-moons { font-size:1.1rem; letter-spacing:2px; line-height:1.6; }
+  .ft-arrow {
+    display:flex; align-items:center; justify-content:center;
+    font-size:2.4rem; color:var(--deep); opacity:0.3;
+    padding:0 4px; flex-shrink:0; align-self:center;
   }
 
   /* Calm Mode toggle switch */
@@ -1353,7 +1398,6 @@
 
       <!-- Jacob's racing car -->
       <div id="jacob-char">
-        <div class="jacob-speech" id="jacob-speech">Vroom! 🏎️</div>
         <div class="jacob-car" onclick="onCarClick()" style="cursor:pointer;pointer-events:all;">
           <div class="car-roof">
             <div class="car-driver" id="car-driver">👦</div>
@@ -1417,6 +1461,17 @@
 </div>
 
 <!-- LOCK TOAST -->
+<!-- Speech bubble — single global element, positioned by JS -->
+<div id="jacob-speech" class="jacob-speech"></div>
+
+<!-- SLEEPS COUNTER MODAL -->
+<div class="modal-bg" id="sleeps-modal" onclick="closeModal('sleeps-modal')">
+  <div class="modal-box" style="max-width:340px;text-align:center;" onclick="event.stopPropagation()">
+    <button class="act-popup-close" style="position:absolute;top:12px;right:12px;" onclick="closeModal('sleeps-modal')">✕</button>
+    <div id="sleeps-content"></div>
+  </div>
+</div>
+
 <div id="lock-toast"></div>
 
 <!-- SETTINGS MODAL -->
@@ -2080,19 +2135,30 @@ function saveSettings(){
 let _bt=null;
 function jacobSay(msg){
   const ch = document.getElementById('jacob-char');
-  const bubbles = document.querySelectorAll('.jacob-speech');
-  bubbles.forEach(b => {
-    b.textContent = msg;
-    // Position bubble just above the journey strip
-    const strip = document.getElementById('journey-strip');
-    if(strip){
-      const rect = strip.getBoundingClientRect();
-      b.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
-    }
-  });
+  const bubble = document.getElementById('jacob-speech');
+  if(!bubble || !ch) return;
+
+  bubble.textContent = msg;
+
+  // Position bubble just above the journey strip
+  const strip = document.getElementById('journey-strip');
+  if(strip){
+    const rect = strip.getBoundingClientRect();
+    bubble.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+  }
+
+  // Position horizontally above the car
+  const carRect = ch.getBoundingClientRect();
+  const carCentreX = carRect.left + carRect.width / 2;
+  bubble.style.left = carCentreX + 'px';
+
+  bubble.classList.add('visible');
   ch.classList.add('speaking');
   if(_bt) clearTimeout(_bt);
-  _bt = setTimeout(()=>ch.classList.remove('speaking'), 2500);
+  _bt = setTimeout(()=>{
+    bubble.classList.remove('visible');
+    ch.classList.remove('speaking');
+  }, 2800);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2150,7 +2216,7 @@ function renderRoad(){
         const img = ev.photo
           ? `<img src="${ev.photo}" alt="${ev.l}">`
           : `<span class="ev-emoji">${ev.e||'🎉'}</span>`;
-        thumbHtml = `<div class="lane-ev-thumb" onclick="openEventModal(${i},0)" title="${ev.l}">${img}</div>`;
+        thumbHtml = `<div class="lane-ev-thumb" title="${ev.l}">${img}</div>`;
       }
       const addBtn = (!ev && !document.body.classList.contains('locked'))
         ? `<div class="lane-add-icon" onclick="openEventModal(${i},0)">＋</div>`
@@ -2168,7 +2234,6 @@ function renderRoad(){
   const charEl = document.getElementById('jacob-char');
   if (theme.id === 'car') {
     charEl.innerHTML = `
-      <div id="jacob-speech" class="jacob-speech"></div>
       <div class="jacob-car" onclick="onCarClick()" style="cursor:pointer;">
         <div class="car-roof"></div>
         <div class="car-body">
@@ -2186,10 +2251,8 @@ function renderRoad(){
     const shadow = theme.id==='rocket' ? 'drop-shadow(0 3px 8px rgba(162,155,254,0.6))'
                  : theme.id==='unicorn' ? 'drop-shadow(0 3px 8px rgba(253,121,168,0.5))'
                  : 'drop-shadow(0 3px 6px rgba(0,0,0,0.4))';
-    // wrapper handles the flip, inner div handles animation — so they don't conflict
     const flip = (theme.id !== 'rocket') ? 'scaleX(-1)' : 'scaleX(1)';
     charEl.innerHTML = `
-      <div id="jacob-speech" class="jacob-speech"></div>
       <div style="transform:${flip};display:flex;flex-direction:column;align-items:center;position:relative;">
         <div class="car-driver" id="car-driver" style="position:absolute;top:-12px;left:50%;transform:translateX(-50%) ${flip};">👦</div>
         <div class="theme-char" onclick="onCarClick()" style="cursor:pointer;font-size:2.4rem;animation:${anim} 0.5s ease-in-out infinite alternate;filter:${shadow};">
@@ -2256,6 +2319,12 @@ function renderGrid(){
     col.className='day-col';
     col.dataset.day = DAYS_FULL[di];
     col.style.borderTop = `3px solid ${getDayClr()[di % getDayClr().length]}`;
+
+    // Past columns — heavy dim + desaturate
+    if(di < TODAY_IDX){
+      col.style.filter = 'grayscale(100%) opacity(30%)';
+      col.style.pointerEvents = 'none';
+    }
 
     if(WEEKEND.includes(di)){
       // 5 slots matching weekday exactly:
@@ -2348,19 +2417,21 @@ function makeEventSlot(di,slot,W){
   const ev=S.events[ek]||null;
   const dk=`event_${ek}`;
   const done=!!S.done[dk];
+  const clr = getDayClr()[di % getDayClr().length];
 
   const c=document.createElement('div');
   c.className=`event-slot${ev?' filled':''}${done?' ev-done':''}`;
   c.dataset.dk=dk; c.dataset.ek=ek;
+  c.style.background = `${clr}18`;  // same tint as activity cards
 
   if(ev){
     const imgContent = ev.photo
-      ? `<img src="${ev.photo}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#f8f9ff;pointer-events:none;" alt="${ev.l}">`
-      : `<div style="font-size:clamp(1rem,2vw,1.8rem);pointer-events:none;">🎉</div>`;
+      ? `<img src="${ev.photo}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:${clr}12;pointer-events:none;" alt="${ev.l}">`
+      : `<div style="font-size:clamp(1rem,2vw,1.8rem);pointer-events:none;">${ev.e||'🎉'}</div>`;
 
     c.innerHTML=`
       <div class="event-top-bar" style="background:${getDayClr()[di % getDayClr().length]}"></div>
-      <div class="event-img-zone" style="position:relative;">
+      <div class="event-img-zone" style="position:relative;background:${clr}12;">
         ${imgContent}
         <div class="event-done-veil"></div>
         <div class="event-done-badge">Done!</div>
@@ -2438,15 +2509,16 @@ function openActPopup(act, di) {
     ? `${childName}, ${displayLabel}!`
     : `${childName}, it's time to ${displayLabel.toLowerCase()}!`;
 
-  // Show popup
+  // Show popup + hide speech bubble
   popup.classList.add('show');
+  const _sb = document.getElementById('jacob-speech');
+  if(_sb) _sb.classList.remove('visible');
 
   // Sound + voice
   ding('tap');
   speak(onHoliday
     ? `${childName}, ${displayLabel}!`
     : `${childName}, it's time to ${displayLabel}!`);
-  jacobSay(`${displayEmoji} ${displayLabel}!`);
 
   // Wave animation color
   document.querySelectorAll('.wave-bar').forEach(b => { b.style.background = onHoliday ? '#ffd166' : clr; });
@@ -2470,30 +2542,116 @@ function openEventPopup(ev, di, slot) {
   const subtitle = document.getElementById('popup-subtitle');
   const topBar  = document.getElementById('popup-top-bar');
 
+  const childName = (S.settings && S.settings.childName) || 'Jacob';
+  const daysAhead = di - TODAY_IDX;
+  const isFuture  = daysAhead > 0;
+
   // Orange accent for weekend events
   topBar.style.background = 'linear-gradient(90deg,#ffb347,#ffd166)';
+  imgZone.style.background = 'linear-gradient(135deg,#fff8ee,#fff3e0)';
 
-  // Photo or fallback emoji
-  if (ev.photo) {
-    imgZone.innerHTML = `<img src="${ev.photo}" alt="${ev.l}" style="width:100%;height:100%;object-fit:contain;background:#111;">`;
+  if(isFuture){
+    // FIRST → THEN layout
+    const moons = '🌙'.repeat(daysAhead);
+    const sleepsWord = daysAhead === 1 ? 'sleep' : 'sleeps';
+    const evImg = ev.photo
+      ? `<img src="${ev.photo}" alt="${ev.l}" style="width:60px;height:60px;object-fit:cover;border-radius:12px;">`
+      : `<span style="font-size:2.5rem;">${ev.e||'🎉'}</span>`;
+
+    imgZone.innerHTML = `
+      <div class="first-then-wrap" style="width:100%;padding:16px 18px;">
+        <div class="first-box">
+          <div class="ft-content">
+            <span class="ft-tag">First</span>
+            <div class="ft-moons">${moons}</div>
+            <div style="font-size:0.72rem;color:#666;margin-top:2px;">${daysAhead} ${sleepsWord}</div>
+          </div>
+        </div>
+        <div class="ft-arrow">→</div>
+        <div class="then-box">
+          ${evImg}
+          <div class="ft-content">
+            <span class="ft-tag">Then</span>
+            <div class="ft-label">${ev.l}</div>
+          </div>
+        </div>
+      </div>`;
+
+    label.textContent = ev.l;
+    subtitle.textContent = `First ${daysAhead} ${sleepsWord}, then ${ev.l}!`;
+    document.querySelectorAll('.wave-bar').forEach(b => b.style.background = '#ffb347');
+    popup.classList.add('show');
+    const _sb = document.getElementById('jacob-speech'); if(_sb) _sb.classList.remove('visible');
+    ding('tap');
+    speak(`First, ${daysAhead} ${sleepsWord}. Then, ${ev.l}!`);
   } else {
-    imgZone.innerHTML = `<div class="act-popup-emoji-big">🎉</div>`;
+    // TODAY — normal popup
+    if (ev.photo) {
+      imgZone.innerHTML = `<img src="${ev.photo}" alt="${ev.l}" style="width:100%;height:100%;object-fit:contain;">`;
+    } else {
+      imgZone.innerHTML = `<div class="act-popup-emoji-big">${ev.e||'🎉'}</div>`;
+    }
+    label.textContent = ev.l;
+    subtitle.textContent = `${childName}, it's time for ${ev.l.toLowerCase()}!`;
+    document.querySelectorAll('.wave-bar').forEach(b => b.style.background = '#ffb347');
+    popup.classList.add('show');
+    const _sb = document.getElementById('jacob-speech'); if(_sb) _sb.classList.remove('visible');
+    ding('tap');
+    speak(`${childName}, it's time for ${ev.l}!`);
   }
-
-  label.textContent = ev.l;
-  subtitle.textContent = `Jacob, it's time for ${ev.l.toLowerCase()}!`;
-
-  // Wave colour — orange
-  document.querySelectorAll('.wave-bar').forEach(b => b.style.background = '#ffb347');
-
-  popup.classList.add('show');
-
-  ding('tap');
-  speak(`Jacob, it's time for ${ev.l}!`);
-  jacobSay(`${ev.l}! 🎉`);
 
   if (_popupSpeakTimer) clearTimeout(_popupSpeakTimer);
   _popupSpeakTimer = setTimeout(() => closeActPopup(), 8000);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SLEEPS COUNTER MODAL
+// ═══════════════════════════════════════════════════════════
+function showSleepsModal(daysAhead, dayName, evName, evEmoji){
+  const moons = '🌙'.repeat(Math.min(daysAhead, 14));
+  const sleepsWord = daysAhead === 1 ? 'sleep' : 'sleeps';
+  const childName = (S.settings && S.settings.childName) || 'Jacob';
+
+  let html;
+  if(evName){
+    html = `
+      <div class="first-then-wrap">
+        <div class="first-box">
+          <div class="ft-content">
+            <span class="ft-tag">First</span>
+            <div class="ft-moons">${moons}</div>
+            <div style="font-size:0.75rem;color:#555;margin-top:3px;font-weight:700;">${daysAhead} ${sleepsWord}</div>
+          </div>
+        </div>
+        <div class="ft-arrow">→</div>
+        <div class="then-box">
+          <span class="ft-emoji">${evEmoji||'🎉'}</span>
+          <div class="ft-content">
+            <span class="ft-tag">Then</span>
+            <div class="ft-label">${evName}</div>
+          </div>
+        </div>
+      </div>`;
+    speak(`First, ${daysAhead} ${sleepsWord}. Then, ${evName}!`);
+  } else {
+    // Simple sleeps counter (from day header tap)
+    html = `
+      <div style="padding:8px 0 4px;">
+        <div style="font-size:2.5rem;margin-bottom:6px;">😴</div>
+        <span class="sleeps-num">${daysAhead}</span>
+        <span class="sleeps-word">${sleepsWord} until ${dayName}</span>
+        <div class="sleeps-moons">${moons}</div>
+      </div>`;
+    speak(`${daysAhead} ${sleepsWord} until ${dayName}!`);
+  }
+
+  document.getElementById('sleeps-content').innerHTML = html;
+  openModal('sleeps-modal');
+  ding('tap');
+
+  // Auto-close after 5 seconds if not dismissed
+  if(window._sleepsModalTimer) clearTimeout(window._sleepsModalTimer);
+  window._sleepsModalTimer = setTimeout(() => closeModal('sleeps-modal'), 5000);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2534,33 +2692,36 @@ function animateCarTo(targetDi, onArrival, onReturn) {
   const seg = W / 7;
   const todayX = seg * TODAY_IDX + seg / 2;
   const targetX = seg * targetDi + seg / 2;
-  const goingForward = targetDi > TODAY_IDX;
 
-  // Flip car if going right (normal) or left
-  car.style.transition = 'left 0.6s cubic-bezier(0.4,0,0.2,1), transform 0.6s cubic-bezier(0.4,0,0.2,1)';
+  // Travel time scales with distance (0.5s per day, min 0.5s, max 2s)
+  const dist = Math.abs(targetDi - TODAY_IDX);
+  const travelMs = Math.min(Math.max(dist * 400, 500), 2000);
+  const pauseAtTarget = 600 + dist * 100; // longer pause for farther days
+
+  car.style.transition = `left ${travelMs}ms cubic-bezier(0.4,0,0.2,1), transform 0.4s cubic-bezier(0.4,0,0.2,1)`;
 
   // Phase 1: drive TO target
   car.style.left = targetX + 'px';
-  car.style.transform = 'translateX(-50%) scaleX(1)'; // facing right
+  car.style.transform = 'translateX(-50%) scaleX(1)';
 
   setTimeout(() => {
     if (onArrival) onArrival();
 
-    // Brief pause at target
+    // Pause at target
     setTimeout(() => {
-      // Phase 2: drive BACK to today
-      car.style.transform = 'translateX(-50%) scaleX(-1)'; // flip to face left
+      // Phase 2: drive BACK home
+      car.style.transform = 'translateX(-50%) scaleX(-1)';
       car.style.left = todayX + 'px';
 
       setTimeout(() => {
-        car.style.transform = 'translateX(-50%) scaleX(1)'; // flip back to normal
+        car.style.transform = 'translateX(-50%) scaleX(1)';
         car.style.transition = '';
         if (onReturn) onReturn();
         _carAnimating = false;
-      }, 650);
+      }, travelMs);
 
-    }, 800);
-  }, 650);
+    }, pauseAtTarget);
+  }, travelMs);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2605,7 +2766,7 @@ function onDayTap(di) {
     return;
   }
 
-  // FUTURE DAY — drive there and back
+  // FUTURE DAY — drive there and back + show sleeps counter
   if (daysAhead === 1) {
     emoji = isWknd ? '🎉' : '📅';
     msg    = `Tomorrow is ${dayName}! ${isWknd ? "It's the weekend — so exciting!" : "It's a school day!"}`;
@@ -2635,15 +2796,17 @@ function onDayTap(di) {
       }
       speak(msg);
     },
-    // On return — reset header
+    // On return — reset header, then show sleeps modal after a gentle pause
     () => {
       if (hdr) { hdr.style.transform = ''; hdr.style.boxShadow = ''; }
-      // Remind where today is
       const todayHdr = hdrs[TODAY_IDX];
       if (todayHdr) {
         todayHdr.style.transform = 'scale(1.08)';
         setTimeout(() => { todayHdr.style.transform = ''; }, 400);
       }
+      // Gentle pause before modal — scales with distance
+      const modalDelay = 500 + daysAhead * 150;
+      setTimeout(() => showSleepsModal(daysAhead, dayName, null, null), modalDelay);
     }
   );
 }
@@ -3300,8 +3463,20 @@ function confirmReset(){
 // ═══════════════════════════════════════════════════════════
 // MODAL HELPERS
 // ═══════════════════════════════════════════════════════════
-function openModal(id){ document.getElementById(id).classList.add('show'); }
-function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+function openModal(id){
+  const el = document.getElementById(id);
+  el.classList.add('show');
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('visible')));
+}
+function closeModal(id){
+  const el = document.getElementById(id);
+  el.classList.remove('visible');
+  setTimeout(() => el.classList.remove('show'), 300);
+  if(id === 'sleeps-modal' && window._sleepsModalTimer){
+    clearTimeout(window._sleepsModalTimer);
+    window._sleepsModalTimer = null;
+  }
+}
 ['photo-modal','edit-modal','event-modal','reward-modal','settings-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{ if(e.target===document.getElementById(id)) closeModal(id); });
 });
