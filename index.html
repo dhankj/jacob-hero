@@ -1952,8 +1952,8 @@ function ding(type = 'done') {
     go();
   }
 }
-function speak(fullText){
-  if(!window.speechSynthesis) return;
+function speak(fullText, onEnd){
+  if(!window.speechSynthesis) { if(onEnd) onEnd(); return; }
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(fullText);
   const cfg = S.settings || {};
@@ -1965,12 +1965,12 @@ function speak(fullText){
     const picked = voices.find(v => v.name === cfg.voiceName);
     if (picked) u.voice = picked;
   } else {
-    // auto: prefer natural-sounding English voice
     const auto = voices.find(v => v.lang.startsWith('en') && /samantha|karen|daniel|moira|tessa|fiona|kate|siri/i.test(v.name))
                  || voices.find(v => v.lang.startsWith('en-AU'))
                  || voices.find(v => v.lang.startsWith('en'));
     if (auto) u.voice = auto;
   }
+  if(onEnd) u.onend = onEnd;
   window.speechSynthesis.speak(u);
 }
 
@@ -2632,7 +2632,6 @@ function showSleepsModal(daysAhead, dayName, evName, evEmoji){
           </div>
         </div>
       </div>`;
-    speak(`First, ${daysAhead} ${sleepsWord}. Then, ${evName}!`);
   } else {
     // Simple sleeps counter (from day header tap)
     html = `
@@ -2642,12 +2641,17 @@ function showSleepsModal(daysAhead, dayName, evName, evEmoji){
         <span class="sleeps-word">${sleepsWord} until ${dayName}</span>
         <div class="sleeps-moons">${moons}</div>
       </div>`;
-    speak(`${daysAhead} ${sleepsWord} until ${dayName}!`);
   }
 
   document.getElementById('sleeps-content').innerHTML = html;
   openModal('sleeps-modal');
   ding('tap');
+
+  // Speak AFTER modal is visible — short pause so it feels intentional
+  const sleepsText = evName
+    ? `First, ${daysAhead} ${sleepsWord}. Then, ${evName}!`
+    : `${daysAhead} ${sleepsWord} until ${dayName}!`;
+  setTimeout(() => speak(sleepsText), 600);
 
   // Auto-close after 5 seconds if not dismissed
   if(window._sleepsModalTimer) clearTimeout(window._sleepsModalTimer);
@@ -2788,15 +2792,15 @@ function onDayTap(di) {
   const hdr  = hdrs[di];
 
   animateCarTo(di,
-    // On arrival — flash header and speak
+    // On arrival — flash header; speak only for tomorrow
     () => {
       if (hdr) {
         hdr.style.transform = 'scale(1.12)';
         hdr.style.boxShadow = `0 4px 20px ${getDayClr()[di % getDayClr().length]}99`;
       }
-      speak(msg);
+      if (daysAhead === 1) speak(msg);
     },
-    // On return — reset header, then show sleeps modal after a gentle pause
+    // On return — reset, then show sleeps modal for 2+ days
     () => {
       if (hdr) { hdr.style.transform = ''; hdr.style.boxShadow = ''; }
       const todayHdr = hdrs[TODAY_IDX];
@@ -2804,9 +2808,10 @@ function onDayTap(di) {
         todayHdr.style.transform = 'scale(1.08)';
         setTimeout(() => { todayHdr.style.transform = ''; }, 400);
       }
-      // Gentle pause before modal — scales with distance
-      const modalDelay = 500 + daysAhead * 150;
-      setTimeout(() => showSleepsModal(daysAhead, dayName, null, null), modalDelay);
+      if (daysAhead > 1) {
+        const modalDelay = 500 + daysAhead * 150;
+        setTimeout(() => showSleepsModal(daysAhead, dayName, null, null), modalDelay);
+      }
     }
   );
 }
