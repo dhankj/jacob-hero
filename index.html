@@ -2872,7 +2872,7 @@ function checkAllDone(W){
     document.getElementById('rw-msg').innerHTML = `You finished everything today!<br>You're a true Daily Hero! 🦸`;
     document.getElementById('rw-tomorrow-name').textContent = tomorrowName;
     setTimeout(()=>{
-      document.getElementById('reward-modal').classList.add('show');
+      openModal('reward-modal');
       ding('done');
     }, 800);
     setTimeout(()=>{
