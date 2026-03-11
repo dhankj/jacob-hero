@@ -122,27 +122,47 @@
 
   /* ═══ HEADER ═══════════════════════════════════ */
   #header {
-    height: 50px;
-    background: linear-gradient(135deg, var(--header1), var(--header2));
+    height: 56px;
+    background: linear-gradient(135deg, var(--header1) 0%, var(--header2) 100%);
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 14px; box-shadow: 0 3px 16px var(--header-sh); flex-shrink: 0;
+    padding: 0 16px;
+    box-shadow: 0 4px 24px var(--header-sh);
+    flex-shrink: 0;
+    position: relative;
+  }
+  /* Subtle inner glow at top */
+  #header::after {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: rgba(255,255,255,0.18);
+    pointer-events: none;
   }
   .header-title {
-    font-family: 'Baloo 2', cursive; font-size: 1.2rem; font-weight: 800;
+    font-family: 'Baloo 2', cursive; font-size: 1.3rem; font-weight: 800;
     color: white; display: flex; align-items: center; gap: 8px;
+    letter-spacing: -0.3px;
   }
   .star-anim { animation: star-pulse 3s ease-in-out infinite; display: inline-block; }
-  @keyframes star-pulse { 0%,100%{transform:scale(1)rotate(0deg);} 50%{transform:scale(1.2)rotate(15deg);} }
-  .today-pill { background:var(--sun); color:var(--deep); font-size:0.68rem; font-weight:800; padding:2px 9px; border-radius:20px; }
-  .hdr-btn {
-    background:rgba(255,255,255,0.12); border:1.5px solid rgba(255,255,255,0.2);
-    color:white; border-radius:10px; cursor:pointer; padding:5px 10px;
-    font-family:'Nunito',sans-serif; font-size:0.72rem; font-weight:700;
-    display:flex; align-items:center; gap:5px; transition:background 0.18s;
+  @keyframes star-pulse { 0%,100%{transform:scale(1)rotate(0deg);} 50%{transform:scale(1.25)rotate(18deg);} }
+  .today-pill {
+    background: var(--sun); color: var(--deep);
+    font-size: 0.68rem; font-weight: 800;
+    padding: 3px 10px; border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    letter-spacing: 0.3px;
   }
-  .hdr-btn:active { background:rgba(255,255,255,0.25); }
-  .hdr-btn.danger { border-color:rgba(239,71,111,0.4); }
-  .header-actions { display:flex; gap:6px; }
+  .hdr-btn {
+    background: rgba(255,255,255,0.14);
+    border: 1.5px solid rgba(255,255,255,0.22);
+    color: white; border-radius: 12px; cursor: pointer; padding: 6px 11px;
+    font-family: 'Nunito', sans-serif; font-size: 0.72rem; font-weight: 700;
+    display: flex; align-items: center; gap: 5px;
+    transition: background 0.18s, transform 0.12s;
+    backdrop-filter: blur(6px);
+  }
+  .hdr-btn:active { background: rgba(255,255,255,0.28); transform: scale(0.94); }
+  .hdr-btn.danger { border-color: rgba(239,71,111,0.4); }
+  .header-actions { display: flex; gap: 7px; }
 
   /* ═══ SKY BAR (above racetrack) ═══════════════════ */
   #sky-bar {
@@ -320,17 +340,23 @@
     z-index: 10; pointer-events: none;
   }
 
-  /* Speech bubble */
+  /* Speech bubble — fixed above journey strip, always on top */
   .jacob-speech {
-    background: white; border-radius: 10px; padding: 3px 8px;
-    font-size: 0.48rem; font-weight: 800; color: var(--deep);
-    white-space: nowrap; box-shadow: 0 2px 10px rgba(0,0,0,0.25);
-    margin-bottom: 3px; opacity: 0; transition: opacity 0.3s; position: relative;
+    position: fixed;
+    bottom: 0; /* will be set by JS */
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background: white; border-radius: 14px; padding: 6px 14px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 0.72rem; font-weight: 800; color: var(--deep);
+    white-space: nowrap; box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+    opacity: 0; transition: opacity 0.25s;
+    z-index: 600; pointer-events: none;
   }
   .jacob-speech::after {
     content: ''; position: absolute; top: 100%; left: 50%;
     transform: translateX(-50%);
-    border: 4px solid transparent; border-top-color: white;
+    border: 6px solid transparent; border-top-color: white;
   }
   #jacob-char.speaking .jacob-speech { opacity: 1; }
 
@@ -430,43 +456,56 @@
   /* ═══ DAYS BAR ══════════════════════════════════ */
   #days-bar {
     display:grid; grid-template-columns:repeat(7,1fr);
-    gap:5px; padding:3px 10px 2px; flex-shrink:0;
+    gap:5px; padding:4px 10px 3px; flex-shrink:0;
   }
   .day-col-hdr {
     text-align:center; font-family:'Baloo 2',cursive;
-    font-size:0.7rem; font-weight:800; padding:3px 2px;
-    border-radius:9px; display:flex; flex-direction:column; align-items:center; gap:1px;
+    font-size:0.7rem; font-weight:800; padding:4px 2px;
+    border-radius:11px; display:flex; flex-direction:column; align-items:center; gap:1px;
     transition: transform 0.15s, box-shadow 0.15s;
     position: relative;
   }
-  /* Past days — grayed out, not tappable */
+  /* Past days */
   .day-col-hdr.past {
-    background:rgba(255,255,255,0.3); color:rgba(45,53,97,0.3);
-    opacity:0.5;
+    background:rgba(255,255,255,0.22); color:rgba(45,53,97,0.28);
+    opacity:0.45;
   }
-  /* Future weekdays — tappable, bright */
-  .day-col-hdr.weekday { background:rgba(255,255,255,0.65); color:var(--deep); cursor:pointer; }
-  .day-col-hdr.weekday:active { transform:scale(0.94); }
-  /* Future weekend — tappable */
-  .day-col-hdr.weekend { background:rgba(255,179,71,0.22); border:1.5px solid rgba(255,179,71,0.45); color:#c0560a; cursor:pointer; }
-  .day-col-hdr.weekend:active { transform:scale(0.94); }
-  /* Today */
-  .day-col-hdr.today { background:var(--today-hdr); color:white; box-shadow:0 3px 12px var(--header-sh); cursor:pointer; }
-  .day-col-hdr.today:active { transform:scale(0.96); }
-  /* Tomorrow — special highlight ring */
+  /* Future weekdays */
+  .day-col-hdr.weekday {
+    background:rgba(255,255,255,0.72);
+    color:var(--deep); cursor:pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .day-col-hdr.weekday:active { transform:scale(0.93); }
+  /* Future weekend */
+  .day-col-hdr.weekend {
+    background:rgba(255,179,71,0.2);
+    border:1.5px solid rgba(255,179,71,0.5);
+    color:#c0560a; cursor:pointer;
+    box-shadow: 0 2px 8px rgba(255,179,71,0.15);
+  }
+  .day-col-hdr.weekend:active { transform:scale(0.93); }
+  /* Today — bold, stands out */
+  .day-col-hdr.today {
+    background: var(--today-hdr); color:white;
+    box-shadow: 0 4px 16px var(--header-sh);
+    cursor:pointer;
+    transform: scale(1.04);
+  }
+  .day-col-hdr.today:active { transform:scale(0.98); }
+  /* Tomorrow — clear ring */
   .day-col-hdr.tomorrow {
-    outline: 2px solid var(--ocean);
+    outline: 2.5px solid var(--ocean);
     outline-offset: 1px;
+    background: rgba(17,138,178,0.08);
   }
-  .today-dot { width:4px; height:4px; background:var(--sun); border-radius:50%; }
-
-  /* Tiny label under day name */
+  .today-dot { width:5px; height:5px; background:var(--sun); border-radius:50%; box-shadow:0 0 4px var(--sun); }
   .day-when-label {
     font-size:0.44rem; font-weight:700; opacity:0.75; line-height:1;
     font-family:'Nunito', sans-serif;
   }
-  .day-col-hdr.today .day-when-label { opacity:0.85; color:var(--sun); }
-  .day-col-hdr.tomorrow .day-when-label { color:var(--ocean); opacity:1; }
+  .day-col-hdr.today .day-when-label { opacity:0.9; color:var(--sun); }
+  .day-col-hdr.tomorrow .day-when-label { color:var(--ocean); opacity:1; font-weight:800; }
 
   /* ═══ MAIN GRID ══════════════════════════════════ */
   #schedule-grid {
@@ -481,28 +520,31 @@
 
   /* ═══ ACTIVITY CARD ══════════════════════════════ */
   .activity-card {
-    flex:1; border-radius:13px; position:relative; overflow:hidden;
-    cursor:pointer; transition:transform 0.14s, box-shadow 0.14s;
-    box-shadow:0 2px 10px rgba(0,0,0,0.1);
-    background:var(--card-bg); display:flex; flex-direction:column; min-height:0;
+    flex:1; border-radius:16px; position:relative; overflow:hidden;
+    cursor:pointer;
+    transition: transform 0.14s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.14s;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.09), 0 1px 3px rgba(0,0,0,0.06);
+    background: var(--card-bg);
+    display:flex; flex-direction:column; min-height:0;
   }
-  .activity-card:active { transform:scale(0.95); }
-  .activity-card.done { opacity:0.62; }
+  .activity-card:active { transform: scale(0.93); box-shadow: 0 1px 6px rgba(0,0,0,0.1); }
+  .activity-card.done { opacity:0.58; }
 
-  .card-top-bar { height:4px; width:100%; flex-shrink:0; }
+  .card-top-bar { height:5px; width:100%; flex-shrink:0; }
 
+  /* Card tint — very light colour wash matching top bar */
   .card-img-zone {
     flex:1; position:relative; overflow:hidden;
     display:flex; align-items:center; justify-content:center; min-height:0;
-    background:#f8f9ff;
+    background: var(--card-img-tint, #f4f6ff);
   }
   .card-img-zone img.act-photo {
     position:absolute; inset:0; width:100%; height:100%;
-    object-fit:contain; /* contain = no cropping, full photo visible */
-    background:#f8f9ff;
+    object-fit:contain;
+    background: var(--card-img-tint, #f4f6ff);
   }
   .card-placeholder { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
-  .card-emoji-big { font-size:clamp(0.9rem,2vw,1.7rem); line-height:1; }
+  .card-emoji-big { font-size:clamp(1rem,2.2vw,1.9rem); line-height:1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)); }
 
   /* Done overlay — just green tint, no white circle */
   .done-veil {
@@ -556,15 +598,15 @@
   }
   .activity-card.done .card-label { color: #04a87d; }
 
-  .card-label-area { padding:3px 3px 4px; flex-shrink:0; text-align:center; background:white; }
+  .card-label-area { padding:4px 3px 5px; flex-shrink:0; text-align:center; background:white; border-top: 1px solid rgba(0,0,0,0.05); }
   .card-label {
-    font-family:'Baloo 2',cursive; font-size:clamp(0.45rem,0.85vw,0.65rem);
-    font-weight:700; color:var(--deep); line-height:1.1; display:block;
+    font-family:'Baloo 2',cursive; font-size:clamp(0.45rem,0.85vw,0.66rem);
+    font-weight:800; color:var(--deep); line-height:1.1; display:block;
   }
 
   /* ═══ WEEKEND EVENT SLOT — same structure as activity-card ══════ */
   .event-slot {
-    flex:1; border-radius:13px; position:relative; overflow:hidden;
+    flex:1; border-radius:16px; position:relative; overflow:hidden;
     cursor:pointer; transition:transform 0.14s, box-shadow 0.14s;
     box-shadow:0 2px 10px rgba(0,0,0,0.07);
     background:white; display:flex; flex-direction:column; min-height:0;
@@ -658,9 +700,9 @@
   #act-popup {
     display: none;
     position: fixed; inset: 0; z-index: 500;
-    background: rgba(0,0,0,0.75);
+    background: rgba(0,0,0,0.65);
     align-items: center; justify-content: center;
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
     cursor: pointer;
   }
   #act-popup.show { display: flex; }
@@ -668,24 +710,24 @@
   .act-popup-card {
     position: relative;
     background: white;
-    border-radius: 28px;
+    border-radius: 32px;
     overflow: hidden;
-    width: min(85vw, 460px);
-    max-height: 82vh;
+    width: min(82vw, 440px);
+    max-height: 84vh;
     display: flex; flex-direction: column;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
-    animation: popup-in 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 32px 80px rgba(0,0,0,0.45), 0 8px 24px rgba(0,0,0,0.2);
+    animation: popup-in 0.4s cubic-bezier(0.34,1.62,0.64,1);
   }
   @keyframes popup-in {
-    from { transform: scale(0.6) translateY(40px); opacity: 0; }
+    from { transform: scale(0.5) translateY(50px); opacity: 0; }
     to   { transform: scale(1) translateY(0); opacity: 1; }
   }
 
-  .act-popup-top-bar { height: 8px; width: 100%; flex-shrink: 0; }
+  .act-popup-top-bar { height: 10px; width: 100%; flex-shrink: 0; }
 
   /* Big photo or emoji */
   .act-popup-img {
-    width: 100%; flex: 1; min-height: 220px; max-height: 340px;
+    width: 100%; flex: 1; min-height: 230px; max-height: 360px;
     position: relative; overflow: hidden;
     background: linear-gradient(135deg, #f0f4ff, #e8f4fd);
     display: flex; align-items: center; justify-content: center;
@@ -694,42 +736,44 @@
     width: 100%; height: 100%; object-fit: cover;
   }
   .act-popup-emoji-big {
-    font-size: 7rem; line-height: 1;
-    animation: emoji-bounce 1s ease-in-out infinite alternate;
+    font-size: 8rem; line-height: 1;
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15));
+    animation: emoji-bounce 1.2s ease-in-out infinite alternate;
   }
   @keyframes emoji-bounce {
-    from { transform: scale(1) rotate(-3deg); }
-    to   { transform: scale(1.08) rotate(3deg); }
+    from { transform: scale(1) rotate(-4deg) translateY(0); }
+    to   { transform: scale(1.1) rotate(4deg) translateY(-8px); }
   }
 
-  /* Tap hint ripple on image */
+  /* Tap hint */
   .act-popup-img::after {
     content: '👆 Tap anywhere to close';
-    position: absolute; bottom: 10px; right: 12px;
-    background: rgba(0,0,0,0.45); color: white;
+    position: absolute; bottom: 12px; right: 14px;
+    background: rgba(0,0,0,0.38); color: white;
     font-size: 0.6rem; font-weight: 700; font-family: 'Nunito', sans-serif;
-    padding: 4px 10px; border-radius: 20px;
-    backdrop-filter: blur(4px);
+    padding: 5px 12px; border-radius: 20px;
+    backdrop-filter: blur(6px);
   }
 
   /* Bottom info strip */
   .act-popup-info {
-    padding: 16px 20px 20px;
+    padding: 18px 22px 22px;
     text-align: center; flex-shrink: 0;
     background: white;
   }
   .act-popup-label {
     font-family: 'Baloo 2', cursive;
-    font-size: 2rem; font-weight: 800;
+    font-size: 2.2rem; font-weight: 800;
     color: var(--deep); line-height: 1.1; display: block;
+    letter-spacing: -0.5px;
   }
   .act-popup-subtitle {
-    font-size: 0.82rem; font-weight: 600; color: #888;
-    margin-top: 4px; display: block;
+    font-size: 0.84rem; font-weight: 600; color: #999;
+    margin-top: 5px; display: block;
   }
   .act-popup-wave {
-    margin-top: 12px;
-    display: flex; justify-content: center; gap: 4px;
+    margin-top: 14px;
+    display: flex; justify-content: center; gap: 5px;
   }
   .wave-bar {
     width: 4px; border-radius: 4px;
@@ -737,25 +781,25 @@
     animation: wave-anim 0.8s ease-in-out infinite alternate;
   }
   .wave-bar:nth-child(1){ height:10px; animation-delay:0s; }
-  .wave-bar:nth-child(2){ height:20px; animation-delay:0.1s; }
+  .wave-bar:nth-child(2){ height:22px; animation-delay:0.1s; }
   .wave-bar:nth-child(3){ height:14px; animation-delay:0.2s; }
-  .wave-bar:nth-child(4){ height:24px; animation-delay:0.3s; }
+  .wave-bar:nth-child(4){ height:26px; animation-delay:0.3s; }
   .wave-bar:nth-child(5){ height:10px; animation-delay:0.4s; }
   @keyframes wave-anim {
-    from { transform: scaleY(0.4); opacity: 0.5; }
+    from { transform: scaleY(0.3); opacity: 0.4; }
     to   { transform: scaleY(1);   opacity: 1; }
   }
 
   /* Close X button */
   .act-popup-close {
-    position: absolute; top: 14px; right: 14px;
-    background: rgba(0,0,0,0.35); border: none; border-radius: 50%;
-    width: 32px; height: 32px; color: white; font-size: 1rem;
+    position: absolute; top: 16px; right: 16px;
+    background: rgba(0,0,0,0.32); border: none; border-radius: 50%;
+    width: 34px; height: 34px; color: white; font-size: 1rem;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
-    z-index: 10; backdrop-filter: blur(4px);
-    transition: background 0.2s;
+    z-index: 10; backdrop-filter: blur(6px);
+    transition: background 0.2s, transform 0.15s;
   }
-  .act-popup-close:hover { background: rgba(0,0,0,0.6); }
+  .act-popup-close:active { background: rgba(0,0,0,0.6); transform: scale(0.9); }
 
   /* Modals */
   .modal-bg {
@@ -2035,11 +2079,20 @@ function saveSettings(){
 // ═══════════════════════════════════════════════════════════
 let _bt=null;
 function jacobSay(msg){
-  const ch=document.getElementById('jacob-char');
-  document.getElementById('jacob-speech').textContent=msg;
+  const ch = document.getElementById('jacob-char');
+  const bubbles = document.querySelectorAll('.jacob-speech');
+  bubbles.forEach(b => {
+    b.textContent = msg;
+    // Position bubble just above the journey strip
+    const strip = document.getElementById('journey-strip');
+    if(strip){
+      const rect = strip.getBoundingClientRect();
+      b.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+    }
+  });
   ch.classList.add('speaking');
   if(_bt) clearTimeout(_bt);
-  _bt=setTimeout(()=>ch.classList.remove('speaking'),2200);
+  _bt = setTimeout(()=>ch.classList.remove('speaking'), 2500);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2251,9 +2304,9 @@ function makeActCard(act,di,W){
 
   c.innerHTML=`
     <div class="card-top-bar" style="${barStyle}"></div>
-    <div class="card-img-zone">
+    <div class="card-img-zone" style="background:${clr}18;">
       ${ph
-        ? `<img class="act-photo" src="${ph}" alt="${displayAct.label}">`
+        ? `<img class="act-photo" src="${ph}" alt="${displayAct.label}" style="background:${clr}18;">`
         : `<div class="card-placeholder"><div class="card-emoji-big">${displayAct.emoji}</div></div>`}
       <div class="done-veil"></div>
       <div class="done-badge">Done!</div>
@@ -2368,10 +2421,13 @@ function openActPopup(act, di) {
     ? 'linear-gradient(90deg,#ffd166,#fd9e5b,#ff7eb3)'
     : clr;
 
+  // Tint popup bg to match day colour
+  imgZone.style.background = `linear-gradient(135deg, ${clr}22, ${clr}10)`;
+
   // Photo or emoji — always show photo if uploaded, even on holiday
   const ph = S.actPhotos[`${act.id}_${di}`] || null;
   if (ph) {
-    imgZone.innerHTML = `<img src="${ph}" alt="${displayLabel}" style="width:100%;height:100%;object-fit:contain;background:#111;">`;
+    imgZone.innerHTML = `<img src="${ph}" alt="${displayLabel}" style="width:100%;height:100%;object-fit:contain;background:${clr}15;">`;
   } else {
     imgZone.innerHTML = `<div class="act-popup-emoji-big">${displayEmoji}</div>`;
   }
