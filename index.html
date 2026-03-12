@@ -724,7 +724,7 @@
   /* Big photo or emoji */
   .act-popup-img {
     width: 100%; flex: 1; min-height: 230px; max-height: 360px;
-    position: relative; overflow: hidden;
+    position: relative; overflow: visible;
     background: linear-gradient(135deg, #f0f4ff, #e8f4fd);
     display: flex; align-items: center; justify-content: center;
   }
@@ -741,15 +741,7 @@
     to   { transform: scale(1.1) rotate(4deg) translateY(-8px); }
   }
 
-  /* Tap hint */
-  .act-popup-img::after {
-    content: '👆 Tap anywhere to close';
-    position: absolute; bottom: 12px; right: 14px;
-    background: rgba(0,0,0,0.38); color: white;
-    font-size: 0.6rem; font-weight: 700; font-family: 'Nunito', sans-serif;
-    padding: 5px 12px; border-radius: 20px;
-    backdrop-filter: blur(6px);
-  }
+  .act-popup-img::after { content: none; }
 
   /* Bottom info strip */
   .act-popup-info {
@@ -961,7 +953,64 @@
     to   { transform: scale(1.12) rotate(3deg); }
   }
 
-  /* ═══ SLEEPS COUNTER ══════════════════════════════ */
+  /* ═══ BIRTHDAY ══════════════════════════════════ */
+  .day-col.birthday-col {
+    position: relative;
+  }
+  .day-col.birthday-col .activity-card,
+  .day-col.birthday-col .event-slot {
+    border: 2px solid #ffd166 !important;
+    box-shadow: 0 0 0 2px #ffd16644, 0 4px 16px rgba(255,209,102,0.35) !important;
+  }
+  /* Special Day column header */
+  .day-col-hdr.special-day-col {
+    background: linear-gradient(135deg, #ede9ff, #ddd6fe) !important;
+    color: #5b21b6 !important;
+    box-shadow: 0 4px 16px rgba(108,99,255,0.3) !important;
+    border: 2px solid #a78bfa !important;
+  }
+  .sd-badge {
+    position: absolute; top: -7px; right: -4px;
+    font-size: 0.75rem; line-height:1;
+    background: white; border-radius: 50%;
+    width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    z-index: 10;
+  }
+
+  .day-col-hdr.birthday {
+    background: linear-gradient(135deg, #ffd166, #fd9e5b) !important;
+    color: #2d3561 !important;
+    box-shadow: 0 4px 20px rgba(255,209,102,0.6) !important;
+    animation: bday-shimmer 2s ease-in-out infinite alternate;
+    transform: scale(1.06) !important;
+  }
+  @keyframes bday-shimmer {
+    from { box-shadow: 0 4px 20px rgba(255,209,102,0.5); }
+    to   { box-shadow: 0 4px 28px rgba(255,209,102,0.9), 0 0 0 3px rgba(255,209,102,0.3); }
+  }
+  .bday-countdown-badge {
+    position: absolute; top: -6px; right: -6px;
+    background: linear-gradient(135deg, #ffd166, #fd9e5b);
+    color: #2d3561; font-size: 0.42rem; font-weight: 800;
+    font-family: 'Baloo 2', cursive;
+    padding: 2px 5px; border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    white-space: nowrap; z-index: 10;
+  }
+
+  /* Birthday popup */
+  #bday-modal .rw-box {
+    background: linear-gradient(135deg, #fff9e6, #fff3cc);
+    border: 3px solid #ffd166;
+  }
+  #bday-modal .rw-box h2 { font-size: 1.6rem; }
+  .bday-cakes { font-size: 2.8rem; letter-spacing: 4px; animation: cake-bounce 0.6s ease-in-out infinite alternate; display: block; margin: 8px 0; }
+  @keyframes cake-bounce {
+    from { transform: scale(1) rotate(-3deg); }
+    to   { transform: scale(1.1) rotate(3deg); }
+  }
   .sleeps-moons {
     font-size: 2rem; line-height: 1.4; letter-spacing: 2px;
     margin: 10px 0 6px; display: block;
@@ -980,28 +1029,47 @@
 
   /* First → Then layout */
   .first-then-wrap {
-    display:flex; flex-direction:row; align-items:stretch; gap:0; margin-top:8px;
+    display:flex; flex-direction:column; align-items:stretch; gap:0;
+    margin-top:4px; width:100%; padding: 0 12px 12px;
+  }
+  /* Big FIRST / THEN titles above cards */
+  .ft-titles {
+    display:flex; flex-direction:row; margin-bottom:6px;
+  }
+  .ft-title {
+    flex:1; text-align:center;
+    font-family:'Baloo 2',cursive; font-size:1.9rem; font-weight:800;
+    color:var(--deep); letter-spacing:1px; line-height:1.2;
+  }
+  .ft-title-gap { width:44px; flex-shrink:0; }
+  /* Card row */
+  .ft-cards {
+    display:flex; flex-direction:row; align-items:center; gap:0;
   }
   .first-box, .then-box {
-    border-radius:16px; padding:14px 10px;
+    border-radius:14px; flex:1;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; flex:1;
+    text-align:center; padding:12px 8px;
+    aspect-ratio:1/1; overflow:hidden;
   }
-  .first-box { background:#e8f4fd; border:2px solid #b8daf0; }
-  .then-box  { background:#f0fff4; border:2px solid #b2f0cc; }
-  .ft-tag {
-    font-family:'Baloo 2',cursive; font-size:0.62rem; font-weight:800;
-    text-transform:uppercase; letter-spacing:1.5px; opacity:0.5;
-    display:block; margin-bottom:5px;
+  .first-box { background:#c0392b; border:3px solid #96281b; }
+  .then-box  { background:#27ae60; border:3px solid #1e8449; padding:10px 8px 12px; }
+  .ft-tag { display:none; }
+  .ft-content { display:flex; flex-direction:column; align-items:center; width:100%; }
+  .ft-emoji { font-size:3rem; line-height:1; }
+  .ft-label { font-family:'Baloo 2',cursive; font-size:0.85rem; font-weight:800; color:white; margin-top:8px; margin-bottom:4px; text-shadow:0 1px 3px rgba(0,0,0,0.3); }
+  .ft-moons { font-size:2rem; letter-spacing:3px; line-height:1.4; }
+  .ft-moons-count { font-size:0.75rem; color:rgba(255,255,255,0.9); font-weight:700; margin-top:4px; }
+  .ft-photo {
+    width:78%; aspect-ratio:1/1; border-radius:10px;
+    object-fit:cover; box-shadow:0 4px 12px rgba(0,0,0,0.3);
   }
-  .ft-content { display:flex; flex-direction:column; align-items:center; }
-  .ft-emoji { font-size:2.2rem; line-height:1; margin-bottom:4px; }
-  .ft-label { font-family:'Baloo 2',cursive; font-size:0.95rem; font-weight:800; color:var(--deep); margin-top:4px; }
-  .ft-moons { font-size:1.1rem; letter-spacing:2px; line-height:1.6; }
   .ft-arrow {
     display:flex; align-items:center; justify-content:center;
-    font-size:2.4rem; color:var(--deep); opacity:0.3;
-    padding:0 4px; flex-shrink:0; align-self:center;
+    flex-shrink:0; width:44px;
+  }
+  .ft-arrow svg {
+    width:42px; height:42px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));
   }
 
   /* Calm Mode toggle switch */
@@ -1429,8 +1497,8 @@
 
 <!-- ACTIVITY POPUP — tap anywhere to dismiss -->
 <div id="act-popup" onclick="closeActPopup()">
-  <div class="act-popup-card" onclick="closeActPopup()">
-    <button class="act-popup-close" onclick="closeActPopup()">✕</button>
+  <div class="act-popup-card" onclick="event.stopPropagation(); repeatPopupSpeak()">
+    <button class="act-popup-close" onclick="event.stopPropagation(); closeActPopup()">✕</button>
     <div class="act-popup-top-bar" id="popup-top-bar"></div>
     <div class="act-popup-img" id="popup-img-zone">
       <!-- filled by JS: img or emoji -->
@@ -1444,6 +1512,9 @@
         <div class="wave-bar"></div>
         <div class="wave-bar"></div>
         <div class="wave-bar"></div>
+      </div>
+      <div style="margin-top:10px;font-size:0.58rem;font-weight:700;font-family:'Nunito',sans-serif;color:#aaa;letter-spacing:0.3px;">
+        👆 Tap card to repeat &nbsp;•&nbsp; Tap outside to close
       </div>
     </div>
   </div>
@@ -1460,7 +1531,82 @@
   </div>
 </div>
 
-<!-- LOCK TOAST -->
+<!-- RESET OPTIONS MODAL -->
+<div class="modal-bg" id="reset-modal">
+  <div class="modal-box" style="max-width:340px;text-align:center;">
+    <button class="act-popup-close" style="position:absolute;top:12px;right:12px;" onclick="closeModal('reset-modal')">✕</button>
+    <div style="font-size:2.2rem;margin-bottom:4px;">🔄</div>
+    <h3 style="margin:0 0 4px;">Reset Options</h3>
+    <p style="font-size:0.78rem;color:#888;margin:0 0 18px;">What would you like to reset?</p>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+
+      <!-- Option 1: Marks only -->
+      <button onclick="doReset('marks')" style="
+        display:flex;align-items:center;gap:12px;
+        padding:12px 16px;border-radius:14px;border:2px solid #e0e0e0;
+        background:#f9f9f9;cursor:pointer;text-align:left;width:100%;">
+        <span style="font-size:1.6rem;">✅</span>
+        <div>
+          <div style="font-family:'Baloo 2',cursive;font-size:0.88rem;font-weight:800;color:#2d3561;">Check marks only</div>
+          <div style="font-size:0.72rem;color:#999;margin-top:1px;">Clears all ticks — keeps activities & photos</div>
+        </div>
+      </button>
+
+      <!-- Option 2: Photos -->
+      <button onclick="doReset('photos')" style="
+        display:flex;align-items:center;gap:12px;
+        padding:12px 16px;border-radius:14px;border:2px solid #e0e0e0;
+        background:#f9f9f9;cursor:pointer;text-align:left;width:100%;">
+        <span style="font-size:1.6rem;">📷</span>
+        <div>
+          <div style="font-family:'Baloo 2',cursive;font-size:0.88rem;font-weight:800;color:#2d3561;">Activity photos</div>
+          <div style="font-size:0.72rem;color:#999;margin-top:1px;">Removes all uploaded activity photos</div>
+        </div>
+      </button>
+
+      <!-- Option 3: School holidays -->
+      <button onclick="doReset('holidays')" style="
+        display:flex;align-items:center;gap:12px;
+        padding:12px 16px;border-radius:14px;border:2px solid #e0e0e0;
+        background:#f9f9f9;cursor:pointer;text-align:left;width:100%;">
+        <span style="font-size:1.6rem;">🏖️</span>
+        <div>
+          <div style="font-family:'Baloo 2',cursive;font-size:0.88rem;font-weight:800;color:#2d3561;">School holidays</div>
+          <div style="font-size:0.72rem;color:#999;margin-top:1px;">Clears all holiday dates</div>
+        </div>
+      </button>
+
+      <!-- Option 4: Full reset -->
+      <button onclick="doReset('all')" style="
+        display:flex;align-items:center;gap:12px;
+        padding:12px 16px;border-radius:14px;border:2px solid #ffb3b3;
+        background:#fff5f5;cursor:pointer;text-align:left;width:100%;">
+        <span style="font-size:1.6rem;">⚠️</span>
+        <div>
+          <div style="font-family:'Baloo 2',cursive;font-size:0.88rem;font-weight:800;color:#c0392b;">Full reset to default</div>
+          <div style="font-size:0.72rem;color:#e07070;margin-top:1px;">Clears everything — starts fresh</div>
+        </div>
+      </button>
+
+    </div>
+    <button class="cancel-lnk" onclick="closeModal('reset-modal')" style="margin-top:14px;">Cancel</button>
+  </div>
+</div>
+
+<!-- BIRTHDAY MODAL -->
+<div class="modal-bg" id="bday-modal">
+  <div class="rw-box" style="text-align:center;position:relative;">
+    <button class="act-popup-close" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.15);color:#2d3561;" onclick="closeModal('bday-modal')">✕</button>
+    <span class="bday-cakes">🎂🎈🎂</span>
+    <h2 id="bday-title">Happy Birthday!</h2>
+    <p id="bday-msg" style="font-size:0.9rem;margin:6px 0 16px;"></p>
+    <button class="rw-btn" onclick="closeModal('bday-modal')" style="background:linear-gradient(135deg,#ffd166,#fd9e5b);font-size:1rem;padding:12px 32px;">
+      🎉 YAY! It's my birthday!
+    </button>
+  </div>
+</div>
+
 <!-- Speech bubble — single global element, positioned by JS -->
 <div id="jacob-speech" class="jacob-speech"></div>
 
@@ -1620,6 +1766,136 @@
         <button onclick="applyHolidayFromSettings()" style="width:100%;padding:9px;background:linear-gradient(135deg,#ffd166,#fd9e5b);border:none;border-radius:12px;font-family:'Baloo 2',cursive;font-size:0.85rem;font-weight:800;color:#2d3561;cursor:pointer;box-shadow:0 3px 10px rgba(253,158,91,0.4);">
           🎉 Apply Holiday
         </button>
+      </div>
+
+      <!-- BIRTHDAY SECTION -->
+      <div class="settings-section">
+        <h4>🎂 Birthday</h4>
+        <p style="font-size:0.72rem;color:#aaa;margin-bottom:10px;">
+          On Jacob's birthday, the whole day gets a special golden glow! 🌟
+        </p>
+        <div id="bday-active-banner" style="display:none;background:linear-gradient(135deg,#ffd166,#fd9e5b);border-radius:10px;padding:8px 12px;margin-bottom:10px;align-items:center;justify-content:space-between;gap:8px;">
+          <div>
+            <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:0.82rem;color:#2d3561;" id="bday-banner-text">🎂 Birthday set!</div>
+          </div>
+          <button onclick="clearBirthday()" style="background:rgba(0,0,0,0.15);border:none;border-radius:8px;padding:4px 8px;font-size:0.65rem;font-weight:800;color:#2d3561;cursor:pointer;">✕ Clear</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="flex:1;">
+            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:4px;">Month</div>
+            <select id="bday-month" style="width:100%;padding:7px 10px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
+              <option value="">--</option>
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:4px;">Day</div>
+            <select id="bday-day" style="width:100%;padding:7px 10px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
+              <option value="">--</option>
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+              <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+              <option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
+              <option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+              <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option>
+              <option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option>
+              <option value="31">31</option>
+            </select>
+          </div>
+        </div>
+        <button onclick="applyBirthday()" style="width:100%;margin-top:10px;padding:9px;background:linear-gradient(135deg,#ffd166,#fd9e5b);border:none;border-radius:12px;font-family:'Baloo 2',cursive;font-size:0.85rem;font-weight:800;color:#2d3561;cursor:pointer;box-shadow:0 3px 10px rgba(255,209,102,0.4);">
+          🎂 Save Birthday
+        </button>
+      </div>
+
+      <!-- SPECIAL DAYS SECTION -->
+      <div class="settings-section">
+        <h4>⭐ Special Days</h4>
+        <p style="font-size:0.72rem;color:#aaa;margin-bottom:10px;">
+          Add a one-off special day — like a day off school with a fun activity. Shows as a First→Then card!
+        </p>
+
+        <!-- List of saved special days -->
+        <div id="special-days-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+
+        <!-- Add new special day form -->
+        <div style="background:#f9f9f9;border-radius:12px;padding:12px;border:2px dashed #e0e0e0;">
+          <div style="font-size:0.7rem;font-weight:800;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Add Special Day</div>
+          <div style="margin-bottom:8px;">
+            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:4px;">Date</div>
+            <div style="display:flex;gap:6px;">
+              <div style="flex:1;">
+                <div style="font-size:0.6rem;color:#aaa;margin-bottom:2px;">Day</div>
+                <select id="sd-day" style="width:100%;padding:7px 6px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
+                  <option value="">--</option>
+                  <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+                  <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+                  <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+                  <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+                  <option>21</option><option>22</option><option>23</option><option>24</option><option>25</option>
+                  <option>26</option><option>27</option><option>28</option><option>29</option><option>30</option>
+                  <option>31</option>
+                </select>
+              </div>
+              <div style="flex:2;">
+                <div style="font-size:0.6rem;color:#aaa;margin-bottom:2px;">Month</div>
+                <select id="sd-month" style="width:100%;padding:7px 6px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
+                  <option value="">--</option>
+                  <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                  <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                  <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                  <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                </select>
+              </div>
+              <div style="flex:1.2;">
+                <div style="font-size:0.6rem;color:#aaa;margin-bottom:2px;">Year</div>
+                <select id="sd-year" style="width:100%;padding:7px 6px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
+                  <option value="">--</option>
+                  <option value="2026">2026</option>
+                  <option value="2027">2027</option>
+                  <option value="2028">2028</option>
+                  <option value="2029">2029</option>
+                  <option value="2030">2030</option>
+                  <option value="2031">2031</option>
+                  <option value="2032">2032</option>
+                  <option value="2033">2033</option>
+                  <option value="2034">2034</option>
+                  <option value="2035">2035</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div style="margin-bottom:8px;">
+            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:4px;">Activity name</div>
+            <input type="text" id="sd-name" placeholder="e.g. Swimming, Park, Dentist…" maxlength="24"
+              style="width:100%;padding:7px 10px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:10px;">
+            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:6px;">Photo (optional)</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div id="sd-photo-preview" onclick="document.getElementById('sd-photo-input').click()"
+                style="width:68px;height:68px;border-radius:12px;border:2px dashed #c4b5fd;background:#f5f3ff;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;">
+                <span style="font-size:1.6rem;">📷</span>
+              </div>
+              <input type="file" id="sd-photo-input" accept="image/*" style="display:none" onchange="onSdPhotoChange(event)">
+              <div style="font-size:0.72rem;color:#aaa;line-height:1.4;">Tap to add a photo.<br>Shows in the THEN card!</div>
+            </div>
+            <div id="sd-photo-name" style="font-size:0.65rem;color:#a78bfa;margin-top:4px;display:none;"></div>
+          </div>
+          <button onclick="addSpecialDay()" style="width:100%;padding:9px;background:linear-gradient(135deg,#6c63ff,#a78bfa);border:none;border-radius:12px;font-family:'Baloo 2',cursive;font-size:0.85rem;font-weight:800;color:white;cursor:pointer;box-shadow:0 3px 10px rgba(108,99,255,0.35);">
+            ⭐ Add Special Day
+          </button>
+        </div>
       </div>
 
     </div><!-- end settings-scroll -->
@@ -2033,6 +2309,24 @@ function openSettings(){
   // Holiday
   openSettingsWithHoliday();
 
+  // Birthday
+  const b = getBirthday();
+  const bdayBanner = document.getElementById('bday-active-banner');
+  const bdayText   = document.getElementById('bday-banner-text');
+  if(bdayBanner){
+    if(b){
+      bdayBanner.style.display = 'flex';
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      bdayText.textContent = `🎂 ${months[b.month-1]} ${b.day}`;
+      document.getElementById('bday-month').value = b.month;
+      document.getElementById('bday-day').value   = b.day;
+    } else {
+      bdayBanner.style.display = 'none';
+      document.getElementById('bday-month').value = '';
+      document.getElementById('bday-day').value   = '';
+    }
+  }
+
   // Speed buttons
   document.querySelectorAll('.speed-btn').forEach(b => {
     b.classList.toggle('active', parseFloat(b.dataset.speed) === _settingsSpeed);
@@ -2222,6 +2516,17 @@ function renderRoad(){
         ? `<div class="lane-add-icon" onclick="openEventModal(${i},0)">＋</div>`
         : '';
       evHtml = `<div class="lane-events">${thumbHtml}${addBtn}</div>`;
+    } else {
+      // Check for special day on this weekday column
+      const sd = getSpecialDayForDate(colDateStr(i));
+      if(sd){
+        const img = sd.photo
+          ? `<img src="${sd.photo}" alt="${sd.name}">`
+          : `<span class="ev-emoji">${sd.emoji||'⭐'}</span>`;
+        evHtml = `<div class="lane-events">
+          <div class="lane-ev-thumb special-day-thumb" title="${sd.name}" style="border:2px solid #a78bfa;">${img}</div>
+        </div>`;
+      }
     }
 
     return `<div class="road-lane">
@@ -2287,25 +2592,36 @@ function renderDaysBar(){
     const isPast= i < TODAY_IDX;
     const isWk  = WEEKEND.includes(i);
     const daysAhead = i - TODAY_IDX;
+    const isBday = isBirthdayColumn(i);
 
     let cls, whenLabel, clickable;
     if (isPast) {
       cls = 'past'; whenLabel = ''; clickable = false;
     } else if (isTd) {
-      cls = 'today'; whenLabel = 'TODAY'; clickable = true;
+      cls = 'today'; whenLabel = isBday ? '🎂 TODAY!' : 'TODAY'; clickable = true;
     } else if (isTom) {
-      cls = (isWk ? 'weekend' : 'weekday') + ' tomorrow'; whenLabel = 'TOMORROW'; clickable = true;
+      cls = (isWk ? 'weekend' : 'weekday') + ' tomorrow';
+      whenLabel = isBday ? '🎂 TOMORROW' : 'TOMORROW'; clickable = true;
     } else {
       cls = isWk ? 'weekend' : 'weekday';
-      whenLabel = `in ${daysAhead} days`;
+      whenLabel = isBday ? `🎂 in ${daysAhead} days` : `in ${daysAhead} days`;
       clickable = true;
     }
 
+    // Birthday overrides header style
+    if(isBday && !isPast) cls += ' birthday';
+
+    // Special day badge
+    const sd = (!isWk && !isPast) ? getSpecialDayForDate(colDateStr(i)) : null;
+    if(sd) cls += ' special-day-col';
+    const sdBadge = sd ? `<div class="sd-badge">${sd.emoji||'⭐'}</div>` : '';
+
     const onclick = clickable ? `onDayTap(${i})` : '';
-    return `<div class="day-col-hdr ${cls}" ${onclick ? `onclick="${onclick}"` : ''}>
+    return `<div class="day-col-hdr ${cls}" ${onclick ? `onclick="${onclick}"` : ''} style="position:relative;">
       ${isTd ? '<div class="today-dot"></div>' : ''}
-      ${d}
+      ${isBday && !isPast ? '🎂' : d}
       ${whenLabel ? `<div class="day-when-label">${whenLabel}</div>` : ''}
+      ${sdBadge}
     </div>`;
   }).join('');
 }
@@ -2316,9 +2632,12 @@ function renderGrid(){
   const W=wk();
   for(let di=0;di<7;di++){
     const col=document.createElement('div');
-    col.className='day-col';
+    const isBday = isBirthdayColumn(di);
+    col.className = `day-col${isBday ? ' birthday-col' : ''}`;
     col.dataset.day = DAYS_FULL[di];
-    col.style.borderTop = `3px solid ${getDayClr()[di % getDayClr().length]}`;
+    col.style.borderTop = isBday
+      ? '3px solid #ffd166'
+      : `3px solid ${getDayClr()[di % getDayClr().length]}`;
 
     // Past columns — heavy dim + desaturate
     if(di < TODAY_IDX){
@@ -2516,22 +2835,43 @@ function openActPopup(act, di) {
 
   // Sound + voice
   ding('tap');
-  speak(onHoliday
+  _popupSpeakText = onHoliday
     ? `${childName}, ${displayLabel}!`
-    : `${childName}, it's time to ${displayLabel}!`);
+    : `${childName}, it's time to ${displayLabel}!`;
+  speak(_popupSpeakText);
 
   // Wave animation color
   document.querySelectorAll('.wave-bar').forEach(b => { b.style.background = onHoliday ? '#ffd166' : clr; });
 
-  // Auto-close after 8 seconds
+  // Auto-close after 10 seconds of no interaction
   if (_popupSpeakTimer) clearTimeout(_popupSpeakTimer);
-  _popupSpeakTimer = setTimeout(() => closeActPopup(), 8000);
+  _popupSpeakTimer = setTimeout(() => closeActPopup(), 10000);
+}
+
+// Store current popup speak text for repeat
+let _popupSpeakText = '';
+
+function repeatPopupSpeak(){
+  if(!_popupSpeakText) return;
+  // Visual bounce feedback
+  const card = document.querySelector('.act-popup-card');
+  if(card){
+    card.style.transition = 'transform 0.12s';
+    card.style.transform = 'scale(0.96)';
+    setTimeout(() => { card.style.transform = ''; }, 150);
+  }
+  ding('tap');
+  speak(_popupSpeakText);
+  // Reset auto-close timer on each tap
+  if (_popupSpeakTimer) clearTimeout(_popupSpeakTimer);
+  _popupSpeakTimer = setTimeout(() => closeActPopup(), 10000);
 }
 
 function closeActPopup() {
   document.getElementById('act-popup').classList.remove('show');
   if (_popupSpeakTimer) { clearTimeout(_popupSpeakTimer); _popupSpeakTimer = null; }
   window.speechSynthesis && window.speechSynthesis.cancel();
+  _popupSpeakText = '';
 }
 
 // Weekend event popup — reuses the same act-popup modal
@@ -2548,31 +2888,36 @@ function openEventPopup(ev, di, slot) {
 
   // Orange accent for weekend events
   topBar.style.background = 'linear-gradient(90deg,#ffb347,#ffd166)';
-  imgZone.style.background = 'linear-gradient(135deg,#fff8ee,#fff3e0)';
+  imgZone.style.background = '#ffffff';
 
   if(isFuture){
     // FIRST → THEN layout
     const moons = '🌙'.repeat(daysAhead);
     const sleepsWord = daysAhead === 1 ? 'sleep' : 'sleeps';
     const evImg = ev.photo
-      ? `<img src="${ev.photo}" alt="${ev.l}" style="width:60px;height:60px;object-fit:cover;border-radius:12px;">`
+      ? `<img src="${ev.photo}" alt="${ev.l}" class="ft-photo">`
       : `<span style="font-size:2.5rem;">${ev.e||'🎉'}</span>`;
 
     imgZone.innerHTML = `
-      <div class="first-then-wrap" style="width:100%;padding:16px 18px;">
-        <div class="first-box">
-          <div class="ft-content">
-            <span class="ft-tag">First</span>
-            <div class="ft-moons">${moons}</div>
-            <div style="font-size:0.72rem;color:#666;margin-top:2px;">${daysAhead} ${sleepsWord}</div>
-          </div>
+      <div class="first-then-wrap">
+        <div class="ft-titles">
+          <div class="ft-title">FIRST</div>
+          <div class="ft-title-gap"></div>
+          <div class="ft-title">THEN</div>
         </div>
-        <div class="ft-arrow">→</div>
-        <div class="then-box">
-          ${evImg}
-          <div class="ft-content">
-            <span class="ft-tag">Then</span>
-            <div class="ft-label">${ev.l}</div>
+        <div class="ft-cards">
+          <div class="first-box">
+            <div class="ft-content">
+              <div class="ft-moons">${moons}</div>
+              <div class="ft-moons-count">${daysAhead} ${sleepsWord}</div>
+            </div>
+          </div>
+          <div class="ft-arrow"><svg viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 21h26M24 11l11 10-11 10" stroke="#2d3561" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/></svg></div>
+          <div class="then-box">
+            <div class="ft-content">
+              ${evImg}
+              <div class="ft-label">${ev.l}</div>
+            </div>
           </div>
         </div>
       </div>`;
@@ -2583,7 +2928,8 @@ function openEventPopup(ev, di, slot) {
     popup.classList.add('show');
     const _sb = document.getElementById('jacob-speech'); if(_sb) _sb.classList.remove('visible');
     ding('tap');
-    speak(`First, ${daysAhead} ${sleepsWord}. Then, ${ev.l}!`);
+    _popupSpeakText = `First, ${daysAhead} ${sleepsWord}. Then, ${ev.l}!`;
+    speak(_popupSpeakText);
   } else {
     // TODAY — normal popup
     if (ev.photo) {
@@ -2597,11 +2943,12 @@ function openEventPopup(ev, di, slot) {
     popup.classList.add('show');
     const _sb = document.getElementById('jacob-speech'); if(_sb) _sb.classList.remove('visible');
     ding('tap');
-    speak(`${childName}, it's time for ${ev.l}!`);
+    _popupSpeakText = `${childName}, it's time for ${ev.l}!`;
+    speak(_popupSpeakText);
   }
 
   if (_popupSpeakTimer) clearTimeout(_popupSpeakTimer);
-  _popupSpeakTimer = setTimeout(() => closeActPopup(), 8000);
+  _popupSpeakTimer = setTimeout(() => closeActPopup(), 10000);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2616,19 +2963,24 @@ function showSleepsModal(daysAhead, dayName, evName, evEmoji){
   if(evName){
     html = `
       <div class="first-then-wrap">
-        <div class="first-box">
-          <div class="ft-content">
-            <span class="ft-tag">First</span>
-            <div class="ft-moons">${moons}</div>
-            <div style="font-size:0.75rem;color:#555;margin-top:3px;font-weight:700;">${daysAhead} ${sleepsWord}</div>
-          </div>
+        <div class="ft-titles">
+          <div class="ft-title">FIRST</div>
+          <div class="ft-title-gap"></div>
+          <div class="ft-title">THEN</div>
         </div>
-        <div class="ft-arrow">→</div>
-        <div class="then-box">
-          <span class="ft-emoji">${evEmoji||'🎉'}</span>
-          <div class="ft-content">
-            <span class="ft-tag">Then</span>
-            <div class="ft-label">${evName}</div>
+        <div class="ft-cards">
+          <div class="first-box">
+            <div class="ft-content">
+              <div class="ft-moons">${moons}</div>
+              <div class="ft-moons-count">${daysAhead} ${sleepsWord}</div>
+            </div>
+          </div>
+          <div class="ft-arrow"><svg viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 21h26M24 11l11 10-11 10" stroke="#2d3561" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/></svg></div>
+          <div class="then-box">
+            <div class="ft-content">
+              <span class="ft-emoji">${evEmoji||'🎉'}</span>
+              <div class="ft-label">${evName}</div>
+            </div>
           </div>
         </div>
       </div>`;
@@ -2737,12 +3089,19 @@ function onDayTap(di) {
   const isWknd    = WEEKEND.includes(di);
   const daysAhead = di - TODAY_IDX;
   const todayName = DAYS_FULL[TODAY_IDX];
-  const dayType   = isWknd ? 'a fun weekend day' : 'a school day';
+
+  // Check for special day on this column
+  const sd = !isWknd ? getSpecialDayForDate(colDateStr(di)) : null;
 
   let msg, bubble, emoji;
 
   if (di === TODAY_IDX) {
-    // TODAY — just bounce in place
+    // TODAY
+    if(sd){
+      // Special day today — open event popup immediately
+      openEventPopup({l: sd.name, e: sd.emoji||'⭐', photo: sd.photo||''}, di, 0);
+      return;
+    }
     emoji = isWknd ? '🎉' : '🎒';
     msg    = isWknd
       ? `Today is ${dayName}! It's the weekend, time to have fun!`
@@ -2752,14 +3111,12 @@ function onDayTap(di) {
     jacobSay(bubble);
     ding('tap');
 
-    // Bounce car in place
     const car = document.getElementById('jacob-char');
     if (car) {
       car.style.transition = 'transform 0.15s';
       car.style.transform = 'translateX(-50%) scale(1.25)';
       setTimeout(() => { car.style.transform = 'translateX(-50%) scale(1)'; car.style.transition=''; }, 300);
     }
-    // Flash header
     const hdrs = document.querySelectorAll('.day-col-hdr');
     const hdr = hdrs[di];
     if (hdr) {
@@ -2770,7 +3127,29 @@ function onDayTap(di) {
     return;
   }
 
-  // FUTURE DAY — drive there and back + show sleeps counter
+  // FUTURE DAY
+  if(sd){
+    // Special day in future — drive there + show First→Then popup
+    emoji = '⭐';
+    bubble = `${daysAhead === 1 ? 'Tomorrow' : `In ${daysAhead} days`}: ${sd.name}! ${sd.emoji||'⭐'}`;
+    ding('tap');
+    jacobSay(bubble);
+    const hdrs = document.querySelectorAll('.day-col-hdr');
+    const hdr  = hdrs[di];
+    animateCarTo(di,
+      () => { if(hdr){ hdr.style.transform='scale(1.12)'; hdr.style.boxShadow=`0 4px 20px rgba(108,99,255,0.5)`; } },
+      () => {
+        if(hdr){ hdr.style.transform=''; hdr.style.boxShadow=''; }
+        const modalDelay = 500 + daysAhead * 150;
+        setTimeout(() => {
+          // Open event popup as First→Then with special day data
+          openEventPopup({l: sd.name, e: sd.emoji||'⭐', photo: sd.photo||''}, di, 0);
+        }, modalDelay);
+      }
+    );
+    return;
+  }
+
   if (daysAhead === 1) {
     emoji = isWknd ? '🎉' : '📅';
     msg    = `Tomorrow is ${dayName}! ${isWknd ? "It's the weekend — so exciting!" : "It's a school day!"}`;
@@ -2787,12 +3166,10 @@ function onDayTap(di) {
   ding('tap');
   jacobSay(bubble);
 
-  // Flash the target header
   const hdrs = document.querySelectorAll('.day-col-hdr');
   const hdr  = hdrs[di];
 
   animateCarTo(di,
-    // On arrival — flash header; speak only for tomorrow
     () => {
       if (hdr) {
         hdr.style.transform = 'scale(1.12)';
@@ -2800,7 +3177,6 @@ function onDayTap(di) {
       }
       if (daysAhead === 1) speak(msg);
     },
-    // On return — reset, then show sleeps modal for 2+ days
     () => {
       if (hdr) { hdr.style.transform = ''; hdr.style.boxShadow = ''; }
       const todayHdr = hdrs[TODAY_IDX];
@@ -3099,6 +3475,217 @@ function clearHoliday(){
   openSettingsWithHoliday();
   showToast('School schedule restored');
 }
+
+// ═══════════════════════════════════════════════════════════
+// BIRTHDAY
+// ═══════════════════════════════════════════════════════════
+function getBirthday(){ return (S.settings && S.settings.birthday) || null; }
+
+function isTodayBirthday(){
+  const b = getBirthday();
+  if(!b) return false;
+  const now = new Date();
+  return b.month === (now.getMonth()+1) && b.day === now.getDate();
+}
+
+// Returns days until next birthday (0 = today, negative = past this year)
+function daysUntilBirthday(){
+  const b = getBirthday();
+  if(!b) return null;
+  const now = new Date();
+  const thisYear = new Date(now.getFullYear(), b.month-1, b.day);
+  const nextYear = new Date(now.getFullYear()+1, b.month-1, b.day);
+  const target = thisYear >= now ? thisYear : nextYear;
+  const diff = Math.round((target - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+  return diff;
+}
+
+// Is the given column (di) Jacob's birthday this week?
+function isBirthdayColumn(di){
+  const b = getBirthday();
+  if(!b) return false;
+  // Get the actual date for this column
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay()+6)%7)); // Monday of current week
+  monday.setHours(0,0,0,0);
+  const colDate = new Date(monday);
+  colDate.setDate(monday.getDate() + di);
+  return colDate.getMonth()+1 === b.month && colDate.getDate() === b.day;
+}
+
+// Days until birthday column (di) from today
+function daysUntilBirthdayCol(di){
+  return di - TODAY_IDX;
+}
+
+function applyBirthday(){
+  const m = parseInt(document.getElementById('bday-month').value);
+  const d = parseInt(document.getElementById('bday-day').value);
+  if(!m || !d){ showToast('Please select month and day'); return; }
+  if(!S.settings) S.settings = {};
+  S.settings.birthday = { month: m, day: d };
+  saveS();
+  render();
+  openSettingsWithBirthday();
+  showToast('🎂 Birthday saved!');
+}
+
+function clearBirthday(){
+  if(!S.settings) return;
+  S.settings.birthday = null;
+  saveS();
+  render();
+  openSettingsWithBirthday();
+  showToast('Birthday cleared');
+}
+
+function openSettingsWithBirthday(){
+  openSettings();
+  const b = getBirthday();
+  const banner = document.getElementById('bday-active-banner');
+  const bannerText = document.getElementById('bday-banner-text');
+  if(b && banner){
+    banner.style.display = 'flex';
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    bannerText.textContent = `🎂 ${months[b.month-1]} ${b.day}`;
+    document.getElementById('bday-month').value = b.month;
+    document.getElementById('bday-day').value   = b.day;
+  } else if(banner){
+    banner.style.display = 'none';
+  }
+}
+
+function checkAndShowBirthdayPopup(){
+  if(!isTodayBirthday()) return;
+  const childName = (S.settings && S.settings.childName) || 'Jacob';
+  document.getElementById('bday-title').textContent = `Happy Birthday, ${childName}! 🎂`;
+  document.getElementById('bday-msg').textContent   = `Today is YOUR special day! You are amazing! 🌟`;
+  setTimeout(() => {
+    openModal('bday-modal');
+    ding('done');
+    setTimeout(() => speak(`Happy Birthday ${childName}! Today is your special day! You are amazing and we love you so much!`), 800);
+  }, 1500);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SPECIAL DAYS
+// ═══════════════════════════════════════════════════════════
+function getSpecialDays(){ return (S.settings && S.settings.specialDays) || []; }
+
+// Returns special day entry for a given YYYY-MM-DD date string, or null
+function getSpecialDayForDate(dateStr){ return getSpecialDays().find(sd => sd.date === dateStr) || null; }
+
+// Get YYYY-MM-DD string for column index di (relative to this week's Monday)
+function colDateStr(di){
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay()+6)%7));
+  monday.setHours(0,0,0,0);
+  const d = new Date(monday);
+  d.setDate(monday.getDate() + di);
+  // Use local date (not UTC) to avoid timezone shift
+  const yyyy = d.getFullYear();
+  const mm   = String(d.getMonth()+1).padStart(2,'0');
+  const dd   = String(d.getDate()).padStart(2,'0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+let _sdPhotoB64 = '';
+
+function onSdPhotoChange(e){
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    _sdPhotoB64 = ev.target.result;
+    const prev = document.getElementById('sd-photo-preview');
+    prev.innerHTML = `<img src="${_sdPhotoB64}" style="width:100%;height:100%;object-fit:cover;">`;
+    const nm = document.getElementById('sd-photo-name');
+    nm.textContent = '✓ Photo ready'; nm.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function addSpecialDay(){
+  const day   = document.getElementById('sd-day').value;
+  const month = document.getElementById('sd-month').value;
+  const year  = document.getElementById('sd-year').value;
+  const name  = document.getElementById('sd-name').value.trim();
+  if(!day || !month || !year){ showToast('Please pick a date'); return; }
+  if(!name){ showToast('Please enter an activity name'); return; }
+  const date = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  if(!S.settings) S.settings = {};
+  if(!S.settings.specialDays) S.settings.specialDays = [];
+  S.settings.specialDays = S.settings.specialDays.filter(sd => sd.date !== date);
+  S.settings.specialDays.push({ date, name, emoji: '⭐', photo: _sdPhotoB64 || '' });
+  S.settings.specialDays.sort((a,b) => a.date.localeCompare(b.date));
+  saveS(); render();
+  renderSpecialDaysList();
+  document.getElementById('sd-day').value = '';
+  document.getElementById('sd-month').value = '';
+  document.getElementById('sd-name').value = '';
+  _sdPhotoB64 = '';
+  const prev = document.getElementById('sd-photo-preview');
+  if(prev) prev.innerHTML = '<span style="font-size:1.6rem;">📷</span>';
+  const nm = document.getElementById('sd-photo-name');
+  if(nm) nm.style.display = 'none';
+  showToast(`⭐ Special day added: ${name}`);
+}
+
+function removeSpecialDay(date){
+  if(!S.settings || !S.settings.specialDays) return;
+  S.settings.specialDays = S.settings.specialDays.filter(sd => sd.date !== date);
+  saveS(); render(); renderSpecialDaysList();
+  showToast('Special day removed');
+}
+
+function renderSpecialDaysList(){
+  const list = document.getElementById('special-days-list');
+  if(!list) return;
+  const days = getSpecialDays();
+  if(!days.length){
+    list.innerHTML = `<div style="font-size:0.75rem;color:#bbb;text-align:center;padding:6px 0;">No special days yet</div>`;
+    return;
+  }
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  list.innerHTML = days.map(sd => {
+    const d = new Date(sd.date + 'T00:00:00');
+    const label = `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} (${sd.date})`;
+    const thumb = sd.photo
+      ? `<img src="${sd.photo}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">`
+      : `<span style="font-size:1.4rem;">${sd.emoji||'⭐'}</span>`;
+    return `
+      <div style="display:flex;align-items:center;gap:10px;background:white;border-radius:10px;padding:9px 12px;border:2px solid #ede9ff;">
+        ${thumb}
+        <div style="flex:1;">
+          <div style="font-family:'Baloo 2',cursive;font-size:0.85rem;font-weight:800;color:#2d3561;">${sd.name}</div>
+          <div style="font-size:0.7rem;color:#aaa;">${label}</div>
+        </div>
+        <button onclick="removeSpecialDay('${sd.date}')"
+          style="background:#ffe0e0;border:none;border-radius:8px;padding:4px 9px;font-size:0.7rem;font-weight:800;color:#c0392b;cursor:pointer;">✕</button>
+      </div>`;
+  }).join('');
+}
+
+// Hook into openSettings to render the list
+const _origOpenSettings = openSettings;
+openSettings = function(){
+  _origOpenSettings();
+  renderSpecialDaysList();
+  // Always repopulate year dropdown 2026–2035
+  const yearSel = document.getElementById('sd-year');
+  if(yearSel){
+    yearSel.innerHTML = '<option value="">--</option>';
+    for(let y = 2026; y <= 2035; y++){
+      yearSel.innerHTML += `<option value="${y}">${y}</option>`;
+    }
+    // Pre-fill today's date
+    const today = new Date();
+    document.getElementById('sd-day').value   = String(today.getDate());
+    document.getElementById('sd-month').value = String(today.getMonth()+1);
+    yearSel.value = String(today.getFullYear());
+  }
+};
 
 function showToast(msg){
   const t = document.getElementById('lock-toast');
@@ -3460,9 +4047,38 @@ function buildAndPrint(){
 // RESET
 // ═══════════════════════════════════════════════════════════
 function confirmReset(){
-  if(!confirm("Reset ALL check marks for all days?\n(Activities and photos are kept.)")) return;
-  S.done = {};
-  saveS(); render(); showToast('🔄 All check marks reset!');
+  openModal('reset-modal');
+}
+
+function doReset(type){
+  closeModal('reset-modal');
+  setTimeout(() => {
+    if(type === 'marks'){
+      if(!confirm('Clear all check marks?')) return;
+      S.done = {};
+      saveS(); render(); showToast('✅ Check marks cleared!');
+
+    } else if(type === 'photos'){
+      if(!confirm('Remove all activity photos?')) return;
+      S.actPhotos = {};
+      // Clear photos from acts too
+      if(S.acts) S.acts.forEach(w => w.forEach(a => { if(a) a.photo = ''; }));
+      saveS(); render(); showToast('📷 Activity photos removed!');
+
+    } else if(type === 'holidays'){
+      if(!confirm('Clear all school holiday dates?')) return;
+      if(S.settings) S.settings.holiday = [];
+      saveS(); render(); showToast('🏖️ School holidays cleared!');
+
+    } else if(type === 'all'){
+      if(!confirm('⚠️ Full reset — this will erase everything and start fresh.\n\nAre you sure?')) return;
+      if(!confirm('Last chance! Delete all activities, photos, settings?')) return;
+      localStorage.removeItem('jacob_hero_v8');
+      try { indexedDB.deleteDatabase('JacobHeroDB'); } catch(e){}
+      showToast('🔄 Resetting…');
+      setTimeout(() => location.reload(), 800);
+    }
+  }, 350);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -3482,7 +4098,7 @@ function closeModal(id){
     window._sleepsModalTimer = null;
   }
 }
-['photo-modal','edit-modal','event-modal','reward-modal','settings-modal'].forEach(id=>{
+['photo-modal','edit-modal','event-modal','reward-modal','settings-modal','reset-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{ if(e.target===document.getElementById(id)) closeModal(id); });
 });
 // Reload voice list when voices become available (async on some browsers)
@@ -3613,6 +4229,8 @@ loadS().then(() => {
   setTimeout(() => {
     const greets = ['Vroom! 🏎️','Let\'s race! 🚀','Zoom zoom! ⚡','Full speed! 🏁','Go go go! 🏎️'];
     jacobSay(greets[TODAY_IDX % greets.length]);
+    // Check birthday after greeting
+    checkAndShowBirthdayPopup();
   }, 900);
 }).catch(() => {
   // Last resort — render with defaults
