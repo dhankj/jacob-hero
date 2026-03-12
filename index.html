@@ -533,10 +533,12 @@
     flex:1; position:relative; overflow:hidden;
     display:flex; align-items:center; justify-content:center; min-height:0;
     background: var(--card-img-tint, #f4f6ff);
+    max-height: 100%;
   }
   .card-img-zone img.act-photo {
     position:absolute; inset:0; width:100%; height:100%;
     object-fit:contain;
+    max-width:100%; max-height:100%;
     background: var(--card-img-tint, #f4f6ff);
   }
   .card-placeholder { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
@@ -723,13 +725,16 @@
 
   /* Big photo or emoji */
   .act-popup-img {
-    width: 100%; flex: 1; min-height: 230px; max-height: 360px;
-    position: relative; overflow: visible;
+    width: 100%; flex: 1; min-height: 200px; max-height: 340px;
+    position: relative; overflow: hidden;
     background: linear-gradient(135deg, #f0f4ff, #e8f4fd);
     display: flex; align-items: center; justify-content: center;
   }
   .act-popup-img img {
-    width: 100%; height: 100%; object-fit: cover;
+    max-width: 100%; max-height: 100%;
+    width: auto; height: auto;
+    object-fit: contain;
+    display: block;
   }
   .act-popup-emoji-big {
     font-size: 8rem; line-height: 1;
@@ -1502,21 +1507,30 @@
     <div class="act-popup-top-bar" id="popup-top-bar"></div>
     <div class="act-popup-img" id="popup-img-zone">
       <!-- filled by JS: img or emoji -->
+      <canvas id="popup-star-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5;"></canvas>
+      <div id="popup-done-overlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:6;opacity:0;transition:opacity 0.2s;">
+        <div id="popup-done-text" style="font-family:'Baloo 2',cursive;font-size:3.2rem;font-weight:900;color:white;text-shadow:0 3px 12px rgba(0,0,0,0.5),0 0 30px gold;letter-spacing:2px;transform:scale(0.5);transition:transform 0.35s cubic-bezier(0.34,1.6,0.64,1);">DONE!</div>
+      </div>
     </div>
-    <div class="act-popup-info">
+    <div class="act-popup-info" style="text-align:center;">
       <span class="act-popup-label" id="popup-label">Wake Up</span>
       <span class="act-popup-subtitle" id="popup-subtitle">Jacob, it's time to wake up!</span>
-      <div class="act-popup-wave">
+      <div class="act-popup-wave" style="margin-top:12px;">
         <div class="wave-bar"></div>
         <div class="wave-bar"></div>
         <div class="wave-bar"></div>
         <div class="wave-bar"></div>
         <div class="wave-bar"></div>
       </div>
-      <div style="margin-top:10px;font-size:0.58rem;font-weight:700;font-family:'Nunito',sans-serif;color:#aaa;letter-spacing:0.3px;">
+      <div style="margin-top:8px;font-size:0.58rem;font-weight:700;font-family:'Nunito',sans-serif;color:#aaa;letter-spacing:0.3px;">
         👆 Tap card to repeat &nbsp;•&nbsp; Tap outside to close
       </div>
     </div>
+    <!-- DONE button — fixed bottom-right of card -->
+    <button id="popup-done-btn" onclick="event.stopPropagation(); popupToggleDone();"
+      style="position:absolute;bottom:16px;right:16px;width:64px;height:64px;border-radius:16px;border:3px solid #ccc;background:white;font-size:1.8rem;font-weight:900;cursor:pointer;transition:all 0.2s;display:none;align-items:center;justify-content:center;color:#ccc;z-index:10;box-shadow:0 3px 12px rgba(0,0,0,0.15);">
+      ✓
+    </button>
   </div>
 </div>
 
@@ -2707,28 +2721,18 @@ function makeActCard(act,di,W){
       <button class="cam-btn" data-act="${act.id}" data-di="${di}" data-action="photo">
         📷
       </button>
-      ${di <= TODAY_IDX ? `<button class="done-btn" data-act="${act.id}" data-di="${di}" data-dk="${dk}" data-w="${W}" data-action="done">
-        ${done ? '✓' : ''}
-      </button>` : ''}
     </div>
     <div class="card-label-area"><span class="card-label">${displayAct.label}</span></div>`;
 
   c.addEventListener('click', e => {
-    // Check if a button inside was tapped
-    const camBtn  = e.target.closest('[data-action="photo"]');
-    const doneBtn = e.target.closest('[data-action="done"]');
+    const camBtn = e.target.closest('[data-action="photo"]');
     if (camBtn) {
       e.stopPropagation();
       openPhotoModal(act.id, di);
       return;
     }
-    if (doneBtn) {
-      e.stopPropagation();
-      toggleDone(act.id, di, W);
-      return;
-    }
     // Normal card tap — open popup
-    openActPopup(act, di);
+    openActPopup(act, di, W);
   });
   setupLP(c, () => openEditModal(act.id, di));
   return c;
@@ -2812,42 +2816,28 @@ function makeSpecialDayCard(sd, di, W){
       <div class="done-veil"></div>
       <div class="done-badge">Done!</div>
       <div style="position:absolute;top:4px;left:4px;background:#a78bfa;color:white;font-size:0.48rem;font-weight:800;padding:2px 6px;border-radius:8px;font-family:'Baloo 2',cursive;letter-spacing:0.5px;z-index:2;">⭐ SPECIAL</div>
-      ${di <= TODAY_IDX ? `<button class="done-btn" data-action="sd-done">${isDone ? '✓' : ''}</button>` : ''}
     </div>
     <div class="card-label-area"><span class="card-label" style="color:#6d28d9;">${sd.name}</span></div>`;
 
   c.addEventListener('click', e => {
-    if(e.target.closest('[data-action="sd-done"]')){
-      e.stopPropagation();
-      S.done[dk] = !S.done[dk];
-      saveS();
-      c.classList.toggle('done', !!S.done[dk]);
-      const btn = c.querySelector('[data-action="sd-done"]');
-      if(btn) btn.textContent = S.done[dk] ? '✓' : '';
-      if(S.done[dk]){
-        ding('done'); burst(c);
-        const childName = (S.settings && S.settings.childName) || 'Jacob';
-        showToast(`🌟 ${sd.name} done! Great job ${childName}!`);
-        jacobSay('Great job! ⭐');
-        setTimeout(()=>speak(`${sd.name} done. Great job ${childName}!`), 300);
-      }
-      updateProgress();
-      return;
-    }
-    openActPopupSimple(sd, di);
+    openActPopupSimple(sd, di, dk);
   });
 
   return c;
 }
 
-// Simple popup for special day card tap — shows name + speaks, no photo fullscreen
-function openActPopupSimple(sd, di){
+// Simple popup for special day card tap — shows name + speaks, sets done btn
+function openActPopupSimple(sd, di, dk){
   const popup  = document.getElementById('act-popup');
   const imgZone= document.getElementById('popup-img-zone');
   const label  = document.getElementById('popup-label');
   const subtitle = document.getElementById('popup-subtitle');
   const topBar = document.getElementById('popup-top-bar');
   const childName = (S.settings && S.settings.childName) || 'Jacob';
+
+  // Store context for done button
+  _popupAct = null; _popupDi = di; _popupW = 0;
+  _popupDk = dk || null;
 
   topBar.style.background = 'linear-gradient(90deg,#a78bfa,#7c3aed)';
   imgZone.style.background = '#f5f3ff';
@@ -2860,6 +2850,14 @@ function openActPopupSimple(sd, di){
   label.textContent = sd.name;
   subtitle.textContent = `${childName}, today is your special day — ${sd.name}!`;
   document.querySelectorAll('.wave-bar').forEach(b => b.style.background = '#a78bfa');
+
+  // Done button
+  const doneBtn2 = document.getElementById('popup-done-btn');
+  if(doneBtn2){
+    doneBtn2.style.display = (di <= TODAY_IDX && dk) ? 'flex' : 'none';
+    if(dk) updatePopupDoneBtn();
+  }
+
   popup.classList.add('show');
   const _sb = document.getElementById('jacob-speech'); if(_sb) _sb.classList.remove('visible');
   ding('tap');
@@ -2884,7 +2882,118 @@ function checkAndShowSpecialDayNotification(){
 }
 let _popupSpeakTimer = null;
 
-function openActPopup(act, di) {
+// Track current popup context for done button
+let _popupAct = null, _popupDi = null, _popupW = null, _popupDk = null;
+
+function updatePopupDoneBtn(){
+  const btn = document.getElementById('popup-done-btn');
+  if(!btn || !_popupDk) return;
+  const isDone = !!S.done[_popupDk];
+  btn.textContent = '✓';
+  btn.style.background = isDone ? '#22c55e' : 'white';
+  btn.style.color = isDone ? 'white' : '#ccc';
+  btn.style.borderColor = isDone ? '#22c55e' : '#ccc';
+  btn.style.transform = 'scale(1)';
+}
+
+function popupToggleDone(){
+  if(!_popupDk) return;
+  S.done[_popupDk] = !S.done[_popupDk];
+  saveS();
+  updatePopupDoneBtn();
+  // Update the card in the grid too
+  const cardEl = document.querySelector(`[data-dk="${_popupDk}"]`);
+  if(cardEl) cardEl.classList.toggle('done', !!S.done[_popupDk]);
+  if(S.done[_popupDk]){
+    ding('done');
+    burst(cardEl || document.querySelector('.act-popup-card'));
+    const childName = (S.settings && S.settings.childName) || 'Jacob';
+    const lbl = document.getElementById('popup-label');
+    showToast(`🌟 ${lbl ? lbl.textContent : 'Activity'} done! Great job ${childName}!`);
+    popupStarBurst();
+  }
+  updateProgress();
+  const btn = document.getElementById('popup-done-btn');
+  if(btn){ btn.style.transform='scale(1.25)'; setTimeout(()=>{ btn.style.transform='scale(1)'; },200); }
+}
+
+function popupStarBurst(){
+  const canvas = document.getElementById('popup-star-canvas');
+  const overlay = document.getElementById('popup-done-overlay');
+  const doneText = document.getElementById('popup-done-text');
+  if(!canvas) return;
+
+  // Show DONE! text
+  overlay.style.opacity = '1';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    doneText.style.transform = 'scale(1)';
+  }));
+  setTimeout(() => {
+    overlay.style.opacity = '0';
+    doneText.style.transform = 'scale(0.5)';
+  }, 1400);
+
+  // Double rAF ensures layout is complete before reading dimensions
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const imgZone = document.getElementById('popup-img-zone');
+    const w = (imgZone && imgZone.offsetWidth)  || 300;
+    const h = (imgZone && imgZone.offsetHeight) || 220;
+    canvas.width  = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    const cx = w / 2, cy = h / 2;
+    const colors = ['#FFD700','#FFA500','#FF6B6B','#C084FC','#60A5FA','#34D399','#FBBF24'];
+    const stars = [];
+    for(let i = 0; i < 28; i++){
+      const angle = (Math.PI * 2 / 28) * i + Math.random() * 0.3;
+      const speed = 3 + Math.random() * 5;
+      stars.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 1,
+        size: 8 + Math.random() * 10,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rot: Math.random() * Math.PI * 2,
+        rv: (Math.random() - 0.5) * 0.3,
+        life: 1
+      });
+    }
+
+    function drawStar(c, x, y, r, rot){
+      c.save(); c.translate(x, y); c.rotate(rot);
+      c.beginPath();
+      for(let i = 0; i < 5; i++){
+        const a1 = (Math.PI * 2 / 5) * i - Math.PI / 2;
+        const a2 = a1 + Math.PI / 5;
+        i === 0 ? c.moveTo(Math.cos(a1)*r, Math.sin(a1)*r) : c.lineTo(Math.cos(a1)*r, Math.sin(a1)*r);
+        c.lineTo(Math.cos(a2)*(r*0.4), Math.sin(a2)*(r*0.4));
+      }
+      c.closePath(); c.fill(); c.restore();
+    }
+
+    let rafId;
+    function animate(){
+      ctx.clearRect(0, 0, w, h);
+      let alive = false;
+      stars.forEach(s => {
+        s.x += s.vx; s.y += s.vy; s.vy += 0.25;
+        s.rot += s.rv; s.life -= 0.022;
+        if(s.life > 0){
+          alive = true;
+          ctx.globalAlpha = s.life;
+          ctx.fillStyle = s.color;
+          drawStar(ctx, s.x, s.y, s.size * s.life, s.rot);
+        }
+      });
+      ctx.globalAlpha = 1;
+      if(alive) rafId = requestAnimationFrame(animate);
+      else ctx.clearRect(0, 0, w, h);
+    }
+    animate();
+  }));
+}
+
+function openActPopup(act, di, W) {
   const popup = document.getElementById('act-popup');
   const imgZone = document.getElementById('popup-img-zone');
   const label = document.getElementById('popup-label');
@@ -2892,6 +3001,10 @@ function openActPopup(act, di) {
   const topBar = document.getElementById('popup-top-bar');
   const clr = getDayClr()[di % getDayClr().length];
   const childName = (S.settings && S.settings.childName) || 'Jacob';
+
+  // Store context for done button
+  _popupAct = act; _popupDi = di; _popupW = W || 0;
+  _popupDk = `${act.id}_${di}_${_popupW}`;
 
   // Holiday swap: if this is the School card and holiday is active for this day
   const isSchool = (S.acts.indexOf(act) === 2);
@@ -2921,6 +3034,20 @@ function openActPopup(act, di) {
   subtitle.textContent = onHoliday
     ? `${childName}, ${displayLabel}!`
     : `${childName}, it's time to ${displayLabel.toLowerCase()}!`;
+
+  // Done button — only show for today (not future, not past weeks)
+  const doneBtn = document.getElementById('popup-done-btn');
+  if(doneBtn){
+    const showDone = (di === TODAY_IDX);
+    doneBtn.style.display = showDone ? 'flex' : 'none';
+    if(showDone){
+      updatePopupDoneBtn();
+      const isDone = !!S.done[_popupDk];
+      doneBtn.style.borderColor = isDone ? '#22c55e' : clr;
+      doneBtn.style.background  = isDone ? '#22c55e' : 'white';
+      doneBtn.style.color       = isDone ? 'white'   : clr;
+    }
+  }
 
   // Show popup + hide speech bubble
   popup.classList.add('show');
@@ -2979,6 +3106,18 @@ function openEventPopup(ev, di, slot) {
   const childName = (S.settings && S.settings.childName) || 'Jacob';
   const daysAhead = di - TODAY_IDX;
   const isFuture  = daysAhead > 0;
+
+  // Set popup dk for done btn — use event dk
+  _popupAct = null; _popupDi = di; _popupW = 0;
+  const ek = typeof slot === 'number' ? slot : (slot || 0);
+  _popupDk = `event_${di}_${ek}`;
+
+  // Done button — today only
+  const doneBtn = document.getElementById('popup-done-btn');
+  if(doneBtn){
+    doneBtn.style.display = (!isFuture && di === TODAY_IDX) ? 'flex' : 'none';
+    if(!isFuture && di === TODAY_IDX) updatePopupDoneBtn();
+  }
 
   // Orange accent for weekend events
   topBar.style.background = 'linear-gradient(90deg,#ffb347,#ffd166)';
@@ -3872,25 +4011,85 @@ function setupLP(el,cb){
 
 // ═══════════════════════════════════════════════════════════
 // PHOTO COMPRESSION — IndexedDB has no size limit so we can
-// use higher quality: max 900px, JPEG 82% → ~80-150KB
 // ═══════════════════════════════════════════════════════════
-function compressImage(file, maxSize, quality, callback) {
+// IMAGE COMPRESS + EXIF ORIENTATION FIX
+// ═══════════════════════════════════════════════════════════
+function getExifOrientation(file, callback){
   const reader = new FileReader();
   reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      let w = img.width, h = img.height;
-      if (w > h) { if (w > maxSize) { h = h * maxSize / w; w = maxSize; } }
-      else        { if (h > maxSize) { w = w * maxSize / h; h = maxSize; } }
-      canvas.width = Math.round(w);
-      canvas.height = Math.round(h);
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      callback(canvas.toDataURL('image/jpeg', quality));
-    };
-    img.src = e.target.result;
+    const view = new DataView(e.target.result);
+    if(view.getUint16(0, false) !== 0xFFD8){ callback(1); return; }
+    const length = view.byteLength;
+    let offset = 2;
+    while(offset < length){
+      if(view.getUint16(offset+2, false) <= 8) break;
+      const marker = view.getUint16(offset, false);
+      offset += 2;
+      if(marker === 0xFFE1){
+        if(view.getUint32(offset+2, false) !== 0x45786966){ callback(1); return; }
+        const little = view.getUint16(offset+8, false) === 0x4949;
+        offset += 10;
+        if(view.getUint32(offset, little) !== 0x002A){ callback(1); return; }
+        const ifd = view.getUint32(offset+4, little);
+        offset += ifd;
+        const tags = view.getUint16(offset, little);
+        offset += 2;
+        for(let i=0; i<tags; i++){
+          if(view.getUint16(offset+(i*12), little) === 0x0112){
+            callback(view.getUint16(offset+(i*12)+8, little)); return;
+          }
+        }
+      } else if((marker & 0xFF00) !== 0xFF00) break;
+      else offset += view.getUint16(offset, false);
+    }
+    callback(1);
   };
-  reader.readAsDataURL(file);
+  reader.readAsArrayBuffer(file);
+}
+
+function compressImage(file, maxSize, quality, callback) {
+  getExifOrientation(file, orientation => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+
+        // Swap dimensions for 90/270 degree rotations
+        const needsSwap = [5,6,7,8].includes(orientation);
+        if(needsSwap){ [w, h] = [h, w]; }
+
+        // Scale down
+        if(w > h){ if(w > maxSize){ h = h*maxSize/w; w = maxSize; } }
+        else      { if(h > maxSize){ w = w*maxSize/h; h = maxSize; } }
+        w = Math.round(w); h = Math.round(h);
+
+        canvas.width  = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+
+        // Apply EXIF rotation
+        ctx.save();
+        switch(orientation){
+          case 2: ctx.transform(-1,0,0,1,w,0); break;
+          case 3: ctx.transform(-1,0,0,-1,w,h); break;
+          case 4: ctx.transform(1,0,0,-1,0,h); break;
+          case 5: ctx.transform(0,1,1,0,0,0); break;
+          case 6: ctx.transform(0,1,-1,0,h,0); break;
+          case 7: ctx.transform(0,-1,-1,0,h,w); break;
+          case 8: ctx.transform(0,-1,1,0,0,w); break;
+        }
+        if(needsSwap) ctx.drawImage(img, 0, 0, h, w);
+        else          ctx.drawImage(img, 0, 0, w, h);
+        ctx.restore();
+
+        callback(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 // ═══════════════════════════════════════════════════════════
