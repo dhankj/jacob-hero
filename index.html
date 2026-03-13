@@ -1059,6 +1059,19 @@
   }
   .first-box { background:#c0392b; border:3px solid #96281b; }
   .then-box  { background:#27ae60; border:3px solid #1e8449; padding:10px 8px 12px; }
+  .then-box.has-photo { padding:0; overflow:hidden; }
+  .then-box.has-photo .ft-photo {
+    width:100%; height:100%; border-radius:0;
+    object-fit:cover; box-shadow:none; aspect-ratio:unset;
+    position:absolute; top:0; left:0;
+  }
+  .then-box.has-photo { position:relative; }
+  .then-box.has-photo .ft-label {
+    position:absolute; bottom:0; left:0; right:0;
+    background:rgba(39,174,96,0.88);
+    padding:5px 6px; border-radius:0;
+    margin:0;
+  }
   .ft-tag { display:none; }
   .ft-content { display:flex; flex-direction:column; align-items:center; width:100%; }
   .ft-emoji { font-size:3rem; line-height:1; }
@@ -2350,6 +2363,47 @@ function ding(type = 'done') {
     go();
   }
 }
+
+// 🌅 Wake Up melody — gentle rising chime
+function playWakeUpMelody(onDone) {
+  if (!AC) {
+    try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { if(onDone) onDone(); return; }
+  }
+  const go = () => {
+    try {
+      // Notes: C5 E5 G5 C6 — bright, gentle, rising
+      const notes = [
+        { freq: 523.25, t: 0.00 },  // C5
+        { freq: 659.25, t: 0.28 },  // E5
+        { freq: 783.99, t: 0.56 },  // G5
+        { freq: 1046.5, t: 0.84 },  // C6
+        { freq: 783.99, t: 1.18 },  // G5
+        { freq: 1046.5, t: 1.46 },  // C6 (repeat high, little pause)
+        { freq: 1318.5, t: 1.82 },  // E6 — peak ✨
+      ];
+      const totalDur = 2.6;
+      notes.forEach(({ freq, t }) => {
+        const o = AC.createOscillator();
+        const g = AC.createGain();
+        o.connect(g); g.connect(AC.destination);
+        o.type = 'sine';
+        o.frequency.setValueAtTime(freq, AC.currentTime + t);
+        g.gain.setValueAtTime(0, AC.currentTime + t);
+        g.gain.linearRampToValueAtTime(0.38, AC.currentTime + t + 0.04);
+        g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + t + 0.55);
+        o.start(AC.currentTime + t);
+        o.stop(AC.currentTime + t + 0.6);
+      });
+      // Callback after melody finishes so TTS starts right after
+      setTimeout(() => { if(onDone) onDone(); }, totalDur * 1000);
+    } catch(e) { if(onDone) onDone(); }
+  };
+  if (AC.state === 'suspended') {
+    AC.resume().then(go);
+  } else {
+    go();
+  }
+}
 function speak(fullText, onEnd){
   if(!window.speechSynthesis) { if(onEnd) onEnd(); return; }
   window.speechSynthesis.cancel();
@@ -3157,13 +3211,20 @@ function openActPopup(act, di, W) {
   const displayLabel = onHoliday ? (h.name || 'School Holiday 🎉') : act.label;
   const displayEmoji = onHoliday ? '🎉' : act.emoji;
 
-  // Color bar — festive gradient on holiday, normal otherwise
-  topBar.style.background = onHoliday
-    ? 'linear-gradient(90deg,#ffd166,#fd9e5b,#ff7eb3)'
-    : clr;
+  // ── Wake Up special handling ──────────────────────────────
+  const isWakeUp = (S.acts.indexOf(act) === 0);
 
-  // Tint popup bg to match day colour
-  imgZone.style.background = `linear-gradient(135deg, ${clr}22, ${clr}10)`;
+  // Color bar — sunrise gradient for Wake Up, festive for holiday, normal otherwise
+  topBar.style.background = isWakeUp
+    ? 'linear-gradient(90deg,#ff9a3c,#ffcb47,#ffe97a)'
+    : onHoliday
+      ? 'linear-gradient(90deg,#ffd166,#fd9e5b,#ff7eb3)'
+      : clr;
+
+  // Tint popup bg
+  imgZone.style.background = isWakeUp
+    ? 'linear-gradient(135deg,#fff8e1,#fff3cd)'
+    : `linear-gradient(135deg, ${clr}22, ${clr}10)`;
 
   // Photo or emoji — always show photo if uploaded, even on holiday
   const ph = S.actPhotos[`${act.id}_${di}`] || null;
@@ -3175,9 +3236,11 @@ function openActPopup(act, di, W) {
 
   // Label and subtitle
   label.textContent = displayLabel;
-  subtitle.textContent = onHoliday
-    ? `${childName}, ${displayLabel}!`
-    : `${childName}, it's time to ${displayLabel.toLowerCase()}!`;
+  subtitle.textContent = isWakeUp
+    ? `Good morning, ${childName}! 🌅`
+    : onHoliday
+      ? `${childName}, ${displayLabel}!`
+      : `${childName}, it's time to ${displayLabel.toLowerCase()}!`;
 
   // Done button — only show for today (not future, not past weeks)
   const doneBtn = document.getElementById('popup-done-btn');
@@ -3199,14 +3262,24 @@ function openActPopup(act, di, W) {
   if(_sb) _sb.classList.remove('visible');
 
   // Sound + voice
-  ding('tap');
-  _popupSpeakText = onHoliday
-    ? `${childName}, ${displayLabel}!`
-    : `${childName}, it's time to ${displayLabel}!`;
-  speak(_popupSpeakText);
+  _popupSpeakText = isWakeUp
+    ? `Good morning ${childName}! Time to wake up!`
+    : onHoliday
+      ? `${childName}, ${displayLabel}!`
+      : `${childName}, it's time to ${displayLabel}!`;
+
+  if (isWakeUp) {
+    // 🌅 Play melody first, then TTS
+    playWakeUpMelody(() => speak(_popupSpeakText));
+  } else {
+    ding('tap');
+    speak(_popupSpeakText);
+  }
 
   // Wave animation color
-  document.querySelectorAll('.wave-bar').forEach(b => { b.style.background = onHoliday ? '#ffd166' : clr; });
+  document.querySelectorAll('.wave-bar').forEach(b => {
+    b.style.background = isWakeUp ? '#ffcb47' : onHoliday ? '#ffd166' : clr;
+  });
 
   // Auto-close after 10 seconds of no interaction
   if (_popupSpeakTimer) clearTimeout(_popupSpeakTimer);
@@ -3274,6 +3347,7 @@ function openEventPopup(ev, di, slot) {
     const evImg = ev.photo
       ? `<img src="${ev.photo}" alt="${ev.l}" class="ft-photo">`
       : `<span style="font-size:2.5rem;">${ev.e||'🎉'}</span>`;
+    const thenHasPhoto = ev.photo ? 'has-photo' : '';
 
     imgZone.innerHTML = `
       <div class="first-then-wrap">
@@ -3290,7 +3364,7 @@ function openEventPopup(ev, di, slot) {
             </div>
           </div>
           <div class="ft-arrow"><svg viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 21h26M24 11l11 10-11 10" stroke="#2d3561" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/></svg></div>
-          <div class="then-box">
+          <div class="then-box ${thenHasPhoto}">
             <div class="ft-content">
               ${evImg}
               <div class="ft-label">${ev.l}</div>
@@ -3301,13 +3375,6 @@ function openEventPopup(ev, di, slot) {
 
     label.textContent = ev.l;
     subtitle.textContent = `First ${daysAhead} ${sleepsWord}, then ${ev.l}!`;
-    document.querySelectorAll('.wave-bar').forEach(b => b.style.background = '#ffb347');
-    popup.classList.add('show');
-    const _sb = document.getElementById('jacob-speech'); if(_sb) _sb.classList.remove('visible');
-    ding('tap');
-    _popupSpeakText = `First, ${daysAhead} ${sleepsWord}. Then, ${ev.l}!`;
-    speak(_popupSpeakText);
-  } else {
     // TODAY — normal popup
     if (ev.photo) {
       imgZone.innerHTML = `<img src="${ev.photo}" alt="${ev.l}" style="width:100%;height:100%;object-fit:contain;">`;
