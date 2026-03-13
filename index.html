@@ -2384,10 +2384,10 @@ function playSchoolBell(onDone) {
         o.type  = 'sine'; o.frequency.setValueAtTime(880, AC.currentTime + t);  // A5
         o2.type = 'sine'; o2.frequency.setValueAtTime(1108, AC.currentTime + t); // C#6 (bell overtone)
         g.gain.setValueAtTime(0, AC.currentTime + t);
-        g.gain.linearRampToValueAtTime(0.5, AC.currentTime + t + 0.01);
+        g.gain.linearRampToValueAtTime(0.75, AC.currentTime + t + 0.01);
         g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + t + 0.48);
         g2.gain.setValueAtTime(0, AC.currentTime + t);
-        g2.gain.linearRampToValueAtTime(0.2, AC.currentTime + t + 0.01);
+        g2.gain.linearRampToValueAtTime(0.35, AC.currentTime + t + 0.01);
         g2.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + t + 0.38);
         o.start(AC.currentTime + t);  o.stop(AC.currentTime + t + 0.5);
         o2.start(AC.currentTime + t); o2.stop(AC.currentTime + t + 0.4);
@@ -2424,7 +2424,7 @@ function playSleepLullaby(onDone) {
         o.type = 'sine';
         o.frequency.setValueAtTime(f, AC.currentTime + t);
         g.gain.setValueAtTime(0, AC.currentTime + t);
-        g.gain.linearRampToValueAtTime(0.28, AC.currentTime + t + 0.04);
+        g.gain.linearRampToValueAtTime(0.65, AC.currentTime + t + 0.04);
         g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + t + d * 0.92);
         o.start(AC.currentTime + t);
         o.stop(AC.currentTime + t + d);
@@ -2459,7 +2459,7 @@ function playWakeUpMelody(onDone) {
         o.type = 'sine';
         o.frequency.setValueAtTime(freq, AC.currentTime + t);
         g.gain.setValueAtTime(0, AC.currentTime + t);
-        g.gain.linearRampToValueAtTime(0.38, AC.currentTime + t + 0.04);
+        g.gain.linearRampToValueAtTime(0.65, AC.currentTime + t + 0.04);
         g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + t + 0.55);
         o.start(AC.currentTime + t);
         o.stop(AC.currentTime + t + 0.6);
