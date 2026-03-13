@@ -1589,7 +1589,7 @@
         <span style="font-size:1.6rem;">📷</span>
         <div>
           <div style="font-family:'Baloo 2',cursive;font-size:0.88rem;font-weight:800;color:#2d3561;">Activity photos</div>
-          <div style="font-size:0.72rem;color:#999;margin-top:1px;">Removes all uploaded activity photos</div>
+          <div style="font-size:0.72rem;color:#999;margin-top:1px;">Removes photos, food names & weekend events</div>
         </div>
       </button>
 
@@ -4759,11 +4759,10 @@ function doReset(type){
       saveS(); render(); showToast('✅ Check marks cleared!');
 
     } else if(type === 'photos'){
-      if(!confirm('Remove all activity photos?')) return;
+      if(!confirm('Remove all activity photos and weekend events?')) return;
       S.actPhotos = {}; S.actFoodNames = {};
-      // Also clear weekend event photos
-      if(S.events) Object.keys(S.events).forEach(k => { if(S.events[k]) S.events[k].photo = null; });
-      saveS(); render(); showToast('📷 Activity photos removed!');
+      S.events = {};
+      saveS(); render(); showToast('📷 Photos & events cleared!');
 
     } else if(type === 'holidays'){
       if(!confirm('Clear all school holiday dates?')) return;
