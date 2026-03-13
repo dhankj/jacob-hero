@@ -2291,12 +2291,15 @@ function openDB() {
   });
 }
 
-function saveS() {
+function saveS(cb) {
   openDB().then(db => {
     const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).put(JSON.parse(JSON.stringify(S)), SK);
+    const req = tx.objectStore(STORE).put(JSON.parse(JSON.stringify(S)), SK);
+    req.onsuccess = () => { if(cb) cb(); };
+    req.onerror   = () => { if(cb) cb(); };
   }).catch(() => {
     try { localStorage.setItem(SK, JSON.stringify(S)); } catch(e) {}
+    if(cb) cb();
   });
 }
 
@@ -4761,8 +4764,10 @@ function doReset(type){
     } else if(type === 'photos'){
       if(!confirm('Remove all activity photos and weekend events?')) return;
       S.actPhotos = {}; S.actFoodNames = {};
-      S.events = {};
-      saveS(); render(); showToast('📷 Photos & events cleared!');
+      S.events = {}; S.done = Object.fromEntries(
+        Object.entries(S.done).filter(([k]) => !k.startsWith('event_'))
+      );
+      saveS(() => { render(); showToast('📷 Photos & events cleared!'); });
 
     } else if(type === 'holidays'){
       if(!confirm('Clear all school holiday dates?')) return;
