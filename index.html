@@ -3087,11 +3087,11 @@ function popupToggleDone(){
     burst(cardEl || document.querySelector('.act-popup-card'));
     const childName = (S.settings && S.settings.childName) || 'Jacob';
     const lbl = document.getElementById('popup-label');
-    showToast(`🌟 ${lbl ? lbl.textContent : 'Activity'} done! Great job ${childName}!`);
+    const actName = lbl ? lbl.textContent : 'Activity';
+    showToast(`🌟 ${actName} done! Great job ${childName}!`);
     popupStarBurst();
-    // Praise voice — recorded or TTS fallback
-    const childName2 = (S.settings && S.settings.childName) || 'Jacob';
-    setTimeout(() => playPraiseVoice(childName2), 600);
+    // Praise voice — recorded or TTS fallback (with activity name)
+    setTimeout(() => playPraiseVoice(childName, actName), 600);
   }
   updateProgress();
   const btn = document.getElementById('popup-done-btn');
@@ -4802,28 +4802,50 @@ async function savePraiseVoices(data){
   try { localStorage.setItem('jacob_praise_voices', JSON.stringify(data)); } catch(e){}
 }
 
-// Play a random praise voice (mum or dad), fallback to TTS
-async function playPraiseVoice(childName){
+// Play rhythmic done sequence: "[Activity]" … "Done!" … [recorded praise if available]
+async function playPraiseVoice(childName, actName){
   const data = await loadPraiseVoices();
   const all = [...(data.mum||[]), ...(data.dad||[])].filter(Boolean);
-  if(all.length === 0){
-    // No recordings — use TTS
-    const praises = [
-      `Well done, ${childName}!`,
-      `Great job, ${childName}!`,
-      `You did it, ${childName}! Amazing!`,
-      `Awesome work, ${childName}!`,
-      `Fantastic, ${childName}! Keep it up!`
-    ];
-    speak(praises[Math.floor(Math.random() * praises.length)]);
-    return;
-  }
-  const pick = all[Math.floor(Math.random() * all.length)];
-  try {
-    const audio = new Audio(pick);
-    audio.play();
-  } catch(e){
-    speak(`Well done, ${childName}!`);
+  const pick = all.length ? all[Math.floor(Math.random() * all.length)] : null;
+
+  // Helper: speak a single utterance, resolve when done (with iOS-safe fallback timer)
+  const sayWord = (text, rate, pitch) => new Promise(res => {
+    if(!window.speechSynthesis){ res(); return; }
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const cfg = S.settings || {};
+    const voices = window.speechSynthesis.getVoices();
+    if(cfg.voiceName){ const v = voices.find(x=>x.name===cfg.voiceName); if(v) u.voice=v; }
+    u.rate   = rate  || 0.82;
+    u.pitch  = pitch || 1.0;
+    u.volume = 1;
+    // iOS Safari sometimes doesn't fire onend — fallback timer based on word length
+    const fallbackMs = Math.max(800, text.length * 80);
+    let done = false;
+    const finish = () => { if(!done){ done=true; res(); } };
+    u.onend = finish;
+    u.onerror = finish;
+    setTimeout(finish, fallbackMs);
+    window.speechSynthesis.speak(u);
+  });
+
+  const playRecorded = () => new Promise(res => {
+    if(!pick){ res(); return; }
+    try {
+      const audio = new Audio(pick);
+      audio.onended = () => res();
+      audio.onerror  = () => res();
+      audio.play();
+    } catch(e){ res(); }
+  });
+
+  // Chain: "[Activity]" → 250ms → "Done!" → 400ms → [recorded praise]
+  if(actName) await sayWord(actName, 0.78, 1.05);
+  await new Promise(r => setTimeout(r, 250));
+  await sayWord('Done!', 0.82, 1.15);
+  if(pick){
+    await new Promise(r => setTimeout(r, 400));
+    await playRecorded();
   }
 }
 
