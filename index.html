@@ -2070,6 +2070,22 @@
   </div>
 </div>
 
+<!-- FOOD NAME MODAL — appears after photo is chosen for Breakfast/Dinner -->
+<div class="modal-bg" id="food-name-modal">
+  <div class="modal-box" style="max-width:320px;text-align:center;">
+    <h3 id="food-name-title">🍳 What's for breakfast?</h3>
+    <p style="font-size:0.78rem;color:#aaa;margin-bottom:14px;">Give it a name so Jacob can say what he ate!</p>
+    <input id="food-name-input" type="text"
+      placeholder="e.g. Ramen, Eggs, Toast…"
+      maxlength="24"
+      style="width:100%;padding:10px 14px;border:2.5px solid #e0e0e0;border-radius:12px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;color:#2d3561;box-sizing:border-box;margin-bottom:14px;text-align:center;">
+    <div style="display:flex;gap:8px;">
+      <button class="mb secondary" style="flex:1;" onclick="saveFoodName(false)">Skip</button>
+      <button class="mb primary" style="flex:2;" onclick="saveFoodName(true)">✅ Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- EDIT MODAL -->
 <div class="modal-bg" id="edit-modal">
   <div class="modal-box" style="max-width:330px;">
@@ -2241,6 +2257,7 @@ let S = {
   done: {},        // { key: bool }
   jacobPhoto: null,
   actPhotos: {},   // { 'actId_di': base64 }
+  actFoodNames: {}, // { 'actId_di': 'Ramen' }
   settings: {
     childName: 'Jacob',
     voiceName: '',   // empty = auto-pick best English voice
@@ -2957,6 +2974,10 @@ function makeActCard(act,di,W){
     ? 'background:linear-gradient(90deg,#ffd166,#fd9e5b,#ff7eb3)'
     : `background:${clr}`;
 
+  const actIdx = S.acts.indexOf(act);
+  const isMealCard = (actIdx === 1 || actIdx === 3);
+  const foodName = isMealCard && S.actFoodNames ? (S.actFoodNames[`${act.id}_${di}`] || '') : '';
+
   c.innerHTML=`
     <div class="card-top-bar" style="${barStyle}"></div>
     <div class="card-img-zone" style="background:${clr}18;">
@@ -2969,7 +2990,10 @@ function makeActCard(act,di,W){
         📷
       </button>
     </div>
-    <div class="card-label-area"><span class="card-label">${displayAct.label}</span></div>`;
+    <div class="card-label-area">
+      <span class="card-label">${displayAct.label}</span>
+      ${foodName ? `<div style="font-size:0.55rem;font-weight:700;color:#888;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${foodName}</div>` : ''}
+    </div>`;
 
   c.addEventListener('click', e => {
     const camBtn = e.target.closest('[data-action="photo"]');
@@ -3346,16 +3370,23 @@ function openActPopup(act, di, W) {
   const _sb = document.getElementById('jacob-speech');
   if(_sb) _sb.classList.remove('visible');
 
-  // Sound + voice — melody first, then TTS
+  // Sound + voice — if already done + has food name → "I ate ..."
+  const actIdx2 = S.acts.indexOf(act);
+  const isMeal = (actIdx2 === 1 || actIdx2 === 3);
+  const foodName = isMeal && S.actFoodNames ? S.actFoodNames[`${act.id}_${di}`] : null;
+  const alreadyDone = !!S.done[_popupDk];
+
   _popupSpeakText = isWakeUp
     ? `Good morning ${childName}! Time to wake up!`
     : isSleep
       ? `Goodnight ${childName}. Sleep tight, sweet dreams!`
       : isSchoolCard
         ? `Time for school, ${childName}! Have an awesome day!`
-        : onHoliday
-          ? `${childName}, ${displayLabel}!`
-          : `${childName}, it's time to ${displayLabel}!`;
+        : alreadyDone && foodName
+          ? `I ate ${foodName}!`
+          : onHoliday
+            ? `${childName}, ${displayLabel}!`
+            : `${childName}, it's time to ${displayLabel}!`;
 
   if (isWakeUp) {
     playWakeUpMelody(() => speak(_popupSpeakText));
@@ -4453,8 +4484,39 @@ function handleActPhoto(file){
   if(!file||!_pAid) return;
   compressImage(file, 900, 0.82, b64 => {
     S.actPhotos[`${_pAid}_${_pDi}`] = b64; saveS();
-    closeModal('photo-modal'); render(); showToast('📸 Photo saved!');
+    closeModal('photo-modal');
+    render();
+    // For Breakfast (index 1) and Dinner (index 3) — ask for food name
+    const actIdx = S.acts.findIndex(a => a.id === _pAid);
+    if(actIdx === 1 || actIdx === 3){
+      const mealWord = actIdx === 1 ? 'breakfast' : 'dinner';
+      document.getElementById('food-name-title').textContent = actIdx === 1 ? '🍳 What\'s for breakfast?' : '🍽️ What\'s for dinner?';
+      document.getElementById('food-name-input').value = S.actFoodNames?.[`${_pAid}_${_pDi}`] || '';
+      document.getElementById('food-name-input').placeholder = actIdx === 1 ? 'e.g. Ramen, Eggs, Toast…' : 'e.g. Rice, Soup, Chicken…';
+      setTimeout(() => {
+        openModal('food-name-modal');
+        document.getElementById('food-name-input').focus();
+      }, 300);
+    } else {
+      showToast('📸 Photo saved!');
+    }
   });
+}
+
+function saveFoodName(doSave){
+  if(doSave){
+    const val = document.getElementById('food-name-input').value.trim();
+    if(!S.actFoodNames) S.actFoodNames = {};
+    if(val){
+      S.actFoodNames[`${_pAid}_${_pDi}`] = val;
+    } else {
+      delete S.actFoodNames[`${_pAid}_${_pDi}`];
+    }
+    saveS();
+  }
+  closeModal('food-name-modal');
+  showToast('📸 Photo saved!');
+  render();
 }
 document.getElementById('cam-input').addEventListener('change',e=>handleActPhoto(e.target.files[0]));
 document.getElementById('gal-input').addEventListener('change',e=>handleActPhoto(e.target.files[0]));
@@ -4698,7 +4760,7 @@ function doReset(type){
 
     } else if(type === 'photos'){
       if(!confirm('Remove all activity photos?')) return;
-      S.actPhotos = {};
+      S.actPhotos = {}; S.actFoodNames = {};
       // Clear photos from acts too
       if(S.acts) S.acts.forEach(w => w.forEach(a => { if(a) a.photo = ''; }));
       saveS(); render(); showToast('📷 Activity photos removed!');
@@ -4736,7 +4798,7 @@ function closeModal(id){
     window._sleepsModalTimer = null;
   }
 }
-['photo-modal','edit-modal','event-modal','reward-modal','settings-modal','reset-modal'].forEach(id=>{
+['photo-modal','food-name-modal','edit-modal','event-modal','reward-modal','settings-modal','reset-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{ if(e.target===document.getElementById(id)) closeModal(id); });
 });
 // Reload voice list when voices become available (async on some browsers)

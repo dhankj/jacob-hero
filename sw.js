@@ -1,4 +1,4 @@
-const CACHE = 'jacob-hero-v100';
+const CACHE = 'jacob-hero-v101';
 
 // Files to cache for offline use
 const ASSETS = [
