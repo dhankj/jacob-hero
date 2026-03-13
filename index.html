@@ -2062,11 +2062,35 @@
       <div class="ph-ico" style="background:#f0fff8">🖼️</div>
       <div style="text-align:left"><div>Choose from Gallery</div><div style="font-size:0.62rem;color:#bbb;font-weight:500">Existing photo</div></div>
     </button>
+    <button class="ph-opt" id="ph-history-btn" onclick="openFoodHistory()" style="display:none">
+      <div class="ph-ico" style="background:#fff8e1">⭐</div>
+      <div style="text-align:left"><div>Choose from History</div><div style="font-size:0.62rem;color:#bbb;font-weight:500">Previous meals</div></div>
+    </button>
     <button class="ph-opt" id="rm-photo-btn" onclick="removeActPhoto()" style="display:none">
       <div class="ph-ico" style="background:#fff0f3">🗑️</div>
       <div style="text-align:left;color:#ef476f"><div>Remove Photo</div></div>
     </button>
     <button class="cancel-lnk" onclick="closeModal('photo-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- FOOD HISTORY MODAL -->
+<div class="modal-bg" id="food-history-modal">
+  <div class="modal-box" style="max-width:380px;text-align:center;">
+    <h3 id="food-history-title">⭐ Choose a meal</h3>
+    <p style="font-size:0.75rem;color:#aaa;margin-bottom:12px;">Tap to use again</p>
+    <div id="food-history-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;max-height:300px;overflow-y:auto;"></div>
+    <button class="cancel-lnk" onclick="closeModal('food-history-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- EVENT HISTORY MODAL -->
+<div class="modal-bg" id="event-history-modal">
+  <div class="modal-box" style="max-width:380px;text-align:center;">
+    <h3>⭐ Previous Weekends</h3>
+    <p style="font-size:0.75rem;color:#aaa;margin-bottom:12px;">Tap to use again</p>
+    <div id="event-history-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;max-height:300px;overflow-y:auto;"></div>
+    <button class="cancel-lnk" onclick="closeModal('event-history-modal')">Cancel</button>
   </div>
 </div>
 
@@ -2123,6 +2147,10 @@
     <button class="ph-opt" onclick="evTriggerGallery()">
       <div class="ph-ico" style="background:#f0fff8">🖼️</div>
       <div style="text-align:left"><div>Choose from Gallery</div><div style="font-size:0.62rem;color:#bbb;font-weight:500">Existing photo</div></div>
+    </button>
+    <button class="ph-opt" id="ev-history-btn" onclick="openEventHistory()">
+      <div class="ph-ico" style="background:#fff8e1">⭐</div>
+      <div style="text-align:left"><div>Choose from History</div><div style="font-size:0.62rem;color:#bbb;font-weight:500">Previous weekends</div></div>
     </button>
     <button class="ph-opt" id="ev-rm-photo-btn" onclick="evRemovePhoto()" style="display:none">
       <div class="ph-ico" style="background:#fff0f3">🗑️</div>
@@ -2258,6 +2286,8 @@ let S = {
   jacobPhoto: null,
   actPhotos: {},   // { 'actId_di': base64 }
   actFoodNames: {}, // { 'actId_di': 'Ramen' }
+  foodHistory: { breakfast:[], dinner:[] }, // [{name, photo}]
+  eventHistory: [], // [{l, photo}]
   settings: {
     childName: 'Jacob',
     voiceName: '',   // empty = auto-pick best English voice
@@ -2780,7 +2810,7 @@ function renderRoad(){
     let evHtml = '';
     if(isWk){
       // Only slot 0 now (single event per weekend day)
-      const ev = S.events[`${i}_0_${W}`];
+      const ev = S.events[`${i}_0_${colDateStr(i)}`];
       let thumbHtml = '';
       if(ev){
         const img = ev.photo
@@ -3016,7 +3046,7 @@ function makeActCard(act,di,W){
 // WEEKEND EVENT SLOT — same flex structure as activity card
 // ═══════════════════════════════════════════════════════════
 function makeEventSlot(di,slot,W){
-  const ek=`${di}_${slot}_${W}`;
+  const ek=`${di}_${slot}_${colDateStr(di)}`;
   const ev=S.events[ek]||null;
   const dk=`event_${ek}`;
   const done=!!S.done[dk];
@@ -3038,19 +3068,10 @@ function makeEventSlot(di,slot,W){
         ${imgContent}
         <div class="event-done-veil"></div>
         <div class="event-done-badge">Done!</div>
-        ${di <= TODAY_IDX ? `<button class="event-done-btn" data-action="ev-done">
-          ${done ? '✓' : ''}
-        </button>` : ''}
       </div>
       <div class="event-label-area"><span class="event-name">${ev.l}</span></div>`;
 
     c.addEventListener('click', e => {
-      if (e.target.closest('[data-action="ev-done"]')) {
-        e.stopPropagation();
-        toggleEventDone(dk, c, ev.l);
-        return;
-      }
-      // Normal tap → popup (same as activity card)
       openEventPopup(ev, di, slot);
     });
     setupLP(c, () => openEventModal(di, slot));
@@ -3386,7 +3407,7 @@ function openActPopup(act, di, W) {
       : isSchoolCard
         ? `Time for school, ${childName}! Have an awesome day!`
         : alreadyDone && foodName
-          ? `I ate ${foodName}!`
+          ? `I ate ${foodName} for ${actIdx2 === 1 ? 'breakfast' : 'dinner'}!`
           : onHoliday
             ? `${childName}, ${displayLabel}!`
             : `${childName}, it's time to ${displayLabel}!`;
@@ -3454,10 +3475,10 @@ function openEventPopup(ev, di, slot) {
   const daysAhead = di - TODAY_IDX;
   const isFuture  = daysAhead > 0;
 
-  // Set popup dk for done btn — use event dk
+  // Set popup dk for done btn — use date-based event dk
   _popupAct = null; _popupDi = di; _popupW = 0;
-  const ek = typeof slot === 'number' ? slot : (slot || 0);
-  _popupDk = `event_${di}_${ek}`;
+  const slotIdx = typeof slot === 'number' ? slot : (slot || 0);
+  _popupDk = `event_${di}_${slotIdx}_${colDateStr(di)}`;
 
   // Done button — today only
   const doneBtn = document.getElementById('popup-done-btn');
@@ -3824,10 +3845,11 @@ function checkAllDone(W){
   if(isWknd){
     // Wake Up, Breakfast, Dinner, Sleep = 4 fixed acts + 1 event slot
     const fixedActs = [S.acts[0], S.acts[1], S.acts[3], S.acts[4]].filter(Boolean);
-    const hasEv = !!S.events[`${TODAY_IDX}_0_${W}`];
+    const todayDate = colDateStr(TODAY_IDX);
+    const hasEv = !!S.events[`${TODAY_IDX}_0_${todayDate}`];
     tot = fixedActs.length + (hasEv ? 1 : 0);
     dn  = fixedActs.filter(a=>S.done[`${a.id}_${TODAY_IDX}_${W}`]).length
-        + (hasEv && S.done[`event_${TODAY_IDX}_0_${W}`] ? 1 : 0);
+        + (hasEv && S.done[`event_${TODAY_IDX}_0_${todayDate}`] ? 1 : 0);
   } else {
     tot = S.acts.length;
     dn  = S.acts.filter(a=>S.done[`${a.id}_${TODAY_IDX}_${W}`]).length;
@@ -3857,10 +3879,11 @@ function updateProgress(){
   let tot,dn;
   if(WEEKEND.includes(TODAY_IDX)){
     const fixedActs = [S.acts[0], S.acts[1], S.acts[3], S.acts[4]].filter(Boolean);
-    const hasEv = !!S.events[`${TODAY_IDX}_0_${W}`];
+    const todayDate = colDateStr(TODAY_IDX);
+    const hasEv = !!S.events[`${TODAY_IDX}_0_${todayDate}`];
     tot = fixedActs.length + (hasEv ? 1 : 0);
     dn  = fixedActs.filter(a=>S.done[`${a.id}_${TODAY_IDX}_${W}`]).length
-        + (hasEv && S.done[`event_${TODAY_IDX}_0_${W}`] ? 1 : 0);
+        + (hasEv && S.done[`event_${TODAY_IDX}_0_${todayDate}`] ? 1 : 0);
   } else {
     tot=S.acts.length; dn=S.acts.filter(a=>S.done[`${a.id}_${TODAY_IDX}_${W}`]).length;
   }
@@ -4469,14 +4492,6 @@ function compressImage(file, maxSize, quality, callback) {
 // PHOTO MODAL
 // ═══════════════════════════════════════════════════════════
 let _pAid=null,_pDi=null;
-function openPhotoModal(aid,di){
-  if(isLocked()) return;
-  _pAid=aid; _pDi=di;
-  const act=S.acts.find(a=>a.id===aid);
-  document.getElementById('photo-sub').textContent=`"${act?act.label:''}" · ${DAYS_FULL[di]}`;
-  document.getElementById('rm-photo-btn').style.display=S.actPhotos[`${aid}_${di}`]?'flex':'none';
-  openModal('photo-modal');
-}
 function triggerCam(){ const i=document.getElementById('cam-input'); i.value=''; i.click(); }
 function triggerGallery(){ const i=document.getElementById('gal-input'); i.value=''; i.click(); }
 function removeActPhoto(){
@@ -4510,8 +4525,12 @@ function saveFoodName(doSave){
   if(doSave){
     const val = document.getElementById('food-name-input').value.trim();
     if(!S.actFoodNames) S.actFoodNames = {};
+    const photo = S.actPhotos[`${_pAid}_${_pDi}`] || null;
     if(val){
       S.actFoodNames[`${_pAid}_${_pDi}`] = val;
+      // Save to food history
+      const mealType = (S.acts.indexOf(S.acts.find(a=>a.id===_pAid)) === 1) ? 'breakfast' : 'dinner';
+      addFoodHistory(mealType, val, photo);
     } else {
       delete S.actFoodNames[`${_pAid}_${_pDi}`];
     }
@@ -4520,6 +4539,114 @@ function saveFoodName(doSave){
   closeModal('food-name-modal');
   showToast('📸 Photo saved!');
   render();
+}
+
+// ═══════════════════════════════════════════════════════════
+// FOOD & EVENT HISTORY
+// ═══════════════════════════════════════════════════════════
+function addFoodHistory(mealType, name, photo){
+  if(!S.foodHistory) S.foodHistory = { breakfast:[], dinner:[] };
+  if(!S.foodHistory[mealType]) S.foodHistory[mealType] = [];
+  // Remove duplicate name
+  S.foodHistory[mealType] = S.foodHistory[mealType].filter(h => h.name !== name);
+  // Add to front
+  S.foodHistory[mealType].unshift({ name, photo });
+  // Keep max 12
+  S.foodHistory[mealType] = S.foodHistory[mealType].slice(0, 12);
+}
+
+function addEventHistory(label, photo){
+  if(!S.eventHistory) S.eventHistory = [];
+  // Remove duplicate label
+  S.eventHistory = S.eventHistory.filter(h => h.l !== label);
+  // Add to front
+  S.eventHistory.unshift({ l: label, photo });
+  // Keep max 12
+  S.eventHistory = S.eventHistory.slice(0, 12);
+}
+
+function openPhotoModal(aid, di){
+  if(isLocked()) return;
+  _pAid=aid; _pDi=di;
+  const act=S.acts.find(a=>a.id===aid);
+  document.getElementById('photo-sub').textContent=`"${act?act.label:''}" · ${DAYS_FULL[di]}`;
+  document.getElementById('rm-photo-btn').style.display=S.actPhotos[`${aid}_${di}`]?'flex':'none';
+  // Show history button only for breakfast/dinner with history
+  const actIdx = S.acts.findIndex(a=>a.id===aid);
+  const isMeal = actIdx===1||actIdx===3;
+  const mealType = actIdx===1?'breakfast':'dinner';
+  const hasHistory = isMeal && S.foodHistory && (S.foodHistory[mealType]||[]).length > 0;
+  document.getElementById('ph-history-btn').style.display = hasHistory ? 'flex' : 'none';
+  openModal('photo-modal');
+}
+
+function openFoodHistory(){
+  const actIdx = S.acts.findIndex(a=>a.id===_pAid);
+  const mealType = actIdx===1?'breakfast':'dinner';
+  const history = (S.foodHistory && S.foodHistory[mealType]) || [];
+  document.getElementById('food-history-title').textContent = actIdx===1 ? '🍳 Choose breakfast' : '🍽️ Choose dinner';
+  const grid = document.getElementById('food-history-grid');
+  grid.innerHTML = history.map((h,i) => `
+    <div onclick="selectFoodHistory(${i},'${mealType}')" style="cursor:pointer;border-radius:12px;overflow:hidden;border:2.5px solid #e8e8e8;background:#fff;transition:transform 0.15s;" onmousedown="this.style.transform='scale(0.94)'" onmouseup="this.style.transform=''">
+      <div style="width:100%;aspect-ratio:1;background:#f0f4ff;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        ${h.photo ? `<img src="${h.photo}" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:2rem;">${actIdx===1?'🍳':'🍽️'}</span>`}
+      </div>
+      <div style="padding:4px 4px 6px;font-size:0.65rem;font-weight:800;color:#2d3561;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.name}</div>
+    </div>`).join('');
+  closeModal('photo-modal');
+  openModal('food-history-modal');
+}
+
+function selectFoodHistory(idx, mealType){
+  const h = S.foodHistory[mealType][idx];
+  if(!h) return;
+  // Apply photo
+  if(h.photo){
+    S.actPhotos[`${_pAid}_${_pDi}`] = h.photo;
+  }
+  // Apply food name
+  if(!S.actFoodNames) S.actFoodNames = {};
+  S.actFoodNames[`${_pAid}_${_pDi}`] = h.name;
+  saveS();
+  closeModal('food-history-modal');
+  showToast(`✅ ${h.name} selected!`);
+  render();
+}
+
+function openEventHistory(){
+  const history = S.eventHistory || [];
+  if(history.length === 0){
+    showToast('No previous events yet!');
+    return;
+  }
+  const grid = document.getElementById('event-history-grid');
+  grid.innerHTML = history.map((h,i) => `
+    <div onclick="selectEventHistory(${i})" style="cursor:pointer;border-radius:12px;overflow:hidden;border:2.5px solid #e8e8e8;background:#fff;transition:transform 0.15s;" onmousedown="this.style.transform='scale(0.94)'" onmouseup="this.style.transform=''">
+      <div style="width:100%;aspect-ratio:1;background:#f0f4ff;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        ${h.photo ? `<img src="${h.photo}" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:2rem;">🎉</span>`}
+      </div>
+      <div style="padding:4px 4px 6px;font-size:0.65rem;font-weight:800;color:#2d3561;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.l}</div>
+    </div>`).join('');
+  closeModal('event-modal');
+  openModal('event-history-modal');
+}
+
+function selectEventHistory(idx){
+  const h = S.eventHistory[idx];
+  if(!h) return;
+  // Pre-fill event modal with history item
+  _evPhotoB64 = h.photo || null;
+  document.getElementById('ev-name-inp').value = h.l;
+  const prev = document.getElementById('ev-preview-inner');
+  if(h.photo){
+    prev.innerHTML = `<img src="${h.photo}" style="width:100%;height:140px;object-fit:cover;border-radius:14px;">`;
+    document.getElementById('ev-rm-photo-btn').style.display = 'flex';
+  } else {
+    prev.innerHTML = '<span style="font-size:3rem">🎉</span>';
+    document.getElementById('ev-rm-photo-btn').style.display = 'none';
+  }
+  closeModal('event-history-modal');
+  openModal('event-modal');
 }
 document.getElementById('cam-input').addEventListener('change',e=>handleActPhoto(e.target.files[0]));
 document.getElementById('gal-input').addEventListener('change',e=>handleActPhoto(e.target.files[0]));
@@ -4608,7 +4735,7 @@ let _eDi2=null, _eSlot=null, _evPhotoB64=null;
 
 function openEventModal(di, slot){
   _eDi2=di; _eSlot=slot; _evPhotoB64=null;
-  const W=wk(), ex=S.events[`${di}_${slot}_${W}`];
+  const ex=S.events[`${di}_${slot}_${colDateStr(di)}`];
 
   document.getElementById('event-sub').textContent=`${DAYS_FULL[di]} — slot ${slot+1}`;
   document.getElementById('ev-rm-btn').style.display=ex?'block':'none';
@@ -4659,16 +4786,18 @@ document.getElementById('ev-gal-input').addEventListener('change',e=>evHandlePho
 function saveEvent(){
   const name=document.getElementById('ev-name-inp').value.trim();
   if(!name && !_evPhotoB64){ closeModal('event-modal'); return; }
-  const W=wk();
   const label = name || 'Weekend Fun';
-  S.events[`${_eDi2}_${_eSlot}_${W}`]={ l:label, photo:_evPhotoB64||null };
+  const ek = `${_eDi2}_${_eSlot}_${colDateStr(_eDi2)}`;
+  S.events[ek]={ l:label, photo:_evPhotoB64||null };
+  // Save to event history
+  addEventHistory(label, _evPhotoB64||null);
   saveS(); closeModal('event-modal'); render();
   showToast(`🎉 ${label} added!`);
   jacobSay(`${label}! 🎉`);
 }
 
 function removeEvent(){
-  const W=wk(), k=`${_eDi2}_${_eSlot}_${W}`;
+  const k=`${_eDi2}_${_eSlot}_${colDateStr(_eDi2)}`;
   delete S.events[k]; delete S.done[`event_${k}`]; saveS();
   closeModal('event-modal'); render(); showToast('🗑️ Event removed');
 }
@@ -4700,7 +4829,7 @@ function buildAndPrint(){
       const wkOrder = [S.acts[0], S.acts[1], null, S.acts[3], S.acts[4]];
       wkOrder.forEach((act, ri) => {
         if(act === null){
-          const ev = S.events[`${di}_0_${W}`];
+          const ev = S.events[`${di}_0_${colDateStr(di)}`];
           if(ev){
             cards.push({ label: ev.l, emoji: ev.e||'🎉', photo: ev.photo||null, color, di });
           } else {
@@ -4802,7 +4931,7 @@ function closeModal(id){
     window._sleepsModalTimer = null;
   }
 }
-['photo-modal','food-name-modal','edit-modal','event-modal','reward-modal','settings-modal','reset-modal'].forEach(id=>{
+['photo-modal','food-name-modal','food-history-modal','event-history-modal','edit-modal','event-modal','reward-modal','settings-modal','reset-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{ if(e.target===document.getElementById(id)) closeModal(id); });
 });
 // Reload voice list when voices become available (async on some browsers)
