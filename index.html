@@ -4761,8 +4761,6 @@ function doReset(type){
     } else if(type === 'photos'){
       if(!confirm('Remove all activity photos?')) return;
       S.actPhotos = {}; S.actFoodNames = {};
-      // Clear photos from acts too
-      if(S.acts) S.acts.forEach(w => w.forEach(a => { if(a) a.photo = ''; }));
       saveS(); render(); showToast('📷 Activity photos removed!');
 
     } else if(type === 'holidays'){
