@@ -2364,7 +2364,77 @@ function ding(type = 'done') {
   }
 }
 
-// 🌅 Wake Up melody — gentle rising chime
+// 🔔 School bell — classic 4-ring bell
+function playSchoolBell(onDone) {
+  if (!AC) {
+    try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { if(onDone) onDone(); return; }
+  }
+  const go = () => {
+    try {
+      // 4 bell rings, each slightly decaying
+      const rings = [0, 0.55, 1.10, 1.65];
+      rings.forEach(t => {
+        const o = AC.createOscillator();
+        const g = AC.createGain();
+        // Add slight detune for a real bell character (two oscillators)
+        const o2 = AC.createOscillator();
+        const g2 = AC.createGain();
+        o.connect(g);   g.connect(AC.destination);
+        o2.connect(g2); g2.connect(AC.destination);
+        o.type  = 'sine'; o.frequency.setValueAtTime(880, AC.currentTime + t);  // A5
+        o2.type = 'sine'; o2.frequency.setValueAtTime(1108, AC.currentTime + t); // C#6 (bell overtone)
+        g.gain.setValueAtTime(0, AC.currentTime + t);
+        g.gain.linearRampToValueAtTime(0.5, AC.currentTime + t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + t + 0.48);
+        g2.gain.setValueAtTime(0, AC.currentTime + t);
+        g2.gain.linearRampToValueAtTime(0.2, AC.currentTime + t + 0.01);
+        g2.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + t + 0.38);
+        o.start(AC.currentTime + t);  o.stop(AC.currentTime + t + 0.5);
+        o2.start(AC.currentTime + t); o2.stop(AC.currentTime + t + 0.4);
+      });
+      const totalDur = 2.2;
+      setTimeout(() => { if(onDone) onDone(); }, totalDur * 1000);
+    } catch(e) { if(onDone) onDone(); }
+  };
+  if (AC.state === 'suspended') { AC.resume().then(go); } else { go(); }
+}
+
+// 🌙 Sleep lullaby — Twinkle Twinkle Little Star (gentle, slow)
+function playSleepLullaby(onDone) {
+  if (!AC) {
+    try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { if(onDone) onDone(); return; }
+  }
+  const go = () => {
+    try {
+      // Twinkle Twinkle: C C G G A A G — F F E E D D C
+      const C4=261.63, D4=293.66, E4=329.63, F4=349.23, G4=392.00, A4=440.00;
+      const notes = [
+        // "Twin-kle twin-kle"
+        {f:C4,d:0.42}, {f:C4,d:0.42}, {f:G4,d:0.42}, {f:G4,d:0.42},
+        {f:A4,d:0.42}, {f:A4,d:0.42}, {f:G4,d:0.75},
+        // "lit-tle star"
+        {f:F4,d:0.42}, {f:F4,d:0.42}, {f:E4,d:0.42}, {f:E4,d:0.42},
+        {f:D4,d:0.42}, {f:D4,d:0.42}, {f:C4,d:0.75},
+      ];
+      let t = 0;
+      notes.forEach(({f, d}) => {
+        const o = AC.createOscillator();
+        const g = AC.createGain();
+        o.connect(g); g.connect(AC.destination);
+        o.type = 'sine';
+        o.frequency.setValueAtTime(f, AC.currentTime + t);
+        g.gain.setValueAtTime(0, AC.currentTime + t);
+        g.gain.linearRampToValueAtTime(0.28, AC.currentTime + t + 0.04);
+        g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + t + d * 0.92);
+        o.start(AC.currentTime + t);
+        o.stop(AC.currentTime + t + d);
+        t += d;
+      });
+      setTimeout(() => { if(onDone) onDone(); }, t * 1000 + 300);
+    } catch(e) { if(onDone) onDone(); }
+  };
+  if (AC.state === 'suspended') { AC.resume().then(go); } else { go(); }
+}
 function playWakeUpMelody(onDone) {
   if (!AC) {
     try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { if(onDone) onDone(); return; }
@@ -3092,6 +3162,9 @@ function popupToggleDone(){
     popupStarBurst();
     // Praise voice — recorded or TTS fallback (with activity name)
     setTimeout(() => playPraiseVoice(childName, actName), 600);
+    // Reset auto-close timer — give plenty of time for praise voice to finish
+    if(_popupSpeakTimer) clearTimeout(_popupSpeakTimer);
+    _popupSpeakTimer = setTimeout(() => closeActPopup(), 6000);
   }
   updateProgress();
   const btn = document.getElementById('popup-done-btn');
@@ -3211,20 +3284,28 @@ function openActPopup(act, di, W) {
   const displayLabel = onHoliday ? (h.name || 'School Holiday 🎉') : act.label;
   const displayEmoji = onHoliday ? '🎉' : act.emoji;
 
-  // ── Wake Up special handling ──────────────────────────────
+  // ── Card type detection ───────────────────────────────────
   const isWakeUp = (S.acts.indexOf(act) === 0);
+  const isSleep  = (S.acts.indexOf(act) === 4);
+  const isSchoolCard = isSchool && !onHoliday;
 
-  // Color bar — sunrise gradient for Wake Up, festive for holiday, normal otherwise
+  // Color bar
   topBar.style.background = isWakeUp
     ? 'linear-gradient(90deg,#ff9a3c,#ffcb47,#ffe97a)'
-    : onHoliday
-      ? 'linear-gradient(90deg,#ffd166,#fd9e5b,#ff7eb3)'
-      : clr;
+    : isSleep
+      ? 'linear-gradient(90deg,#2d3561,#4c5fa8,#7b88d4)'
+      : isSchoolCard
+        ? 'linear-gradient(90deg,#2196f3,#42a5f5,#90caf9)'
+        : onHoliday
+          ? 'linear-gradient(90deg,#ffd166,#fd9e5b,#ff7eb3)'
+          : clr;
 
   // Tint popup bg
   imgZone.style.background = isWakeUp
     ? 'linear-gradient(135deg,#fff8e1,#fff3cd)'
-    : `linear-gradient(135deg, ${clr}22, ${clr}10)`;
+    : isSleep
+      ? 'linear-gradient(135deg,#1a2040,#2d3561)'
+      : `linear-gradient(135deg, ${clr}22, ${clr}10)`;
 
   // Photo or emoji — always show photo if uploaded, even on holiday
   const ph = S.actPhotos[`${act.id}_${di}`] || null;
@@ -3238,9 +3319,13 @@ function openActPopup(act, di, W) {
   label.textContent = displayLabel;
   subtitle.textContent = isWakeUp
     ? `Good morning, ${childName}! 🌅`
-    : onHoliday
-      ? `${childName}, ${displayLabel}!`
-      : `${childName}, it's time to ${displayLabel.toLowerCase()}!`;
+    : isSleep
+      ? `Sleep tight, ${childName}! 🌙`
+      : isSchoolCard
+        ? `Have a great day, ${childName}! 🔔`
+        : onHoliday
+          ? `${childName}, ${displayLabel}!`
+          : `${childName}, it's time to ${displayLabel.toLowerCase()}!`;
 
   // Done button — only show for today (not future, not past weeks)
   const doneBtn = document.getElementById('popup-done-btn');
@@ -3261,16 +3346,23 @@ function openActPopup(act, di, W) {
   const _sb = document.getElementById('jacob-speech');
   if(_sb) _sb.classList.remove('visible');
 
-  // Sound + voice
+  // Sound + voice — melody first, then TTS
   _popupSpeakText = isWakeUp
     ? `Good morning ${childName}! Time to wake up!`
-    : onHoliday
-      ? `${childName}, ${displayLabel}!`
-      : `${childName}, it's time to ${displayLabel}!`;
+    : isSleep
+      ? `Goodnight ${childName}. Sleep tight, sweet dreams!`
+      : isSchoolCard
+        ? `Time for school, ${childName}! Have an awesome day!`
+        : onHoliday
+          ? `${childName}, ${displayLabel}!`
+          : `${childName}, it's time to ${displayLabel}!`;
 
   if (isWakeUp) {
-    // 🌅 Play melody first, then TTS
     playWakeUpMelody(() => speak(_popupSpeakText));
+  } else if (isSchoolCard) {
+    playSchoolBell(() => speak(_popupSpeakText));
+  } else if (isSleep) {
+    playSleepLullaby(() => speak(_popupSpeakText));
   } else {
     ding('tap');
     speak(_popupSpeakText);
@@ -3278,12 +3370,16 @@ function openActPopup(act, di, W) {
 
   // Wave animation color
   document.querySelectorAll('.wave-bar').forEach(b => {
-    b.style.background = isWakeUp ? '#ffcb47' : onHoliday ? '#ffd166' : clr;
+    b.style.background = isWakeUp    ? '#ffcb47'
+                       : isSleep     ? '#4c5fa8'
+                       : isSchoolCard? '#42a5f5'
+                       : onHoliday   ? '#ffd166' : clr;
   });
 
-  // Auto-close after 10 seconds of no interaction
+  // Auto-close — longer for melody cards so TTS has time to play
   if (_popupSpeakTimer) clearTimeout(_popupSpeakTimer);
-  _popupSpeakTimer = setTimeout(() => closeActPopup(), 10000);
+  const autoCloseMs = (isWakeUp || isSchoolCard || isSleep) ? 14000 : 10000;
+  _popupSpeakTimer = setTimeout(() => closeActPopup(), autoCloseMs);
 }
 
 // Store current popup speak text for repeat
