@@ -1647,6 +1647,37 @@
     <!-- Scrollable content -->
     <div class="settings-scroll">
 
+      <!-- Calm Mode -->
+      <div class="settings-section">
+        <h4>🧘 Calm Mode</h4>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="font-size:0.78rem;color:#666;line-height:1.4;flex:1;">
+            Turns off all animations, confetti, and moving elements. Recommended for sensory-sensitive children.
+          </div>
+          <label class="calm-toggle" id="calm-toggle-wrap">
+            <input type="checkbox" id="calm-checkbox" onchange="setCalmMode(this.checked)">
+            <span class="calm-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Parent Mode -->
+      <div class="settings-section" style="background:linear-gradient(135deg,#f0f4ff,#e8f0ff);border-radius:14px;padding:14px;border:2px solid #c7d7ff;">
+        <h4 style="color:#2d3561;">👨‍👩‍👦 Parent Edit Mode</h4>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="font-size:0.78rem;color:#555;line-height:1.4;flex:1;">
+            Unlock past days to add photos and mark Done — perfect for filling in PECS cards before printing.
+          </div>
+          <label class="calm-toggle" id="parent-mode-toggle-wrap">
+            <input type="checkbox" id="parent-mode-checkbox" onchange="setParentMode(this.checked)">
+            <span class="calm-slider" style="background:#c7d7ff;"></span>
+          </label>
+        </div>
+        <div id="parent-mode-banner" style="display:none;margin-top:10px;background:#2d3561;border-radius:10px;padding:8px 12px;font-size:0.72rem;font-weight:700;color:white;text-align:center;">
+          ✏️ Parent Edit Mode ON — past days are editable
+        </div>
+      </div>
+
       <!-- Character theme -->
       <div class="settings-section">
         <h4>🎭 Character & World</h4>
@@ -1661,6 +1692,61 @@
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;" id="colour-theme-picker">
           <!-- filled by JS -->
         </div>
+      </div>
+
+      <!-- Child name -->
+      <div class="settings-section">
+        <h4>👦 Child's Name</h4>
+        <input class="child-name-inp" id="settings-name" type="text" placeholder="Jacob" maxlength="20">
+      </div>
+
+      <div class="settings-section">
+        <h4>🎂 Birthday</h4>
+        <p style="font-size:0.72rem;color:#aaa;margin-bottom:10px;">
+          On Jacob's birthday, the whole day gets a special golden glow! 🌟
+        </p>
+        <div id="bday-active-banner" style="display:none;background:linear-gradient(135deg,#ffd166,#fd9e5b);border-radius:10px;padding:8px 12px;margin-bottom:10px;align-items:center;justify-content:space-between;gap:8px;">
+          <div>
+            <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:0.82rem;color:#2d3561;" id="bday-banner-text">🎂 Birthday set!</div>
+          </div>
+          <button onclick="clearBirthday()" style="background:rgba(0,0,0,0.15);border:none;border-radius:8px;padding:4px 8px;font-size:0.65rem;font-weight:800;color:#2d3561;cursor:pointer;">✕ Clear</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="flex:1;">
+            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:4px;">Month</div>
+            <select id="bday-month" style="width:100%;padding:7px 10px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
+              <option value="">--</option>
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:4px;">Day</div>
+            <select id="bday-day" style="width:100%;padding:7px 10px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
+              <option value="">--</option>
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+              <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+              <option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
+              <option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+              <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option>
+              <option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option>
+              <option value="31">31</option>
+            </select>
+          </div>
+        </div>
+        <button onclick="applyBirthday()" style="width:100%;margin-top:10px;padding:9px;background:linear-gradient(135deg,#ffd166,#fd9e5b);border:none;border-radius:12px;font-family:'Baloo 2',cursive;font-size:0.85rem;font-weight:800;color:#2d3561;cursor:pointer;box-shadow:0 3px 10px rgba(255,209,102,0.4);">
+          🎂 Save Birthday
+        </button>
       </div>
 
       <!-- Child photo -->
@@ -1685,12 +1771,6 @@
         </div>
       </div>
 
-      <!-- Child name -->
-      <div class="settings-section">
-        <h4>👦 Child's Name</h4>
-        <input class="child-name-inp" id="settings-name" type="text" placeholder="Jacob" maxlength="20">
-      </div>
-
       <!-- Voice selection -->
       <div class="settings-section">
         <h4>🎙️ Voice</h4>
@@ -1706,20 +1786,6 @@
           <button class="speed-btn" data-speed="0.7" onclick="setSpeed(0.7,this)">🐢 Slow</button>
           <button class="speed-btn active" data-speed="0.88" onclick="setSpeed(0.88,this)">🚶 Normal</button>
           <button class="speed-btn" data-speed="1.1" onclick="setSpeed(1.1,this)">🏃 Fast</button>
-        </div>
-      </div>
-
-      <!-- Calm Mode -->
-      <div class="settings-section">
-        <h4>🧘 Calm Mode</h4>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-          <div style="font-size:0.78rem;color:#666;line-height:1.4;flex:1;">
-            Turns off all animations, confetti, and moving elements. Recommended for sensory-sensitive children.
-          </div>
-          <label class="calm-toggle" id="calm-toggle-wrap">
-            <input type="checkbox" id="calm-checkbox" onchange="setCalmMode(this.checked)">
-            <span class="calm-slider"></span>
-          </label>
         </div>
       </div>
 
@@ -1913,10 +1979,128 @@
         </div>
       </div>
 
+
+      <!-- SPECIAL DAYS SECTION -->
+      <div class="settings-section">
+        <h4>⭐ Special Days</h4>
+        <p style="font-size:0.72rem;color:#aaa;margin-bottom:10px;">
+          Add a one-off special day — like a day off school with a fun activity. Shows as a First→Then card!
+        </p>
+
+        <!-- List of saved special days -->
+        <div id="special-days-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+
+        <!-- Add new special day form -->
+        <div style="background:#f9f9f9;border-radius:12px;padding:12px;border:2px dashed #e0e0e0;">
+          <div style="font-size:0.7rem;font-weight:800;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Add Special Day</div>
+          <div style="margin-bottom:8px;">
+            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:4px;">Date</div>
+            <div style="display:flex;gap:6px;">
+              <div style="flex:1;">
+                <div style="font-size:0.6rem;color:#aaa;margin-bottom:2px;">Day</div>
+                <select id="sd-day" style="width:100%;padding:7px 6px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
+                  <option value="">--</option>
+                  <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+                  <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+                  <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+                  <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+                  <option>21</option><option>22</option><option>23</option><option>24</option><option>25</option>
+                  <option>26</option><option>27</option><option>28</option><option>29</option><option>30</option>
+                  <option>31</option>
+                </select>
+              </div>
+              <div style="flex:2;">
+                <div style="font-size:0.6rem;color:#aaa;margin-bottom:2px;">Month</div>
+                <select id="sd-month" style="width:100%;padding:7px 6px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
+                  <option value="">--</option>
+                  <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                  <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                  <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                  <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                </select>
+              </div>
+              <div style="flex:1.2;">
+                <div style="font-size:0.6rem;color:#aaa;margin-bottom:2px;">Year</div>
+                <select id="sd-year" style="width:100%;padding:7px 6px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
+                  <option value="">--</option>
+                  <option value="2026">2026</option>
+                  <option value="2027">2027</option>
+                  <option value="2028">2028</option>
+                  <option value="2029">2029</option>
+                  <option value="2030">2030</option>
+                  <option value="2031">2031</option>
+                  <option value="2032">2032</option>
+                  <option value="2033">2033</option>
+                  <option value="2034">2034</option>
+                  <option value="2035">2035</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div style="margin-bottom:8px;">
+            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:4px;">Activity name</div>
+            <input type="text" id="sd-name" placeholder="e.g. Swimming, Park, Dentist…" maxlength="24"
+              style="width:100%;padding:7px 10px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:10px;">
+            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:6px;">Photo (optional)</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div id="sd-photo-preview" onclick="document.getElementById('sd-photo-input').click()"
+                style="width:68px;height:68px;border-radius:12px;border:2px dashed #c4b5fd;background:#f5f3ff;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;">
+                <span style="font-size:1.6rem;">📷</span>
+              </div>
+              <input type="file" id="sd-photo-input" accept="image/*" style="display:none" onchange="onSdPhotoChange(event)">
+              <div style="font-size:0.72rem;color:#aaa;line-height:1.4;">Tap to add a photo.<br>Shows in the THEN card!</div>
+            </div>
+            <div id="sd-photo-name" style="font-size:0.65rem;color:#a78bfa;margin-top:4px;display:none;"></div>
+          </div>
+          <button onclick="addSpecialDay()" style="width:100%;padding:9px;background:linear-gradient(135deg,#6c63ff,#a78bfa);border:none;border-radius:12px;font-family:'Baloo 2',cursive;font-size:0.85rem;font-weight:800;color:white;cursor:pointer;box-shadow:0 3px 10px rgba(108,99,255,0.35);">
+            ⭐ Add Special Day
+          </button>
+        </div>
+      </div>
+
+
+
     </div><!-- end settings-scroll -->
 
     <!-- Fixed footer -->
     <div class="settings-footer">
+      <!-- 🎙️ PRAISE VOICES (hidden feature) — collapsible -->
+      <div style="margin-bottom:8px;">
+        <button onclick="togglePraiseSection()" id="praise-toggle-btn"
+          style="width:100%;background:linear-gradient(135deg,#f5f3ff,#ede9ff);border:2px dashed #c4b5fd;border-radius:14px;padding:12px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-family:'Baloo 2',cursive;">
+          <span style="display:flex;align-items:center;gap:8px;">
+            <span>🎙️</span>
+            <span style="font-size:0.82rem;font-weight:800;color:#7c3aed;">Praise Voices</span>
+            <span style="font-size:0.58rem;background:#a78bfa;color:white;padding:2px 8px;border-radius:8px;font-weight:700;">SECRET</span>
+          </span>
+          <span id="praise-toggle-arrow" style="font-size:0.9rem;color:#a78bfa;transition:transform 0.25s;">▼</span>
+        </button>
+
+        <div id="praise-section-body" style="display:none;background:#faf8ff;border:2px dashed #c4b5fd;border-top:none;border-radius:0 0 14px 14px;padding:14px;">
+          <p style="font-size:0.72rem;color:#aaa;margin-bottom:12px;">Record Mum & Dad's voices — Jacob will hear a surprise when he taps Done! 🌟</p>
+
+          <!-- MUM -->
+          <div style="margin-bottom:14px;">
+            <div style="font-size:0.7rem;font-weight:800;color:#e879a0;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">👩 Mum (3 recordings)</div>
+            <div id="mum-recordings" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+            <button class="mb secondary" id="mum-rec-btn" onclick="startPraiseRecording('mum')" style="width:100%;font-size:0.8rem;border-color:#e879a0;color:#e879a0;">
+              🔴 Record Mum's Voice
+            </button>
+          </div>
+
+          <!-- DAD -->
+          <div>
+            <div style="font-size:0.7rem;font-weight:800;color:#3b82f6;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">👨 Dad (3 recordings)</div>
+            <div id="dad-recordings" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+            <button class="mb secondary" id="dad-rec-btn" onclick="startPraiseRecording('dad')" style="width:100%;font-size:0.8rem;border-color:#3b82f6;color:#3b82f6;">
+              🔴 Record Dad's Voice
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div style="display:flex;gap:8px;width:100%;margin-bottom:8px;">
         <button class="mb secondary" style="flex:1;" onclick="closeModal('settings-modal')">Cancel</button>
         <button class="mb primary" style="flex:2;" onclick="saveSettings()">✅ Save</button>
@@ -2321,6 +2505,12 @@ function openSettings(){
   const calmCb = document.getElementById('calm-checkbox');
   if(calmCb) calmCb.checked = !!(S.settings && S.settings.calm);
 
+  // Parent mode checkbox
+  const parentCb = document.getElementById('parent-mode-checkbox');
+  if(parentCb) parentCb.checked = !!(S.settings && S.settings.parentMode);
+  const parentBanner = document.getElementById('parent-mode-banner');
+  if(parentBanner) parentBanner.style.display = (S.settings && S.settings.parentMode) ? 'block' : 'none';
+
   // Holiday
   openSettingsWithHoliday();
 
@@ -2349,6 +2539,7 @@ function openSettings(){
 
   // Voice list
   buildVoiceList();
+  renderPraiseVoices();
   openModal('settings-modal');
 }
 
@@ -2425,6 +2616,7 @@ function saveSettings(){
   S.settings.theme = theme;
   S.settings.colorTheme = _settingsColorTheme || 'sky';
   S.settings.calm = !!(document.getElementById('calm-checkbox') && document.getElementById('calm-checkbox').checked);
+  S.settings.parentMode = !!(document.getElementById('parent-mode-checkbox') && document.getElementById('parent-mode-checkbox').checked);
   saveS();
   // Update title + re-render road with new theme
   document.querySelector('.header-title').innerHTML =
@@ -2433,6 +2625,8 @@ function saveSettings(){
   positionJacob();
   applyColourTheme();
   applyCalmState();
+  applyParentMode();
+  render();
   closeModal('settings-modal');
   showToast(`✅ Settings saved!`);
   speak(`Great! I'm ready to help ${name} today!`);
@@ -2654,10 +2848,15 @@ function renderGrid(){
       ? '3px solid #ffd166'
       : `3px solid ${getDayClr()[di % getDayClr().length]}`;
 
-    // Past columns — heavy dim + desaturate
-    if(di < TODAY_IDX){
+    // Past columns — heavy dim + desaturate (skip if parent mode)
+    if(di < TODAY_IDX && !S.settings?.parentMode){
       col.style.filter = 'grayscale(100%) opacity(30%)';
       col.style.pointerEvents = 'none';
+    } else if(di < TODAY_IDX && S.settings?.parentMode){
+      col.style.filter = 'grayscale(40%) opacity(85%)';
+      col.style.pointerEvents = 'auto';
+      col.style.outline = '2px dashed #a5b4fc';
+      col.style.borderRadius = '14px';
     }
 
     if(WEEKEND.includes(di)){
@@ -2855,7 +3054,8 @@ function openActPopupSimple(sd, di, dk){
   // Done button
   const doneBtn2 = document.getElementById('popup-done-btn');
   if(doneBtn2){
-    doneBtn2.style.display = (di <= TODAY_IDX && dk) ? 'flex' : 'none';
+    const parentMode = !!(S.settings && S.settings.parentMode);
+    doneBtn2.style.display = ((di <= TODAY_IDX || parentMode) && dk) ? 'flex' : 'none';
     if(dk) updatePopupDoneBtn();
   }
 
@@ -2912,6 +3112,9 @@ function popupToggleDone(){
     const lbl = document.getElementById('popup-label');
     showToast(`🌟 ${lbl ? lbl.textContent : 'Activity'} done! Great job ${childName}!`);
     popupStarBurst();
+    // Praise voice — recorded or TTS fallback
+    const childName2 = (S.settings && S.settings.childName) || 'Jacob';
+    setTimeout(() => playPraiseVoice(childName2), 600);
   }
   updateProgress();
   const btn = document.getElementById('popup-done-btn');
@@ -3967,6 +4170,24 @@ function setCalmMode(on){
   applyCalmState();
 }
 
+function setParentMode(on){
+  if(!S.settings) S.settings = {};
+  S.settings.parentMode = on;
+  saveS();
+  applyParentMode();
+  render();
+  // Update banner
+  const banner = document.getElementById('parent-mode-banner');
+  if(banner) banner.style.display = on ? 'block' : 'none';
+}
+
+function applyParentMode(){
+  const on = !!(S.settings && S.settings.parentMode);
+  document.body.classList.toggle('parent-mode', on);
+}
+
+
+
 function applyLockState(){
   const locked = isLocked();
   document.body.classList.toggle('locked', locked);
@@ -4540,6 +4761,7 @@ loadS().then(() => {
   applyLockState();
   applyColourTheme();
   applyCalmState();
+  applyParentMode();
   startSkyBar();
   scheduleRefresh();
   window.addEventListener('resize', positionJacob);
@@ -4558,9 +4780,172 @@ loadS().then(() => {
   render();
 });
 
-// ═══════════════════════════════════════════════════════════
-// PWA — Register Service Worker
-// ═══════════════════════════════════════════════════════════
+function togglePraiseSection(){
+  const body  = document.getElementById('praise-section-body');
+  const arrow = document.getElementById('praise-toggle-arrow');
+  const btn   = document.getElementById('praise-toggle-btn');
+  if(!body) return;
+  const open = body.style.display === 'none';
+  body.style.display = open ? 'block' : 'none';
+  if(arrow) arrow.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+  if(btn){
+    btn.style.borderRadius = open ? '14px 14px 0 0' : '14px';
+  }
+  if(open) renderPraiseVoices();
+}
+
+
+const PRAISE_MAX = 3;
+let _recMediaRecorder = null;
+let _recChunks = [];
+let _recWho = null; // 'mum' | 'dad'
+let _recCountdown = null;
+
+// Load praise recordings from IndexedDB/localStorage
+async function loadPraiseVoices(){
+  try {
+    const raw = localStorage.getItem('jacob_praise_voices');
+    return raw ? JSON.parse(raw) : { mum: [], dad: [] };
+  } catch(e){ return { mum: [], dad: [] }; }
+}
+async function savePraiseVoices(data){
+  try { localStorage.setItem('jacob_praise_voices', JSON.stringify(data)); } catch(e){}
+}
+
+// Play a random praise voice (mum or dad), fallback to TTS
+async function playPraiseVoice(childName){
+  const data = await loadPraiseVoices();
+  const all = [...(data.mum||[]), ...(data.dad||[])].filter(Boolean);
+  if(all.length === 0){
+    // No recordings — use TTS
+    const praises = [
+      `Well done, ${childName}!`,
+      `Great job, ${childName}!`,
+      `You did it, ${childName}! Amazing!`,
+      `Awesome work, ${childName}!`,
+      `Fantastic, ${childName}! Keep it up!`
+    ];
+    speak(praises[Math.floor(Math.random() * praises.length)]);
+    return;
+  }
+  const pick = all[Math.floor(Math.random() * all.length)];
+  try {
+    const audio = new Audio(pick);
+    audio.play();
+  } catch(e){
+    speak(`Well done, ${childName}!`);
+  }
+}
+
+async function startPraiseRecording(who){
+  const data = await loadPraiseVoices();
+  if((data[who]||[]).length >= PRAISE_MAX){
+    showToast(`Max ${PRAISE_MAX} recordings for ${who === 'mum' ? 'Mum' : 'Dad'}! Delete one first.`);
+    return;
+  }
+
+  // Request mic permission
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch(e){
+    showToast('❌ Microphone permission needed!');
+    return;
+  }
+
+  _recWho = who;
+  _recChunks = [];
+  const btn = document.getElementById(`${who}-rec-btn`);
+
+  // Try webm first, fallback to mp4
+  const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+  _recMediaRecorder = new MediaRecorder(stream, { mimeType });
+  _recMediaRecorder.ondataavailable = e => { if(e.data.size > 0) _recChunks.push(e.data); };
+  _recMediaRecorder.onstop = async () => {
+    stream.getTracks().forEach(t => t.stop());
+    const blob = new Blob(_recChunks, { type: mimeType });
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      const b64 = ev.target.result;
+      const fresh = await loadPraiseVoices();
+      if(!fresh[who]) fresh[who] = [];
+      fresh[who].push(b64);
+      await savePraiseVoices(fresh);
+      renderPraiseVoices();
+      showToast(`🎙️ ${who === 'mum' ? 'Mum' : 'Dad'}'s voice saved! 🌟`);
+    };
+    reader.readAsDataURL(blob);
+  };
+
+  _recMediaRecorder.start();
+
+  // 5 second countdown
+  let secs = 5;
+  if(btn) btn.textContent = `⏹ Recording… ${secs}s`;
+  if(btn){ btn.style.background='#fee2e2'; btn.style.borderColor='#ef4444'; btn.style.color='#ef4444'; }
+  _recCountdown = setInterval(() => {
+    secs--;
+    if(btn) btn.textContent = secs > 0 ? `⏹ Recording… ${secs}s` : '⏹ Stopping…';
+    if(secs <= 0){
+      clearInterval(_recCountdown);
+      stopPraiseRecording(who);
+    }
+  }, 1000);
+
+  // Tap button again to stop early
+  if(btn){
+    btn.onclick = () => { clearInterval(_recCountdown); stopPraiseRecording(who); };
+  }
+}
+
+function stopPraiseRecording(who){
+  if(_recMediaRecorder && _recMediaRecorder.state !== 'inactive'){
+    _recMediaRecorder.stop();
+  }
+  const btn = document.getElementById(`${who}-rec-btn`);
+  if(btn){
+    btn.textContent = `🔴 Record ${who === 'mum' ? "Mum's" : "Dad's"} Voice`;
+    btn.style.background = '';
+    btn.style.borderColor = who === 'mum' ? '#e879a0' : '#3b82f6';
+    btn.style.color = who === 'mum' ? '#e879a0' : '#3b82f6';
+    btn.onclick = () => startPraiseRecording(who);
+  }
+}
+
+async function deletePraiseRecording(who, idx){
+  const data = await loadPraiseVoices();
+  if(data[who]) data[who].splice(idx, 1);
+  await savePraiseVoices(data);
+  renderPraiseVoices();
+  showToast('🗑️ Recording deleted');
+}
+
+async function playPraisePreview(who, idx){
+  const data = await loadPraiseVoices();
+  const rec = data[who] && data[who][idx];
+  if(rec){ try { new Audio(rec).play(); } catch(e){} }
+}
+
+async function renderPraiseVoices(){
+  const data = await loadPraiseVoices();
+  ['mum','dad'].forEach(who => {
+    const list = document.getElementById(`${who}-recordings`);
+    const btn  = document.getElementById(`${who}-rec-btn`);
+    if(!list) return;
+    const recs = data[who] || [];
+    list.innerHTML = recs.map((_, i) => `
+      <div style="display:flex;align-items:center;gap:8px;background:white;border-radius:10px;padding:8px 10px;border:1.5px solid ${who==='mum'?'#f9a8d4':'#93c5fd'};">
+        <span style="font-size:0.8rem;font-weight:800;color:${who==='mum'?'#e879a0':'#3b82f6'};">#${i+1}</span>
+        <button onclick="playPraisePreview('${who}',${i})" style="background:${who==='mum'?'#fce7f3':'#dbeafe'};border:none;border-radius:8px;padding:5px 10px;font-size:0.8rem;cursor:pointer;">▶ Play</button>
+        <button onclick="deletePraiseRecording('${who}',${i})" style="background:#fff0f3;border:none;border-radius:8px;padding:5px 10px;font-size:0.75rem;cursor:pointer;color:#ef4444;">🗑️</button>
+        <span style="font-size:0.65rem;color:#aaa;margin-left:auto;">Tap Done to test!</span>
+      </div>`).join('');
+    // Hide record btn if max reached
+    if(btn) btn.style.display = recs.length >= PRAISE_MAX ? 'none' : 'block';
+  });
+}
+
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
