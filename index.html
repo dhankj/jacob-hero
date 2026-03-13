@@ -1661,22 +1661,6 @@
         </div>
       </div>
 
-      <!-- Parent Mode -->
-      <div class="settings-section" style="background:linear-gradient(135deg,#f0f4ff,#e8f0ff);border-radius:14px;padding:14px;border:2px solid #c7d7ff;">
-        <h4 style="color:#2d3561;">👨‍👩‍👦 Parent Edit Mode</h4>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-          <div style="font-size:0.78rem;color:#555;line-height:1.4;flex:1;">
-            Unlock past days to add photos and mark Done — perfect for filling in PECS cards before printing.
-          </div>
-          <label class="calm-toggle" id="parent-mode-toggle-wrap">
-            <input type="checkbox" id="parent-mode-checkbox" onchange="setParentMode(this.checked)">
-            <span class="calm-slider" style="background:#c7d7ff;"></span>
-          </label>
-        </div>
-        <div id="parent-mode-banner" style="display:none;margin-top:10px;background:#2d3561;border-radius:10px;padding:8px 12px;font-size:0.72rem;font-weight:700;color:white;text-align:center;">
-          ✏️ Parent Edit Mode ON — past days are editable
-        </div>
-      </div>
 
       <!-- Character theme -->
       <div class="settings-section">
@@ -1980,87 +1964,26 @@
       </div>
 
 
-      <!-- SPECIAL DAYS SECTION -->
-      <div class="settings-section">
-        <h4>⭐ Special Days</h4>
-        <p style="font-size:0.72rem;color:#aaa;margin-bottom:10px;">
-          Add a one-off special day — like a day off school with a fun activity. Shows as a First→Then card!
-        </p>
 
-        <!-- List of saved special days -->
-        <div id="special-days-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
 
-        <!-- Add new special day form -->
-        <div style="background:#f9f9f9;border-radius:12px;padding:12px;border:2px dashed #e0e0e0;">
-          <div style="font-size:0.7rem;font-weight:800;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Add Special Day</div>
-          <div style="margin-bottom:8px;">
-            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:4px;">Date</div>
-            <div style="display:flex;gap:6px;">
-              <div style="flex:1;">
-                <div style="font-size:0.6rem;color:#aaa;margin-bottom:2px;">Day</div>
-                <select id="sd-day" style="width:100%;padding:7px 6px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
-                  <option value="">--</option>
-                  <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
-                  <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
-                  <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
-                  <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
-                  <option>21</option><option>22</option><option>23</option><option>24</option><option>25</option>
-                  <option>26</option><option>27</option><option>28</option><option>29</option><option>30</option>
-                  <option>31</option>
-                </select>
-              </div>
-              <div style="flex:2;">
-                <div style="font-size:0.6rem;color:#aaa;margin-bottom:2px;">Month</div>
-                <select id="sd-month" style="width:100%;padding:7px 6px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
-                  <option value="">--</option>
-                  <option value="1">January</option><option value="2">February</option><option value="3">March</option>
-                  <option value="4">April</option><option value="5">May</option><option value="6">June</option>
-                  <option value="7">July</option><option value="8">August</option><option value="9">September</option>
-                  <option value="10">October</option><option value="11">November</option><option value="12">December</option>
-                </select>
-              </div>
-              <div style="flex:1.2;">
-                <div style="font-size:0.6rem;color:#aaa;margin-bottom:2px;">Year</div>
-                <select id="sd-year" style="width:100%;padding:7px 6px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
-                  <option value="">--</option>
-                  <option value="2026">2026</option>
-                  <option value="2027">2027</option>
-                  <option value="2028">2028</option>
-                  <option value="2029">2029</option>
-                  <option value="2030">2030</option>
-                  <option value="2031">2031</option>
-                  <option value="2032">2032</option>
-                  <option value="2033">2033</option>
-                  <option value="2034">2034</option>
-                  <option value="2035">2035</option>
-                </select>
-              </div>
-            </div>
+
+
+      <!-- Parent Mode -->
+      <div class="settings-section" style="background:linear-gradient(135deg,#f0f4ff,#e8f0ff);border-radius:14px;padding:14px;border:2px solid #c7d7ff;">
+        <h4 style="color:#2d3561;">👨‍👩‍👦 Parent Edit Mode</h4>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="font-size:0.78rem;color:#555;line-height:1.4;flex:1;">
+            Unlock past days to add photos and mark Done — perfect for filling in PECS cards before printing.
           </div>
-          <div style="margin-bottom:8px;">
-            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:4px;">Activity name</div>
-            <input type="text" id="sd-name" placeholder="e.g. Swimming, Park, Dentist…" maxlength="24"
-              style="width:100%;padding:7px 10px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;box-sizing:border-box;">
-          </div>
-          <div style="margin-bottom:10px;">
-            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:6px;">Photo (optional)</div>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div id="sd-photo-preview" onclick="document.getElementById('sd-photo-input').click()"
-                style="width:68px;height:68px;border-radius:12px;border:2px dashed #c4b5fd;background:#f5f3ff;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;">
-                <span style="font-size:1.6rem;">📷</span>
-              </div>
-              <input type="file" id="sd-photo-input" accept="image/*" style="display:none" onchange="onSdPhotoChange(event)">
-              <div style="font-size:0.72rem;color:#aaa;line-height:1.4;">Tap to add a photo.<br>Shows in the THEN card!</div>
-            </div>
-            <div id="sd-photo-name" style="font-size:0.65rem;color:#a78bfa;margin-top:4px;display:none;"></div>
-          </div>
-          <button onclick="addSpecialDay()" style="width:100%;padding:9px;background:linear-gradient(135deg,#6c63ff,#a78bfa);border:none;border-radius:12px;font-family:'Baloo 2',cursive;font-size:0.85rem;font-weight:800;color:white;cursor:pointer;box-shadow:0 3px 10px rgba(108,99,255,0.35);">
-            ⭐ Add Special Day
-          </button>
+          <label class="calm-toggle" id="parent-mode-toggle-wrap">
+            <input type="checkbox" id="parent-mode-checkbox" onchange="setParentMode(this.checked)">
+            <span class="calm-slider" style="background:#c7d7ff;"></span>
+          </label>
+        </div>
+        <div id="parent-mode-banner" style="display:none;margin-top:10px;background:#2d3561;border-radius:10px;padding:8px 12px;font-size:0.72rem;font-weight:700;color:white;text-align:center;">
+          ✏️ Parent Edit Mode ON — past days are editable
         </div>
       </div>
-
-
 
     </div><!-- end settings-scroll -->
 
