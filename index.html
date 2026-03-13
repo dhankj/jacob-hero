@@ -3375,6 +3375,13 @@ function openEventPopup(ev, di, slot) {
 
     label.textContent = ev.l;
     subtitle.textContent = `First ${daysAhead} ${sleepsWord}, then ${ev.l}!`;
+    document.querySelectorAll('.wave-bar').forEach(b => b.style.background = '#ffb347');
+    popup.classList.add('show');
+    const _sb = document.getElementById('jacob-speech'); if(_sb) _sb.classList.remove('visible');
+    ding('tap');
+    _popupSpeakText = `First, ${daysAhead} ${sleepsWord}. Then, ${ev.l}!`;
+    speak(_popupSpeakText);
+  } else {
     // TODAY — normal popup
     if (ev.photo) {
       imgZone.innerHTML = `<img src="${ev.photo}" alt="${ev.l}" style="width:100%;height:100%;object-fit:contain;">`;
@@ -3385,7 +3392,7 @@ function openEventPopup(ev, di, slot) {
     subtitle.textContent = `${childName}, it's time for ${ev.l.toLowerCase()}!`;
     document.querySelectorAll('.wave-bar').forEach(b => b.style.background = '#ffb347');
     popup.classList.add('show');
-    const _sb = document.getElementById('jacob-speech'); if(_sb) _sb.classList.remove('visible');
+    const _sb2 = document.getElementById('jacob-speech'); if(_sb2) _sb2.classList.remove('visible');
     ding('tap');
     _popupSpeakText = `${childName}, it's time for ${ev.l}!`;
     speak(_popupSpeakText);
@@ -3736,18 +3743,25 @@ function updateProgress(){
 // CONFETTI
 // ═══════════════════════════════════════════════════════════
 function burst(el){
-  if(!el) return;
-  if(document.body.classList.contains('calm')) return; // no confetti in calm mode
-  const r=el.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
-  const cls=['#ffd166','#06d6a0','#ef476f','#118ab2','#a29bfe','#fd9e5b'];
-  for(let i=0;i<11;i++){
-    const p=document.createElement('div'); p.className='confetti';
-    p.style.left=cx+(Math.random()-.5)*55+'px';
-    p.style.top=cy+(Math.random()-.5)*35+'px';
-    p.style.background=cls[i%cls.length];
-    p.style.animationDelay=(Math.random()*.22)+'s';
+  if(document.body.classList.contains('calm')) return;
+  // Always burst from centre of the popup card (not the grid card which may be off-screen)
+  const popup = document.querySelector('.act-popup-card');
+  const target = popup || el;
+  if(!target) return;
+  const r = target.getBoundingClientRect();
+  const cx = r.left + r.width / 2;
+  const cy = r.top  + r.height / 2;
+  const cls = ['#ffd166','#06d6a0','#ef476f','#118ab2','#a29bfe','#fd9e5b'];
+  for(let i = 0; i < 18; i++){
+    const p = document.createElement('div'); p.className = 'confetti';
+    const angle = (i / 18) * Math.PI * 2;
+    const dist  = 40 + Math.random() * 60;
+    p.style.left = (cx + Math.cos(angle) * dist * (Math.random() * 0.8 + 0.4)) + 'px';
+    p.style.top  = (cy + Math.sin(angle) * dist * (Math.random() * 0.8 + 0.4)) + 'px';
+    p.style.background = cls[i % cls.length];
+    p.style.animationDelay = (Math.random() * 0.2) + 's';
     document.body.appendChild(p);
-    setTimeout(()=>p.remove(),1400);
+    setTimeout(() => p.remove(), 1400);
   }
 }
 
