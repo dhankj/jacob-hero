@@ -2711,6 +2711,23 @@ function render(){
   renderGrid();
   updateProgress();
   positionJacob();
+  requestAnimationFrame(fitGrid);
+}
+
+function fitGrid(){
+  const app = document.getElementById('app');
+  const grid = document.getElementById('schedule-grid');
+  if(!app || !grid) return;
+  const appH = app.getBoundingClientRect().height;
+  let used = 0;
+  Array.from(app.children).forEach(el => {
+    if(el.id !== 'schedule-grid') used += el.getBoundingClientRect().height;
+  });
+  const avail = appH - used - 10;
+  if(avail > 100) {
+    grid.style.height = avail + 'px';
+    grid.style.flex = 'none';
+  }
 }
 
 function renderHeader(){
@@ -5031,7 +5048,8 @@ loadS().then(() => {
   applyParentMode();
   startSkyBar();
   scheduleRefresh();
-  window.addEventListener('resize', positionJacob);
+  window.addEventListener('resize', () => { positionJacob(); fitGrid(); });
+  fitGrid();
   setTimeout(() => {
     const greets = ['Vroom! 🏎️','Let\'s race! 🚀','Zoom zoom! ⚡','Full speed! 🏁','Go go go! 🏎️'];
     jacobSay(greets[TODAY_IDX % greets.length]);
