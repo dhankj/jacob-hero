@@ -1846,56 +1846,6 @@
         </button>
       </div>
 
-      <!-- BIRTHDAY SECTION -->
-      <div class="settings-section">
-        <h4>🎂 Birthday</h4>
-        <p style="font-size:0.72rem;color:#aaa;margin-bottom:10px;">
-          On Jacob's birthday, the whole day gets a special golden glow! 🌟
-        </p>
-        <div id="bday-active-banner" style="display:none;background:linear-gradient(135deg,#ffd166,#fd9e5b);border-radius:10px;padding:8px 12px;margin-bottom:10px;align-items:center;justify-content:space-between;gap:8px;">
-          <div>
-            <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:0.82rem;color:#2d3561;" id="bday-banner-text">🎂 Birthday set!</div>
-          </div>
-          <button onclick="clearBirthday()" style="background:rgba(0,0,0,0.15);border:none;border-radius:8px;padding:4px 8px;font-size:0.65rem;font-weight:800;color:#2d3561;cursor:pointer;">✕ Clear</button>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <div style="flex:1;">
-            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:4px;">Month</div>
-            <select id="bday-month" style="width:100%;padding:7px 10px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
-              <option value="">--</option>
-              <option value="1">January</option>
-              <option value="2">February</option>
-              <option value="3">March</option>
-              <option value="4">April</option>
-              <option value="5">May</option>
-              <option value="6">June</option>
-              <option value="7">July</option>
-              <option value="8">August</option>
-              <option value="9">September</option>
-              <option value="10">October</option>
-              <option value="11">November</option>
-              <option value="12">December</option>
-            </select>
-          </div>
-          <div style="flex:1;">
-            <div style="font-size:0.68rem;font-weight:700;color:#888;margin-bottom:4px;">Day</div>
-            <select id="bday-day" style="width:100%;padding:7px 10px;border:2px solid #e0e0e0;border-radius:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;color:#2d3561;">
-              <option value="">--</option>
-              <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
-              <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
-              <option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
-              <option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
-              <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option>
-              <option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option>
-              <option value="31">31</option>
-            </select>
-          </div>
-        </div>
-        <button onclick="applyBirthday()" style="width:100%;margin-top:10px;padding:9px;background:linear-gradient(135deg,#ffd166,#fd9e5b);border:none;border-radius:12px;font-family:'Baloo 2',cursive;font-size:0.85rem;font-weight:800;color:#2d3561;cursor:pointer;box-shadow:0 3px 10px rgba(255,209,102,0.4);">
-          🎂 Save Birthday
-        </button>
-      </div>
-
       <!-- SPECIAL DAYS SECTION -->
       <div class="settings-section">
         <h4>⭐ Special Days</h4>
@@ -2961,11 +2911,27 @@ function renderGrid(){
       const breakfast = S.acts[1];
       const dinner    = S.acts[3];
       const sleep     = S.acts[4];
-      col.appendChild(makeActCard(wakeUp,    di, W));
-      col.appendChild(makeActCard(breakfast, di, W));
-      col.appendChild(makeEventSlot(di, 0, W));
-      col.appendChild(makeActCard(dinner,    di, W));
-      col.appendChild(makeActCard(sleep,     di, W));
+      const isFutureWeekend = di > TODAY_IDX;
+
+      const wakeUpCard    = makeActCard(wakeUp,    di, W);
+      const breakfastCard = makeActCard(breakfast, di, W);
+      const eventSlot     = makeEventSlot(di, 0, W);
+      const dinnerCard    = makeActCard(dinner,    di, W);
+      const sleepCard     = makeActCard(sleep,     di, W);
+
+      if(isFutureWeekend){
+        // Dim activity cards, keep event slot active
+        [wakeUpCard, breakfastCard, dinnerCard, sleepCard].forEach(card => {
+          card.style.filter = 'grayscale(60%) opacity(40%)';
+          card.style.pointerEvents = 'none';
+        });
+      }
+
+      col.appendChild(wakeUpCard);
+      col.appendChild(breakfastCard);
+      col.appendChild(eventSlot);
+      col.appendChild(dinnerCard);
+      col.appendChild(sleepCard);
     } else {
       const sd = getSpecialDayForDate(colDateStr(di));
       S.acts.forEach((a, idx) => {
@@ -3199,7 +3165,14 @@ function popupToggleDone(){
   updatePopupDoneBtn();
   // Update the card in the grid too
   const cardEl = document.querySelector(`[data-dk="${_popupDk}"]`);
-  if(cardEl) cardEl.classList.toggle('done', !!S.done[_popupDk]);
+  if(cardEl){
+    const isEventCard = cardEl.classList.contains('event-slot');
+    if(isEventCard){
+      cardEl.classList.toggle('ev-done', !!S.done[_popupDk]);
+    } else {
+      cardEl.classList.toggle('done', !!S.done[_popupDk]);
+    }
+  }
   if(S.done[_popupDk]){
     ding('done');
     burst(cardEl || document.querySelector('.act-popup-card'));
@@ -3401,16 +3374,18 @@ function openActPopup(act, di, W) {
   const alreadyDone = !!S.done[_popupDk];
 
   _popupSpeakText = isWakeUp
-    ? `Good morning ${childName}! Time to wake up!`
+    ? (alreadyDone ? `${childName} woke up! Great start! 🌟` : `Good morning ${childName}! Time to wake up!`)
     : isSleep
       ? `Goodnight ${childName}. Sleep tight, sweet dreams!`
       : isSchoolCard
-        ? `Time for school, ${childName}! Have an awesome day!`
+        ? (alreadyDone ? `${childName} went to school today! 🎒` : `Time for school, ${childName}! Have an awesome day!`)
         : alreadyDone && foodName
           ? `I ate ${foodName} for ${actIdx2 === 1 ? 'breakfast' : 'dinner'}!`
-          : onHoliday
-            ? `${childName}, ${displayLabel}!`
-            : `${childName}, it's time to ${displayLabel}!`;
+          : alreadyDone
+            ? `${childName} did ${displayLabel} today! Great job!`
+            : onHoliday
+              ? `${childName}, ${displayLabel}!`
+              : `${childName}, it's time to ${displayLabel}!`;
 
   if (isWakeUp) {
     playWakeUpMelody(() => speak(_popupSpeakText));
@@ -3539,13 +3514,18 @@ function openEventPopup(ev, di, slot) {
     } else {
       imgZone.innerHTML = `<div class="act-popup-emoji-big">${ev.e||'🎉'}</div>`;
     }
+    const evAlreadyDone = !!S.done[_popupDk];
     label.textContent = ev.l;
-    subtitle.textContent = `${childName}, it's time for ${ev.l.toLowerCase()}!`;
+    subtitle.textContent = evAlreadyDone
+      ? `${childName} did ${ev.l} today! 🎉`
+      : `${childName}, it's time for ${ev.l.toLowerCase()}!`;
     document.querySelectorAll('.wave-bar').forEach(b => b.style.background = '#ffb347');
     popup.classList.add('show');
     const _sb2 = document.getElementById('jacob-speech'); if(_sb2) _sb2.classList.remove('visible');
     ding('tap');
-    _popupSpeakText = `${childName}, it's time for ${ev.l}!`;
+    _popupSpeakText = evAlreadyDone
+      ? `${childName} did ${ev.l} today! Great job!`
+      : `${childName}, it's time for ${ev.l}!`;
     speak(_popupSpeakText);
   }
 
