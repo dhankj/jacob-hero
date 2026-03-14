@@ -206,52 +206,11 @@
 
   /* ═══ JACOB JOURNEY STRIP ══════════════════════ */
   #journey-strip { flex-shrink:0; padding:5px 10px 3px; }
-
   /* ── Racing track ── */
-  .racetrack-wrap {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
   .racetrack {
-    flex: 1;
     position: relative; height: 72px;
     border-radius: 16px; overflow: hidden;
     box-shadow: 0 4px 18px rgba(0,0,0,0.22);
-  }
-  .parent-cheer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    flex-shrink: 0;
-    animation: cheer-bounce 1.8s ease-in-out infinite;
-  }
-  #cheer-dad { animation-delay: 0.4s; }
-  @keyframes cheer-bounce {
-    0%, 100% { transform: translateY(0); }
-    50%       { transform: translateY(-4px); }
-  }
-  .cheer-avatar {
-    width: 44px; height: 44px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 2.5px solid white;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-    background: #f0f4ff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.6rem;
-  }
-  .cheer-avatar img {
-    width: 100%; height: 100%; object-fit: cover;
-  }
-  .cheer-name {
-    font-family: 'Baloo 2', cursive;
-    font-size: 0.55rem;
-    font-weight: 800;
-    color: white;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    opacity: 0.9;
   }
 
   /* Asphalt base */
@@ -1505,14 +1464,7 @@
       </div>
     </div>
 
-    <div class="racetrack-wrap">
-      <!-- Mum cheerleader -->
-      <div class="parent-cheer" id="cheer-mum">
-        <div class="cheer-avatar" id="cheer-mum-avatar">👩</div>
-        <div class="cheer-name">Mum</div>
-      </div>
-
-      <div class="racetrack">
+    <div class="racetrack">
       <!-- Asphalt -->
       <div class="track-asphalt"></div>
       <!-- Scrolling scenery -->
@@ -1544,14 +1496,6 @@
       </div>
 
       </div>
-
-      <!-- Dad cheerleader -->
-      <div class="parent-cheer" id="cheer-dad">
-        <div class="cheer-avatar" id="cheer-dad-avatar">👨</div>
-        <div class="cheer-name">Dad</div>
-      </div>
-    </div>
-  </div>
 
   <!-- DAYS BAR -->
   <div id="days-bar"></div>
@@ -1817,48 +1761,6 @@
             <button class="ph-opt" id="settings-rm-photo-btn" onclick="removeJacobPhoto()" style="margin:0;display:none;">
               <div class="ph-ico" style="background:#fff0f3">🗑️</div>
               <div style="text-align:left;font-size:0.78rem;color:#ef476f;">Remove Photo</div>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Parent photos -->
-      <div class="settings-section">
-        <h4>👨‍👩‍👦 Family on the Track</h4>
-        <p style="font-size:0.72rem;color:#aaa;margin-bottom:12px;">Mum & Dad cheer Jacob on from the sidelines! 📣</p>
-        <div style="display:flex;gap:14px;">
-          <!-- Mum -->
-          <div style="flex:1;text-align:center;">
-            <div id="settings-mum-preview" style="width:54px;height:54px;border-radius:50%;overflow:hidden;border:3px solid #ff9eb5;background:#fff0f5;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 8px;">👩</div>
-            <div style="font-family:'Baloo 2',cursive;font-size:0.72rem;font-weight:800;color:#2d3561;margin-bottom:6px;">Mum</div>
-            <button class="ph-opt" onclick="triggerParentPhoto('mum','cam')" style="margin:0 0 4px;">
-              <div class="ph-ico" style="background:#dff0fb;width:28px;height:28px;font-size:0.9rem;">📷</div>
-              <div style="text-align:left;font-size:0.72rem;">Camera</div>
-            </button>
-            <button class="ph-opt" onclick="triggerParentPhoto('mum','gallery')" style="margin:0 0 4px;">
-              <div class="ph-ico" style="background:#f0fff8;width:28px;height:28px;font-size:0.9rem;">🖼️</div>
-              <div style="text-align:left;font-size:0.72rem;">Gallery</div>
-            </button>
-            <button class="ph-opt" id="rm-mum-btn" onclick="removeParentPhoto('mum')" style="margin:0;display:none;">
-              <div class="ph-ico" style="background:#fff0f3;width:28px;height:28px;font-size:0.9rem;">🗑️</div>
-              <div style="text-align:left;font-size:0.72rem;color:#ef476f;">Remove</div>
-            </button>
-          </div>
-          <!-- Dad -->
-          <div style="flex:1;text-align:center;">
-            <div id="settings-dad-preview" style="width:54px;height:54px;border-radius:50%;overflow:hidden;border:3px solid #74b9ff;background:#f0f8ff;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 8px;">👨</div>
-            <div style="font-family:'Baloo 2',cursive;font-size:0.72rem;font-weight:800;color:#2d3561;margin-bottom:6px;">Dad</div>
-            <button class="ph-opt" onclick="triggerParentPhoto('dad','cam')" style="margin:0 0 4px;">
-              <div class="ph-ico" style="background:#dff0fb;width:28px;height:28px;font-size:0.9rem;">📷</div>
-              <div style="text-align:left;font-size:0.72rem;">Camera</div>
-            </button>
-            <button class="ph-opt" onclick="triggerParentPhoto('dad','gallery')" style="margin:0 0 4px;">
-              <div class="ph-ico" style="background:#f0fff8;width:28px;height:28px;font-size:0.9rem;">🖼️</div>
-              <div style="text-align:left;font-size:0.72rem;">Gallery</div>
-            </button>
-            <button class="ph-opt" id="rm-dad-btn" onclick="removeParentPhoto('dad')" style="margin:0;display:none;">
-              <div class="ph-ico" style="background:#fff0f3;width:28px;height:28px;font-size:0.9rem;">🗑️</div>
-              <div style="text-align:left;font-size:0.72rem;color:#ef476f;">Remove</div>
             </button>
           </div>
         </div>
@@ -2241,8 +2143,6 @@
 <input type="file" id="jacob-input" class="file-input" accept="image/*">
 <input type="file" id="ev-cam-input" class="file-input" accept="image/*" capture="camera">
 <input type="file" id="ev-gal-input" class="file-input" accept="image/*">
-<input type="file" id="parent-cam-input" class="file-input" accept="image/*" capture="camera">
-<input type="file" id="parent-gal-input" class="file-input" accept="image/*">
 
 <script>
 // ═══════════════════════════════════════════════════════════
@@ -2336,8 +2236,6 @@ let S = {
   actFoodNames: {}, // { 'actId_di': 'Ramen' }
   foodHistory: { breakfast:[], dinner:[] },
   eventHistory: [],
-  mumPhoto: null,
-  dadPhoto: null,
   settings: {
     childName: 'Jacob',
     voiceName: '',   // empty = auto-pick best English voice
@@ -2687,7 +2585,6 @@ function openSettings(){
   // Voice list
   buildVoiceList();
   renderPraiseVoices();
-  updateParentAvatars();
   openModal('settings-modal');
 }
 
@@ -4777,65 +4674,8 @@ document.getElementById('jacob-input').addEventListener('change',e=>{
 });
 
 // ═══════════════════════════════════════════════════════════
-// PARENT PHOTOS
+// EDIT MODAL
 // ═══════════════════════════════════════════════════════════
-let _parentTarget = null; // 'mum' or 'dad'
-
-function triggerParentPhoto(who, type){
-  _parentTarget = who;
-  const input = type === 'cam'
-    ? document.getElementById('parent-cam-input')
-    : document.getElementById('parent-gal-input');
-  input.value = ''; input.click();
-}
-
-function handleParentPhoto(file){
-  if(!file || !_parentTarget) return;
-  compressImage(file, 400, 0.82, b64 => {
-    if(_parentTarget === 'mum') S.mumPhoto = b64;
-    else S.dadPhoto = b64;
-    saveS();
-    updateParentAvatars();
-    showToast(`📸 ${_parentTarget === 'mum' ? 'Mum' : 'Dad'}'s photo saved!`);
-  });
-}
-
-function removeParentPhoto(who){
-  if(who === 'mum') S.mumPhoto = null;
-  else S.dadPhoto = null;
-  saveS();
-  updateParentAvatars();
-  showToast('🗑️ Photo removed');
-}
-
-function updateParentAvatars(){
-  // Track cheerleaders
-  const mumAvatar = document.getElementById('cheer-mum-avatar');
-  const dadAvatar = document.getElementById('cheer-dad-avatar');
-  if(mumAvatar) mumAvatar.innerHTML = S.mumPhoto
-    ? `<img src="${S.mumPhoto}" alt="Mum">`
-    : '👩';
-  if(dadAvatar) dadAvatar.innerHTML = S.dadPhoto
-    ? `<img src="${S.dadPhoto}" alt="Dad">`
-    : '👨';
-  // Settings previews
-  const mumPrev = document.getElementById('settings-mum-preview');
-  const dadPrev = document.getElementById('settings-dad-preview');
-  if(mumPrev) mumPrev.innerHTML = S.mumPhoto
-    ? `<img src="${S.mumPhoto}" style="width:100%;height:100%;object-fit:cover;">`
-    : '👩';
-  if(dadPrev) dadPrev.innerHTML = S.dadPhoto
-    ? `<img src="${S.dadPhoto}" style="width:100%;height:100%;object-fit:cover;">`
-    : '👨';
-  // Remove buttons
-  const rmMum = document.getElementById('rm-mum-btn');
-  const rmDad = document.getElementById('rm-dad-btn');
-  if(rmMum) rmMum.style.display = S.mumPhoto ? 'flex' : 'none';
-  if(rmDad) rmDad.style.display = S.dadPhoto ? 'flex' : 'none';
-}
-
-document.getElementById('parent-cam-input').addEventListener('change', e => handleParentPhoto(e.target.files[0]));
-document.getElementById('parent-gal-input').addEventListener('change', e => handleParentPhoto(e.target.files[0]));
 let _eAid=null,_eDi=null,_eEmoji=null;
 function openEditModal(aid,di){
   const act=S.acts.find(a=>a.id===aid); if(!act) return;
@@ -4848,7 +4688,7 @@ function openEditModal(aid,di){
     b.textContent=em;
     b.onclick=()=>{
       _eEmoji=em;
-      g.querySelectorAll('button').forEach(x=>{x.style.background='transparent';x.style.borderColor='transparent';});
+      document.querySelectorAll('#emoji-grid button').forEach(x=>{x.style.background='transparent';x.style.borderColor='transparent';});
       b.style.background='#dff0fb'; b.style.borderColor='var(--ocean)';
     };
     g.appendChild(b);
@@ -5195,7 +5035,6 @@ loadS().then(() => {
   applyColourTheme();
   applyCalmState();
   applyParentMode();
-  updateParentAvatars();
   startSkyBar();
   scheduleRefresh();
   window.addEventListener('resize', positionJacob);
