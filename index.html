@@ -489,11 +489,11 @@
     transform: scale(1.04);
   }
   .day-col-hdr.today:active { transform:scale(0.98); }
-  /* Tomorrow — clear ring */
+  /* Tomorrow — same as regular weekday */
   .day-col-hdr.tomorrow {
-    outline: 2.5px solid var(--ocean);
-    outline-offset: 1px;
-    background: rgba(17,138,178,0.08);
+    background:rgba(255,255,255,0.72);
+    color:var(--deep); cursor:pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
   }
   .today-dot { width:5px; height:5px; background:var(--sun); border-radius:50%; box-shadow:0 0 4px var(--sun); }
   .day-when-label {
@@ -501,7 +501,7 @@
     font-family:'Nunito', sans-serif;
   }
   .day-col-hdr.today .day-when-label { opacity:0.9; color:var(--sun); }
-  .day-col-hdr.tomorrow .day-when-label { color:var(--ocean); opacity:1; font-weight:800; }
+  .day-col-hdr.tomorrow .day-when-label { opacity:0.75; font-weight:700; }
 
   /* ═══ MAIN GRID ══════════════════════════════════ */
   #schedule-grid {
